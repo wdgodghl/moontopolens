@@ -1,0 +1,5 @@
+/_build/
+/.mooncakes/
+/out/
+*.zip
+*.log
