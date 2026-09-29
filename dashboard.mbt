@@ -26,9 +26,9 @@ pub fn html_report(analysis : Analysis) -> String {
     #|<section class="panel"><h2>选择观察尺度</h2><label for="scale">尺度 <output id="scale-value"></output></label><input id="scale" type="range" min="0" max="1000" value="1000"><small>统计采用 [出生,死亡) 区间；截止处仍存在的类不代表无限寿命。</small></section>
     #|<div class="layout" style="margin-top:18px"><section class="panel"><h2>几何投影与代表环路</h2><p class="muted" id="projection-note"></p><svg id="geometry" viewBox="0 0 640 430" role="img" aria-label="过滤复形的二维投影"></svg><small>灰线为当前进入的边，橙线为选中环路在出生时的代表；三角形填充未绘制。</small></section>
     #|<section class="panel"><h2>区间筛选与排名</h2><div class="controls"><label>维度 <select id="dimension"><option value="1">H1 环路</option><option value="0">H0 分量</option><option value="all">全部</option></select></label><label>最小观察寿命 <input id="minimum" type="number" min="0" value="0" step="any"></label><label><input id="alive-only" type="checkbox">仅当前存活</label></div><small id="table-count"></small><div class="table-wrap"><table><thead><tr><th>选择</th><th>维度</th><th>出生</th><th>死亡</th><th>观察寿命</th></tr></thead><tbody id="interval-table"></tbody></table></div><small>未死亡区间以截止尺度减出生尺度作为寿命下界。最多展示前 200 行；CSV 和 JSON 保留全部数据。</small></section></div>
-    #|<section class="panel" style="margin-top:18px"><h2>Betti 曲线</h2><svg id="curve" viewBox="0 0 1000 250" role="img" aria-label="H0 和 H1 随尺度变化的曲线"></svg><small>蓝色 H0 / 橙色 H1；按 101 个尺度采样，短暂区间可能落在采样点之间。</small></section>
+    #|<section class="panel" style="margin-top:18px"><h2>Betti 曲线</h2><svg id="curve" viewBox="0 0 1000 250" role="img" aria-label="H0 和 H1 随尺度变化的曲线"></svg><small>蓝色 H0 / 橙色 H1；按全部出生和死亡事件绘制精确阶梯曲线；同尺度事件合并，区间使用左闭右开约定。</small></section>
     #|<div class="notice">代表环路用于解释计算结果，不保证最短。高维点云仅投影前两个坐标，投影交叉不代表原空间相交。距离矩阵没有几何坐标时仍可查看全部拓扑结果。</div>
-    #|<footer>由 MoonBit 核心计算生成。配套文件：report.json、intervals.csv、betti.csv、barcode.svg、diagram.svg。</footer>
+    #|<footer>由 MoonBit 核心计算生成。配套文件：report.json、intervals.csv、betti.csv、betti-events.csv、barcode.svg、diagram.svg。</footer>
     #|</main><script id="topology-data" type="application/json">
   let script =
     #|</script><script>
@@ -44,7 +44,7 @@ pub fn html_report(analysis : Analysis) -> String {
     #|el('cells').textContent=String(DATA.cell_count);el('longest').textContent=DATA.summary[1].longest_finite_lifetime===null?'—':fmt(DATA.summary[1].longest_finite_lifetime);
     #|el('projection-note').textContent=DATA.positions.length?'按输入坐标投影；网格使用列坐标与负行坐标。':'此输入不含几何坐标，可通过区间表与曲线观察拓扑。';
     #|function counts(scale){return[0,1].map(d=>DATA.intervals.filter(i=>i.dimension===d&&live(i,scale)).length);}
-    #|const curveSamples=Array.from({length:101},(_,i)=>{const s=i===100?DATA.cutoff:low+(DATA.cutoff-low)*i/100;return{s,b:counts(s)};}),curveTop=Math.max(1,...curveSamples.flatMap(p=>p.b));
+    #|const curveSamples=DATA.betti_events.map(p=>({s:p.scale,b:[p.h0,p.h1]})),curveTop=curveSamples.reduce((top,p)=>Math.max(top,...p.b),1);
     #|function renderGeometry(){
     #| const svg=el('geometry');svg.replaceChildren();if(!DATA.positions.length){svg.append(node('text',{x:35,y:180,fill:'#94a3b8'},'距离矩阵无几何坐标'));return;}
     #| let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
@@ -61,9 +61,9 @@ pub fn html_report(analysis : Analysis) -> String {
     #| for(const {i,index}of rows.slice(0,200)){const row=document.createElement('tr');if(index===selected)row.className='selected';const cell=document.createElement('td'),button=document.createElement('button');button.textContent=`#${index}`;button.setAttribute('aria-pressed',String(index===selected));button.addEventListener('click',()=>{selected=index;renderTable();renderGeometry();});cell.append(button);row.append(cell);for(const text of [`H${i.dimension}`,fmt(i.birth),fmt(i.death),fmt(life(i))]){const td=document.createElement('td');td.textContent=text;row.append(td);}body.append(row);}
     #|}
     #|function renderCurve(){
-    #| const svg=el('curve');svg.replaceChildren();const samples=curveSamples,top=curveTop;
+    #| const svg=el('curve');svg.replaceChildren();const samples=curveSamples,top=curveTop,xAt=s=>DATA.cutoff===low?970:50+(s-low)/(DATA.cutoff-low)*920;
     #| svg.append(node('path',{d:'M 50 20 V 210 H 970',fill:'none',stroke:'#64748b'}));
-    #| for(const d of [0,1])svg.append(node('polyline',{points:samples.flatMap((p,i)=>i?[`${50+i*9.2},${210-samples[i-1].b[d]/top*180}`,`${50+i*9.2},${210-p.b[d]/top*180}`]:[`${50+i*9.2},${210-p.b[d]/top*180}`]).join(' '),fill:'none',stroke:d?'#fb923c':'#38bdf8','stroke-width':2}));
+    #| for(const d of [0,1])svg.append(node('polyline',{points:samples.flatMap((p,i)=>i?[`${xAt(p.s)},${210-samples[i-1].b[d]/top*180}`,`${xAt(p.s)},${210-p.b[d]/top*180}`]:[`${xAt(p.s)},${210-p.b[d]/top*180}`]).join(' '),fill:'none',stroke:d?'#fb923c':'#38bdf8','stroke-width':2}));
     #| svg.append(node('text',{x:50,y:238,fill:'#94a3b8'},fmt(low)));svg.append(node('text',{x:900,y:238,fill:'#94a3b8'},fmt(DATA.cutoff)));svg.append(node('text',{x:8,y:25,fill:'#94a3b8'},String(top)));
     #| const x=DATA.cutoff===low?970:50+(current-low)/(DATA.cutoff-low)*920;svg.append(node('line',{x1:x,x2:x,y1:20,y2:210,stroke:'#e2e8f0','stroke-dasharray':'4 4'}));
     #|}

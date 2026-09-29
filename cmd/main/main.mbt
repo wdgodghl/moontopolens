@@ -6,6 +6,10 @@ fn usage() -> Unit {
   )
   println("moon run --target js cmd/main -- compare LEFT.json RIGHT.json")
   println("moon run --target js cmd/main -- summary INPUT.json")
+  println("moon run --target js cmd/main -- slice INPUT.json SCALE")
+  println(
+    "moon run --target js cmd/main -- landscape INPUT.json DIMENSION START END [--out NEW_DIRECTORY]",
+  )
   println(
     "Request kinds: points / matrix / grid / series. See examples and README.",
   )
@@ -23,6 +27,17 @@ fn load(path : String) -> @topo.Analysis raise @topo.TopologyError {
 }
 
 ///|
+fn numeric_argument(index : Int) -> Double raise @topo.TopologyError {
+  let parsed = @json.parse(argument(index)) catch {
+    _ => raise @topo.TopologyError("expected a numeric argument")
+  }
+  match parsed {
+    Number(value, ..) => value
+    _ => raise @topo.TopologyError("expected a numeric argument")
+  }
+}
+
+///|
 fn main {
   let count = argument_count()
   if count == 0 || argument(0) == "--help" {
@@ -31,6 +46,53 @@ fn main {
   }
   try {
     match argument(0) {
+      "slice" => {
+        if count != 3 {
+          print_error("slice requires INPUT.json SCALE")
+          return
+        }
+        println(
+          @topo.snapshot_json(load(argument(1)), numeric_argument(2)).stringify(),
+        )
+      }
+      "landscape" => {
+        if count != 5 && count != 7 {
+          print_error(
+            "landscape requires INPUT.json DIMENSION START END and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        if count == 7 && (argument(5) != "--out" || argument(6) == "") {
+          print_error("expected --out NEW_DIRECTORY")
+          return
+        }
+        let dimension = match argument(2) {
+          "0" => 0
+          "1" => 1
+          _ => raise @topo.TopologyError("landscape dimension must be 0 or 1")
+        }
+        let result = load(argument(1))
+        let start = numeric_argument(3)
+        let end = numeric_argument(4)
+        let report = @topo.landscape_json(result, dimension~, start~, end~).stringify()
+        let csv = @topo.landscape_csv(result, dimension~, start~, end~)
+        if count == 7 {
+          let output = argument(6)
+          if !new_output(output) {
+            print_error(
+              "output directory must be new and have an existing parent: " +
+              output,
+            )
+            return
+          }
+          if !save_output(output, "landscape.json", report) ||
+            !save_output(output, "landscape.csv", csv) {
+            print_error("could not save complete landscape export")
+            return
+          }
+        }
+        println(report)
+      }
       "summary" => {
         if count != 2 {
           print_error("summary requires INPUT.json")
@@ -74,6 +136,11 @@ fn main {
             !save_output(output, "diagram.svg", @topo.diagram_svg(result)) ||
             !save_output(output, "intervals.csv", @topo.intervals_csv(result)) ||
             !save_output(output, "betti.csv", @topo.betti_csv(result)) ||
+            !save_output(
+              output,
+              "betti-events.csv",
+              @topo.betti_events_csv(result),
+            ) ||
             !save_output(output, "report.html", @topo.html_report(result)) {
             print_error(
               "could not save complete report; check filesystem permissions",
