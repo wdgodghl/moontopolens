@@ -1,6 +1,6 @@
 # Mooncakes 发布说明
 
-当前发布状态：**尚未发布**。包名暂定 `wdgodghl/moontopolens`，版本 `0.4.0`。
+当前发布状态：**尚未发布**。包名暂定 `wdgodghl/moontopolens`，版本 `0.5.0`。
 账号命名空间必须与实际 Mooncakes 用户名一致，不能只凭 GitHub 用户名假定拥有发布权限。
 
 当前官网公开验收摘要没有强制发布条款。先前九条参考标准包含此项，
@@ -9,7 +9,7 @@
 ## 发布前
 
 1. 检查 CI 绿色，确认 README 仅声明已经完成的功能。
-2. 确认 OSI MIT 许可证、来源记录、安装与八个输入示例。
+2. 确认 OSI MIT 许可证、来源记录、安装与 JSON/PGM/批量输入示例。
 3. 检查 `moon.mod` 包名、版本、repository、license、readme、description。
 4. 运行 `moon package --list`，检查归档没有本地输出、工具链、凭据或 Git 历史。
 5. 如账号命名空间不同，同步修改模块名、内部 import、文档和 CI。
