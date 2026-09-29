@@ -155,6 +155,7 @@ pub fn report_json(analysis : Analysis) -> Json {
     "positions": analysis.filtration.positions,
     "position_meaning": "display projection: first two point coordinates; grid x and negative row; matrix has none",
     "summary": summary_json(analysis),
+    "betti_events": betti_events_json(analysis),
     "essential_meaning": "alive at input cutoff; not proof of infinite lifetime",
     "representative_meaning": "cycle at birth; not guaranteed shortest",
     "intervals": intervals,

@@ -18,11 +18,19 @@ pub fn betti_csv(Analysis, samples? : Int) -> String raise TopologyError
 
 pub fn betti_curve(Analysis, dimension~ : Int, Array[Double]) -> Array[Int] raise TopologyError
 
+pub fn betti_events(Analysis) -> Array[BettiEvent]
+
+pub fn betti_events_csv(Analysis) -> String
+
+pub fn betti_events_json(Analysis) -> Json
+
 pub fn bottleneck(Array[(Double, Double)], Array[(Double, Double)]) -> Double raise TopologyError
 
 pub fn circle_points(Int, Double) -> Array[Array[Double]] raise TopologyError
 
 pub fn compare_analyses(Analysis, Analysis, dimension~ : Int) -> Double? raise TopologyError
+
+pub fn connected_components(Analysis, Double) -> Array[Array[Int]] raise TopologyError
 
 pub fn cubical_grid(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
 
@@ -40,7 +48,13 @@ pub fn html_report(Analysis) -> String
 
 pub fn intervals_csv(Analysis) -> String
 
+pub fn landscape_csv(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> String raise TopologyError
+
+pub fn landscape_json(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> Json raise TopologyError
+
 pub fn observed_lifetime(Analysis, Interval) -> Double
+
+pub fn persistence_landscape(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> Array[Array[Double]] raise TopologyError
 
 pub fn ranked_intervals(Analysis, dimension~ : Int, min_lifetime? : Double, include_alive? : Bool) -> Array[Interval] raise TopologyError
 
@@ -49,6 +63,8 @@ pub fn report_json(Analysis) -> Json
 pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
 
 pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+
+pub fn snapshot_json(Analysis, Double) -> Json raise TopologyError
 
 pub fn summary_json(Analysis) -> Json
 
@@ -70,6 +86,13 @@ pub struct Analysis {
   column_additions : Int
 } derive(@debug.Debug)
 pub fn Analysis::to_repr(Self) -> @debug.Repr
+
+pub struct BettiEvent {
+  scale : Double
+  h0 : Int
+  h1 : Int
+} derive(@debug.Debug)
+pub fn BettiEvent::to_repr(Self) -> @debug.Repr
 
 pub struct Cell {
   key : String
