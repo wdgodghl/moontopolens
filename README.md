@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.4.0 比较与展示完善版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
+当前版本：**0.5.0 图像与批量工作流版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
 正式章程的执行口径尚待确认。发布作为生态扩展计划，不阻碍当前开发。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -21,6 +21,8 @@
 | 点云 | 1–32 维欧氏距离、Vietoris–Rips 过滤复形 |
 | 距离/不相似度矩阵 | 校验对称非负矩阵，构建 Rips 2-骨架 |
 | 二维网格 | 顶点值的 lower-star 方格复形，检测连接区域和洞 |
+| 灰度图像 | 直接解析 PGM P2/P5，保留原始灰度并进入网格过滤复形 |
+| 批量项目 | 从一个 JSON 清单分析多份输入并生成指定两两比较和总索引 |
 | 时间序列 | 指定维数、滞后、步长的延迟嵌入，随后进行 Rips 分析 |
 | 持续同调 | GF(2) 稀疏边界矩阵约化、H0/H1 区间、出生时的代表链 |
 | 比较与特征 | 精确瓶颈距离、Betti 数与曲线、寿命排名/筛选、有限区间持续熵 |
@@ -192,6 +194,37 @@ moon run --target js cmd/main -- slice examples/square.json 1 --out out-loop-sli
 SVG 顶点按 MoonBit 算出的连通分组着色，保留原始编号；七种颜色循环使用。
 选中的存活 H1 出生代表链使用橙色边。投影保持横纵等比例，未绘制二维填充。
 距离矩阵和空坐标输入只输出 JSON；不虚构几何位置。
+
+### 0.5.0：直接读取 PGM 图像与批量分析
+
+直接分析纯文本 P2 或二进制 P5 PGM 灰度图：
+
+```sh
+moon run --target js cmd/main -- image examples/ring-image.pgm 1 --out out-ring-image
+```
+
+`CUTOFF` 是原始像素值尺度；命令不反色、不归一化。示例外围为 0、中心为 1，
+在尺度 0 有一个 H1 洞，在尺度 1 消失。输出与网格分析相同的七个报告文件，
+另有 `image-info.json` 记录 PGM 编码、尺寸、最大灰度和截止值。
+支持 P2/P5、8 位及 16 位 P5；16 位样本按大端读取。
+当前只读取单幅、最大 64×64 且不超过 1 MB 的 PGM；PNG/JPEG 尚未支持。
+格式遵循 [Netpbm PGM 规范](https://netpbm.sourceforge.net/doc/pgm.html) 的单图像子集。
+
+一次运行多份输入与指定比较：
+
+```sh
+moon run --target js cmd/main -- batch examples/batch-study.json --out out-study
+```
+
+清单中的 `cases` 包含 `name`、相对于清单所在目录的 `input`；
+PGM 案例还需 `"format":"pgm"` 和数值 `threshold`，JSON 案例的格式默认是 `json`。
+可选的 `comparisons` 数组用 `name`、`left`、`right` 引用案例名。
+示例比较正方形与矩形，并核对 PGM 导入与等价 JSON 网格的结果。
+`out-study/batch.json` 是汇总索引；`cases/<名称>/` 保存每份完整分析，
+`comparisons/<名称>/` 保存比较 JSON、匹配 CSV、离线 HTML 和两侧持续图。
+案例名只接受 ASCII 字母、数字、`-`、`_`。清单最多 8 个案例、12 个比较，
+合计最多 16000 个过滤细胞。输入路径限于清单所在目录及子目录；
+所有输入和比较先完成计算，再创建全新的输出目录。
 
 ## 自定义输入
 

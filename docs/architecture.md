@@ -2,7 +2,7 @@
 
 ## 数据流
 
-`JSON/库调用 → 校验与距离/嵌入 → Rips 或 cubical 过滤复形 → GF(2) 约化 → 区间/代表链 → 比较或导出`
+`JSON/PGM/库调用 → 校验与距离/嵌入/像素解析 → Rips 或 cubical 过滤复形 → GF(2) 约化 → 区间/代表链 → 比较或导出`
 
 | 文件 | 职责 |
 | --- | --- |
@@ -10,6 +10,8 @@
 | geometry.mbt | 有界点云校验、欧氏距离矩阵、圆形样本 |
 | rips.mbt | 截止距离下的点、边、三角形 |
 | cubical.mbt | 顶点 lower-star 的网格顶点、边与方格 |
+| pgm.mbt | P2/P5 单图像解析、像素范围与大小校验 |
+| batch.mbt | 有界批量清单的严格解析与案例引用校验 |
 | embedding.mbt | 有滞后与步长的时间序列窗口 |
 | persistence.mbt | 输入复形校验、稀疏列约化、代表链、Betti 数 |
 | diagrams.mbt | 图点提取、瓶颈距离、未死亡类匹配、Betti 曲线 |
