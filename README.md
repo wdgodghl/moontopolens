@@ -6,10 +6,10 @@
 **基于 MoonBit 的持续同调与数据拓扑分析工具箱。**
 
 让点云、距离数据、时间序列和二维网格中的连接分量与环路变得可计算、可比较、可解释。
-提供可复用库、命令行分析器、JSON 报告、SVG 条形码与持续图。
+提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.1.0 初步实现**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
+当前版本：**0.2.0 功能完善版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
 正式章程的执行口径尚待确认。发布作为生态扩展计划，不阻碍当前开发。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 
@@ -22,8 +22,8 @@
 | 二维网格 | 顶点值的 lower-star 方格复形，检测连接区域和洞 |
 | 时间序列 | 指定维数、滞后、步长的延迟嵌入，随后进行 Rips 分析 |
 | 持续同调 | GF(2) 稀疏边界矩阵约化、H0/H1 区间、出生时的代表链 |
-| 比较与特征 | 精确瓶颈距离（包括对角线匹配）、Betti 数与曲线 |
-| 输出 | 完整 JSON 数据、独立 SVG 条形码和持续图 |
+| 比较与特征 | 精确瓶颈距离、Betti 数与曲线、寿命排名/筛选、有限区间持续熵 |
+| 输出 | 完整 JSON、区间/曲线 CSV、SVG 条形码/持续图、离线 HTML 报告 |
 
 H0 对应连接分量，H1 对应闭合环路。长寿命特征在较多尺度存在，
 可以作为进一步分析的线索；其物理意义需要结合输入数据判断。
@@ -66,6 +66,7 @@ moon run --target wasm-gc cmd/demo
 ```sh
 moon run --target js cmd/main -- analyze examples/square.json --out out-square
 moon run --target js cmd/main -- compare examples/square.json examples/rectangle.json
+moon run --target js cmd/main -- summary examples/square.json
 ```
 
 正方形的 H1 环路在边长 `1` 出生，在对角线 `√2` 消失。
@@ -96,11 +97,37 @@ moon run --target js cmd/main -- analyze examples/ring-grid.json --out out-grid
 适用于小型图案、占据网格和教学数据。采用顶点 lower-star 与四方向相邻约定，
 不等同于所有图像库的像素连接规则。
 
+`examples/two-holes-grid.json` 包含两个洞，可以在 HTML 报告中分别选择其代表环路：
+
+```sh
+moon run --target js cmd/main -- analyze examples/two-holes-grid.json --out out-two-holes
+```
+
 输出目录必须尚不存在，且父目录已存在。每次分析保存：
 
 - `report.json`：所有区间、细胞、边界、代表链与约化统计。
 - `barcode.svg`：最多显示前 80 个区间；完整数据保留在 JSON 中。
 - `diagram.svg`：出生/死亡散点图；顶部表示在输入截止处仍存在的类。
+- `intervals.csv`：所有区间、死亡状态、观察寿命和代表细胞索引。
+- `betti.csv`：101 个尺度上的 H0/H1，包含截止尺度。
+- `report.html`：可离线打开的完整交互报告。
+
+### 离线报告怎么用
+
+直接用浏览器打开输出目录中的 `report.html`，无需服务器或网络：
+
+1. 拖动尺度滑块，观察当前 H0/H1 数量、进入复形的顶点和边。
+2. 选择维度、最小观察寿命或“仅当前存活”，筛选并查看区间排名。
+3. 点击区间编号，在该环路存活的尺度上查看橙色代表边。
+4. 查看 Betti 曲线，或将 CSV 导入表格/绘图工具继续分析。
+
+绘图坐标不参与同调计算：高维点云保留原维度距离，仅前两个坐标用于展示。
+一维点云投影到横轴；网格使用 `(列,-行)`；距离矩阵没有几何坐标时显示说明。
+图中未绘制二维填充细胞，应结合 H1 数字判断环路是否已死亡。
+HTML 表格最多显示筛选后的前 200 行，JSON 和 CSV 保留全部区间。
+
+`summary` 命令只精简输出，计算过程与 `analyze` 相同。
+比较命令额外记录双方截止尺度和复形类型是否一致，供判断结果的可比性。
 
 ## 自定义输入
 
@@ -136,6 +163,9 @@ let analysis = @topo.analyze(filtration)
 let loops = @topo.betti(analysis, 1, 1.0) // 1
 let finite_diagram = @topo.diagram(analysis, 1)
 let json = @topo.report_json(analysis)
+let strongest = @topo.ranked_intervals(analysis, dimension=1, min_lifetime=0.1)
+let summary = @topo.summary_json(analysis)
+let html = @topo.html_report(analysis)
 ```
 
 调用者需要处理 `TopologyError`。公开 API 见 [pkg.generated.mbti](pkg.generated.mbti)，
@@ -153,7 +183,9 @@ let json = @topo.report_json(analysis)
 - 点云/矩阵最多 128 个点，维度最多 32；网格最多 64×64；有限图匹配各最多 64 个区间。
 - 最大细胞数默认 4000、硬上限 10000；约化默认最多 2,000,000 次列加法，
   存储最多 2,000,000 个稀疏条目。Rips 三角形数量可快速增长，超过预算时明确报错。
-- 只处理小规模内存数据，未做大数据性能承诺；浏览器交互界面尚未实现。
+- 持续熵仅统计有限区间，使用自然对数；无正寿命有限区间时约定为 0。
+  未死亡类的观察寿命为 `cutoff-birth` 下界，不能当作完整寿命。
+- 只处理小规模内存数据，未做大数据性能承诺；完整 H2、最短环路和在线上传应用仍属后续计划。
 
 算法结构与正确性说明见 [architecture](docs/architecture.md)。
 
@@ -175,9 +207,10 @@ moon package --list
 ```
 
 测试覆盖已知形状、重复点、截止语义、稀疏预算、无效输入、网格与嵌入、导出与比较。
-JS 与 Wasm GC 各 27 个测试通过，另有 CLI 端到端验证。
+JS 与 Wasm GC 各 32 个测试通过，另有 CLI 端到端验证。
 另外使用独立的稠密行消元算法核对 12 个点云在 11 个尺度的 Betti 数，
-使用穷举匹配核对瓶颈距离。CI 包含类型检查、构建、两种后端测试、覆盖率摘要和 CLI 场景。
+使用穷举匹配核对瓶颈距离。CI 包含类型检查、构建、两种后端测试、覆盖率摘要和七个 CLI 场景。
+生成的 HTML 通过 DOM 替身检查滑块、筛选、选中环路与显示数值；该方法不验证真实浏览器视觉布局。
 
 ## 项目来源与许可证
 
