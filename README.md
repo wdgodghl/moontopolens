@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.2.0 功能完善版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
+当前版本：**0.3.0 分析特征版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
 正式章程的执行口径尚待确认。发布作为生态扩展计划，不阻碍当前开发。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 
@@ -23,6 +23,7 @@
 | 时间序列 | 指定维数、滞后、步长的延迟嵌入，随后进行 Rips 分析 |
 | 持续同调 | GF(2) 稀疏边界矩阵约化、H0/H1 区间、出生时的代表链 |
 | 比较与特征 | 精确瓶颈距离、Betti 数与曲线、寿命排名/筛选、有限区间持续熵 |
+| 尺度与向量 | 精确 Betti 事件、指定尺度的连通分组、持久景观采样与特征向量 |
 | 输出 | 完整 JSON、区间/曲线 CSV、SVG 条形码/持续图、离线 HTML 报告 |
 
 H0 对应连接分量，H1 对应闭合环路。长寿命特征在较多尺度存在，
@@ -110,6 +111,7 @@ moon run --target js cmd/main -- analyze examples/two-holes-grid.json --out out-
 - `diagram.svg`：出生/死亡散点图；顶部表示在输入截止处仍存在的类。
 - `intervals.csv`：所有区间、死亡状态、观察寿命和代表细胞索引。
 - `betti.csv`：101 个尺度上的 H0/H1，包含截止尺度。
+- `betti-events.csv`：全部出生/死亡尺度的精确 H0/H1，合并同尺度事件。
 - `report.html`：可离线打开的完整交互报告。
 
 ### 离线报告怎么用
@@ -128,6 +130,39 @@ HTML 表格最多显示筛选后的前 200 行，JSON 和 CSV 保留全部区间
 
 `summary` 命令只精简输出，计算过程与 `analyze` 相同。
 比较命令额外记录双方截止尺度和复形类型是否一致，供判断结果的可比性。
+
+### 0.3.0：尺度快照与持久景观
+
+查看指定尺度有哪些分组、多少细胞和环路：
+
+```sh
+moon run --target js cmd/main -- slice examples/square.json 1
+moon run --target js cmd/main -- slice examples/clusters.json 0.5
+```
+
+快照包含 H0/H1、各维度活跃细胞数、连通分组的原始顶点编号和存活区间索引。
+正方形在尺度 `1` 为一个分组、一个环路；分离簇在 `0.5` 为两个分组。
+允许查询首个细胞出现之前的空快照；超出输入截止尺度返回错误。
+原始网格编号为 `行×列数+列`，不会把未进入的顶点重新编号。
+
+把有限区间转换成持久景观向量，便于后续统计分析：
+
+```sh
+moon run --target js cmd/main -- landscape examples/two-holes-grid.json 1 0 1 --out out-landscape
+```
+
+参数依次为输入、同调维度、采样起点和终点；输出目录可省略，仅向标准输出打印 JSON。
+CLI 固定 101 个采样点、3 层，保存 `landscape.json` 和 `landscape.csv`。
+两个 `[0,1)` 的洞在尺度 `0.5` 对应前两层各 `0.5`，第三层为 `0`。
+JSON 同时提供采样网格、分层值和长度 303 的按层拼接向量。
+库 API 可自定义采样点数和层数。这里使用原始三角帐篷高度，不缩放或归一化；
+截止时仍未死亡的区间明确排除并记录数量，不能将截止当作死亡值。
+比较向量必须使用一致维度、采样范围、点数、层数、尺度单位和可比的截断条件。
+这些是采样特征，不代表已经实现分类器。
+
+HTML 曲线现在使用精确事件，保留短暂环路；`betti.csv` 仍供均匀采样分析。
+`examples/short-loop-grid.json` 的 H1 仅在 `[0.004,0.005)` 存活：
+101 点的均匀采样全部为 0，事件 CSV 和 HTML 曲线仍保留该环路。
 
 ## 自定义输入
 
@@ -166,6 +201,12 @@ let json = @topo.report_json(analysis)
 let strongest = @topo.ranked_intervals(analysis, dimension=1, min_lifetime=0.1)
 let summary = @topo.summary_json(analysis)
 let html = @topo.html_report(analysis)
+let events = @topo.betti_events(analysis)
+let groups = @topo.connected_components(analysis, 1.0)
+let snapshot = @topo.snapshot_json(analysis, 1.0)
+let landscape = @topo.persistence_landscape(
+  analysis, dimension=1, start=0.0, end=2.0, samples=101, layers=3,
+)
 ```
 
 调用者需要处理 `TopologyError`。公开 API 见 [pkg.generated.mbti](pkg.generated.mbti)，
@@ -185,6 +226,8 @@ let html = @topo.html_report(analysis)
   存储最多 2,000,000 个稀疏条目。Rips 三角形数量可快速增长，超过预算时明确报错。
 - 持续熵仅统计有限区间，使用自然对数；无正寿命有限区间时约定为 0。
   未死亡类的观察寿命为 `cutoff-birth` 下界，不能当作完整寿命。
+- 持久景观限 2–1001 个采样点、1–16 层，并限制 `有限区间数×采样点数×层数 ≤ 2,000,000`。
+  连通分组要求零细胞/边保留一/两个原始顶点 ID；不支持缺失该编码的自定义过滤。
 - 只处理小规模内存数据，未做大数据性能承诺；完整 H2、最短环路和在线上传应用仍属后续计划。
 
 算法结构与正确性说明见 [architecture](docs/architecture.md)。
@@ -207,9 +250,10 @@ moon package --list
 ```
 
 测试覆盖已知形状、重复点、截止语义、稀疏预算、无效输入、网格与嵌入、导出与比较。
-JS 与 Wasm GC 各 32 个测试通过，另有 CLI 端到端验证。
+JS 与 Wasm GC 各 42 个测试通过，另有 CLI 端到端验证。
 另外使用独立的稠密行消元算法核对 12 个点云在 11 个尺度的 Betti 数，
-使用穷举匹配核对瓶颈距离。CI 包含类型检查、构建、两种后端测试、覆盖率摘要和七个 CLI 场景。
+使用穷举匹配核对瓶颈距离。CI 包含类型检查、构建、两种后端测试、覆盖率摘要和八个 CLI 场景。
+每个示例在全部 Betti 事件处验证快照分组数，持久景观用已知帐篷函数核对。
 生成的 HTML 通过 DOM 替身检查滑块、筛选、选中环路与显示数值；该方法不验证真实浏览器视觉布局。
 
 ## 项目来源与许可证
