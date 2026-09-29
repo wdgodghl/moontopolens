@@ -1,0 +1,12 @@
+{
+  "cases": [
+    {"name": "square", "input": "square.json"},
+    {"name": "rectangle", "input": "rectangle.json"},
+    {"name": "ring-image", "input": "ring-image.pgm", "format": "pgm", "threshold": 1},
+    {"name": "ring-grid", "input": "ring-grid.json"}
+  ],
+  "comparisons": [
+    {"name": "shape-change", "left": "square", "right": "rectangle"},
+    {"name": "image-vs-grid", "left": "ring-image", "right": "ring-grid"}
+  ]
+}

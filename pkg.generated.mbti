@@ -62,6 +62,10 @@ pub fn matching_csv(Analysis, Analysis) -> String raise TopologyError
 
 pub fn observed_lifetime(Analysis, Interval) -> Double
 
+pub fn parse_batch_manifest(String) -> BatchPlan raise TopologyError
+
+pub fn parse_pgm(Array[Int]) -> PgmImage raise TopologyError
+
 pub fn persistence_landscape(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> Array[Array[Double]] raise TopologyError
 
 pub fn ranked_intervals(Analysis, dimension~ : Int, min_lifetime? : Double, include_alive? : Bool) -> Array[Interval] raise TopologyError
@@ -96,6 +100,27 @@ pub struct Analysis {
   column_additions : Int
 } derive(@debug.Debug)
 pub fn Analysis::to_repr(Self) -> @debug.Repr
+
+pub struct BatchCase {
+  name : String
+  input : String
+  format : String
+  threshold : Double?
+} derive(@debug.Debug)
+pub fn BatchCase::to_repr(Self) -> @debug.Repr
+
+pub struct BatchPair {
+  name : String
+  left : String
+  right : String
+} derive(@debug.Debug)
+pub fn BatchPair::to_repr(Self) -> @debug.Repr
+
+pub struct BatchPlan {
+  cases : Array[BatchCase]
+  comparisons : Array[BatchPair]
+} derive(@debug.Debug)
+pub fn BatchPlan::to_repr(Self) -> @debug.Repr
 
 pub struct BettiEvent {
   scale : Double
@@ -139,6 +164,13 @@ pub struct IntervalMatch {
   kind : String
 } derive(@debug.Debug)
 pub fn IntervalMatch::to_repr(Self) -> @debug.Repr
+
+pub struct PgmImage {
+  grid : Array[Array[Double]]
+  max_value : Int
+  encoding : String
+} derive(@debug.Debug)
+pub fn PgmImage::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

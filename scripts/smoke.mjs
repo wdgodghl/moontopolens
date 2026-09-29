@@ -132,10 +132,51 @@ for (const [scale,index] of [['2',String(loopIndex)],['1','-1'],['1','0.5'],['1'
   assert.ok(!fs.existsSync(invalidOut));
 }
 cli(['compare','examples/square.json','examples/square.json','--bad','unused'],2);
+const imageOut = path.join(temporary, 'ring-image');
+const image = JSON.parse(cli(['image', 'examples/ring-image.pgm', '1', '--out', imageOut]));
+const grid = JSON.parse(cli(['analyze', 'examples/ring-grid.json']));
+assert.deepEqual(image.intervals, grid.intervals);
+assert.equal(betti(image, 1, 0), 1);
+assert.equal(betti(image, 1, 1), 0);
+assert.equal(JSON.parse(fs.readFileSync(path.join(imageOut, 'image-info.json'), 'utf8')).max_value, 1);
+assert.ok(fs.readFileSync(path.join(imageOut, 'report.html'), 'utf8').includes('<html'));
+cli(['image', 'examples/ring-image.pgm', '1', '--out', imageOut], 2);
+const rawPgm = path.join(temporary, 'raw.pgm');
+fs.writeFileSync(rawPgm, Buffer.from('P5\n2 1\n1023\n\x00\x01\x03\xff', 'latin1'));
+const rawReport = JSON.parse(cli(['image', rawPgm, '1023']));
+assert.equal(rawReport.vertex_count, 2);
+const malformedPgm = path.join(temporary, 'malformed.pgm');
+fs.writeFileSync(malformedPgm, 'P2 1 1 1 2');
+cli(['image', malformedPgm, '1'], 2);
+cli(['image', 'examples/ring-image.pgm', 'null'], 2);
+const batchOut = path.join(temporary, 'batch');
+const batch = JSON.parse(cli(['batch', 'examples/batch-study.json', '--out', batchOut]));
+assert.equal(batch.case_count, 4);
+assert.equal(batch.comparison_count, 2);
+assert.deepEqual(JSON.parse(fs.readFileSync(path.join(batchOut, 'batch.json'), 'utf8')), batch);
+for (const item of batch.cases) {
+  const report = JSON.parse(fs.readFileSync(path.join(batchOut, item.report), 'utf8'));
+  assert.equal(report.schema_version, 1);
+  assert.ok(fs.existsSync(path.join(batchOut, 'cases', item.name, 'report.html')));
+}
+for (const item of batch.comparisons) {
+  const report = JSON.parse(fs.readFileSync(path.join(batchOut, item.report), 'utf8'));
+  assert.equal(report.distances.length, 2);
+  assert.ok(fs.existsSync(path.join(batchOut, 'comparisons', item.name, 'matches.csv')));
+}
+assert.deepEqual(JSON.parse(fs.readFileSync(path.join(batchOut, 'cases', 'ring-image', 'report.json'), 'utf8')).intervals, image.intervals);
+assert.ok(JSON.parse(fs.readFileSync(path.join(batchOut, 'comparisons', 'image-vs-grid', 'comparison.json'), 'utf8')).distances.every(x => x.bottleneck === 0));
+cli(['batch', 'examples/batch-study.json', '--out', batchOut], 2);
+const badManifest = path.join(temporary, 'bad-manifest.json');
+fs.writeFileSync(badManifest, JSON.stringify({cases:[{name:'escape',input:'../outside.json'}]}));
+const rejectedOut = path.join(temporary, 'rejected-batch');
+cli(['batch', badManifest, '--out', rejectedOut], 2);
+assert.ok(!fs.existsSync(rejectedOut));
+cli(['batch', 'examples/batch-study.json'], 2);
 cli(['slice','examples/square.json','1','--bad','unused'],2);
 cli(['analyze', path.join(temporary, 'missing.json')], 2);
 cli(['compare'], 2);
 cli(['summary'], 2);
 cli(['unknown'], 2);
 assert.ok(cli(['--help']).includes('MoonTopoLens'));
-console.log('CLI smoke passed: eight scenarios, exact events, snapshot SVG, landscapes, comparison matching, both offline UIs, exports and errors.');
+console.log('CLI smoke passed: eight data scenarios, P2/P5 image import, batch study, exact events, snapshot SVG, landscapes, comparison matching, both offline UIs, exports and errors.');
