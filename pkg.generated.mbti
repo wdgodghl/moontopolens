@@ -1,0 +1,90 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "wdgodghl/moontopolens"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn analyze(Filtration, include_zero? : Bool, max_additions? : Int) -> Analysis raise TopologyError
+
+pub fn analyze_json(String) -> Analysis raise TopologyError
+
+pub fn barcode_svg(Analysis) -> String
+
+pub fn betti(Analysis, Int, Double) -> Int raise TopologyError
+
+pub fn betti_curve(Analysis, dimension~ : Int, Array[Double]) -> Array[Int] raise TopologyError
+
+pub fn bottleneck(Array[(Double, Double)], Array[(Double, Double)]) -> Double raise TopologyError
+
+pub fn circle_points(Int, Double) -> Array[Array[Double]] raise TopologyError
+
+pub fn compare_analyses(Analysis, Analysis, dimension~ : Int) -> Double? raise TopologyError
+
+pub fn cubical_grid(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+
+pub fn cycle_edges(Analysis, Interval) -> Array[(Int, Int)] raise TopologyError
+
+pub fn delay_embed(Array[Double], dimension~ : Int, lag~ : Int, stride? : Int) -> Array[Array[Double]] raise TopologyError
+
+pub fn diagram(Analysis, Int) -> Array[(Double, Double)] raise TopologyError
+
+pub fn diagram_svg(Analysis) -> String
+
+pub fn distance_matrix(Array[Array[Double]]) -> Array[Array[Double]] raise TopologyError
+
+pub fn report_json(Analysis) -> Json
+
+pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+
+pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+
+pub fn validate_filtration(Filtration) -> Unit raise TopologyError
+
+pub fn validate_matrix(Array[Array[Double]]) -> Unit raise TopologyError
+
+// Errors
+pub(all) suberror TopologyError {
+  TopologyError(String)
+} derive(@debug.Debug)
+pub fn TopologyError::message(Self) -> String
+pub fn TopologyError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+pub struct Analysis {
+  filtration : Filtration
+  intervals : Array[Interval]
+  column_additions : Int
+} derive(@debug.Debug)
+pub fn Analysis::to_repr(Self) -> @debug.Repr
+
+pub struct Cell {
+  key : String
+  dimension : Int
+  value : Double
+  boundary : Array[Int]
+  vertices : Array[Int]
+} derive(@debug.Debug)
+pub fn Cell::to_repr(Self) -> @debug.Repr
+
+pub struct Filtration {
+  cells : Array[Cell]
+  vertex_count : Int
+  kind : String
+} derive(@debug.Debug)
+pub fn Filtration::to_repr(Self) -> @debug.Repr
+
+pub struct Interval {
+  dimension : Int
+  birth : Double
+  death : Double?
+  birth_cell : Int
+  death_cell : Int?
+  representative : Array[Int]
+} derive(@debug.Debug)
+pub fn Interval::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits
