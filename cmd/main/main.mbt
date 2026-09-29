@@ -5,6 +5,7 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- analyze INPUT.json [--out NEW_DIRECTORY]",
   )
   println("moon run --target js cmd/main -- compare LEFT.json RIGHT.json")
+  println("moon run --target js cmd/main -- summary INPUT.json")
   println(
     "Request kinds: points / matrix / grid / series. See examples and README.",
   )
@@ -30,6 +31,22 @@ fn main {
   }
   try {
     match argument(0) {
+      "summary" => {
+        if count != 2 {
+          print_error("summary requires INPUT.json")
+          return
+        }
+        let result = load(argument(1))
+        let summary : Json = {
+          "cutoff": result.filtration.cutoff,
+          "kind": result.filtration.kind,
+          "vertex_count": result.filtration.vertex_count,
+          "cell_count": result.filtration.cells.length(),
+          "summary": @topo.summary_json(result),
+          "note": "observed lifetimes of alive classes are lower bounds; finite entropy excludes them",
+        }
+        println(summary.stringify())
+      }
       "analyze" => {
         if count != 2 && count != 4 {
           print_error(
@@ -54,7 +71,10 @@ fn main {
           }
           if !save_output(output, "report.json", report) ||
             !save_output(output, "barcode.svg", @topo.barcode_svg(result)) ||
-            !save_output(output, "diagram.svg", @topo.diagram_svg(result)) {
+            !save_output(output, "diagram.svg", @topo.diagram_svg(result)) ||
+            !save_output(output, "intervals.csv", @topo.intervals_csv(result)) ||
+            !save_output(output, "betti.csv", @topo.betti_csv(result)) ||
+            !save_output(output, "report.html", @topo.html_report(result)) {
             print_error(
               "could not save complete report; check filesystem permissions",
             )
@@ -86,6 +106,10 @@ fn main {
         let report : Json = {
           "metric": "bottleneck",
           "distances": distances,
+          "left_cutoff": a.filtration.cutoff,
+          "right_cutoff": b.filtration.cutoff,
+          "cutoffs_equal": a.filtration.cutoff == b.filtration.cutoff,
+          "complex_kinds_equal": a.filtration.kind == b.filtration.kind,
           "note": "null means essential interval counts differ; use comparable cutoffs and units",
         }
         println(report.stringify())

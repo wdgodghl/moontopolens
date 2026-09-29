@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { verifyReportUI } from './report-ui-smoke.mjs';
 
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'moontopolens-smoke-'));
 function cli(args, code = 0) {
@@ -16,16 +17,25 @@ function cli(args, code = 0) {
 function betti(report, dimension, scale) {
   return report.intervals.filter(i => i.dimension === dimension && i.birth <= scale && (i.death === null || scale < i.death)).length;
 }
-for (const name of ['square', 'rectangle', 'clusters', 'ring-grid', 'periodic-series', 'matrix']) {
+for (const name of ['square', 'rectangle', 'clusters', 'ring-grid', 'two-holes-grid', 'periodic-series', 'matrix']) {
   const output = path.join(temporary, name);
   const report = JSON.parse(cli(['analyze', `examples/${name}.json`, '--out', output]));
   assert.equal(report.schema_version, 1);
+  assert.equal(report.summary.length, 2);
+  const concise = JSON.parse(cli(['summary', `examples/${name}.json`]));
+  assert.deepEqual(concise.summary, report.summary);
+  assert.equal(concise.cutoff, report.cutoff);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(output, 'report.json'), 'utf8')), report);
   for (const svg of ['barcode.svg', 'diagram.svg']) {
     const text = fs.readFileSync(path.join(output, svg), 'utf8');
     assert.ok(text.startsWith('<svg') && text.endsWith('</svg>'));
     assert.ok(!/NaN|Infinity/.test(text));
   }
+  const intervals = fs.readFileSync(path.join(output, 'intervals.csv'), 'utf8').trim().split('\n');
+  assert.equal(intervals.length, report.intervals.length + 1);
+  const curve = fs.readFileSync(path.join(output, 'betti.csv'), 'utf8').trim().split('\n');
+  assert.equal(curve.length, 102);
+  verifyReportUI(fs.readFileSync(path.join(output, 'report.html'), 'utf8'), report, name);
   if (name === 'square') {
     assert.equal(betti(report, 1, 1), 1);
     assert.equal(betti(report, 1, Math.SQRT2), 0);
@@ -42,8 +52,10 @@ const same = JSON.parse(cli(['compare', 'examples/square.json', 'examples/square
 assert.ok(same.distances.every(x => x.bottleneck === 0));
 const changed = JSON.parse(cli(['compare', 'examples/square.json', 'examples/rectangle.json']));
 assert.ok(changed.distances.find(x => x.dimension === 1).bottleneck > 0);
+assert.equal(changed.cutoffs_equal, false);
 cli(['analyze', path.join(temporary, 'missing.json')], 2);
 cli(['compare'], 2);
+cli(['summary'], 2);
 cli(['unknown'], 2);
 assert.ok(cli(['--help']).includes('MoonTopoLens'));
-console.log('CLI smoke passed: six scenarios, exports, comparisons, help and error paths.');
+console.log('CLI smoke passed: seven scenarios, HTML interactions, CSV exports, comparisons and errors.');
