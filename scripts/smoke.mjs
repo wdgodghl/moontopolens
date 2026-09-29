@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { verifyReportUI } from './report-ui-smoke.mjs';
+import { verifyReportUI, verifyComparisonUI } from './report-ui-smoke.mjs';
 
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'moontopolens-smoke-'));
 function cli(args, code = 0) {
@@ -97,9 +97,45 @@ assert.ok(same.distances.every(x => x.bottleneck === 0));
 const changed = JSON.parse(cli(['compare', 'examples/square.json', 'examples/rectangle.json']));
 assert.ok(changed.distances.find(x => x.dimension === 1).bottleneck > 0);
 assert.equal(changed.cutoffs_equal, false);
+for (const [left,right] of [['square','square'],['square','rectangle'],['clusters','square']]) {
+  const output = path.join(temporary, `compare-${left}-${right}`);
+  const report = JSON.parse(cli(['compare',`examples/${left}.json`,`examples/${right}.json`,'--out',output]));
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(output,'comparison.json'),'utf8')),report);
+  verifyComparisonUI(fs.readFileSync(path.join(output,'comparison.html'),'utf8'),report);
+  const rows = fs.readFileSync(path.join(output,'matches.csv'),'utf8').trim().split('\n');
+  assert.equal(rows.length,1+report.distances.reduce((n,d)=>n+d.matches.length,0));
+  let row = 1;
+  for (const d of report.distances) {
+    for (const m of d.matches) {
+      assert.deepEqual(rows[row++].split(','),[String(d.dimension),m.left===null?'':String(m.left.index),m.right===null?'':String(m.right.index),m.kind,m.cost===null?'':String(m.cost)]);
+    }
+    if(d.bottleneck!==null) assert.equal(Math.max(0,...d.matches.map(m=>m.cost)),d.bottleneck);
+  }
+  for (const file of ['left-diagram.svg','right-diagram.svg']) assert.ok(fs.readFileSync(path.join(output,file),'utf8').startsWith('<svg'));
+  cli(['compare',`examples/${left}.json`,`examples/${right}.json`,'--out',output],2);
+}
+const square = JSON.parse(cli(['analyze','examples/square.json']));
+const loopIndex = square.intervals.findIndex(i=>i.dimension===1);
+const sliceOutput = path.join(temporary,'slice-square');
+const slice = JSON.parse(cli(['slice','examples/square.json','1','--out',sliceOutput,'--interval',String(loopIndex)]));
+assert.equal(slice.h1,1);
+assert.deepEqual(JSON.parse(fs.readFileSync(path.join(sliceOutput,'slice.json'),'utf8')),slice);
+const svg = fs.readFileSync(path.join(sliceOutput,'slice.svg'),'utf8');
+assert.ok(svg.includes('stroke="#fb923c"') && !/NaN|Infinity/.test(svg));
+cli(['slice','examples/square.json','1','--out',sliceOutput],2);
+const matrixOutput = path.join(temporary,'slice-matrix');
+cli(['slice','examples/matrix.json','0','--out',matrixOutput]);
+assert.ok(!fs.existsSync(path.join(matrixOutput,'slice.svg')));
+for (const [scale,index] of [['2',String(loopIndex)],['1','-1'],['1','0.5'],['1','9999']]) {
+  const invalidOut = path.join(temporary,`invalid-slice-${scale}-${index}`);
+  cli(['slice','examples/square.json',scale,'--out',invalidOut,'--interval',index],2);
+  assert.ok(!fs.existsSync(invalidOut));
+}
+cli(['compare','examples/square.json','examples/square.json','--bad','unused'],2);
+cli(['slice','examples/square.json','1','--bad','unused'],2);
 cli(['analyze', path.join(temporary, 'missing.json')], 2);
 cli(['compare'], 2);
 cli(['summary'], 2);
 cli(['unknown'], 2);
 assert.ok(cli(['--help']).includes('MoonTopoLens'));
-console.log('CLI smoke passed: eight scenarios, exact events, snapshots, landscapes, HTML interactions, CSV exports, comparisons and errors.');
+console.log('CLI smoke passed: eight scenarios, exact events, snapshot SVG, landscapes, comparison matching, both offline UIs, exports and errors.');
