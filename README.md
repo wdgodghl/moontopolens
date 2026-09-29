@@ -165,6 +165,7 @@ moon check --target js
 moon check --target wasm-gc
 moon build --target js
 moon build --target wasm-gc
+moon coverage clean
 moon test --target js --enable-coverage
 moon test --target wasm-gc
 moon coverage report -f summary
@@ -174,6 +175,7 @@ moon package --list
 ```
 
 测试覆盖已知形状、重复点、截止语义、稀疏预算、无效输入、网格与嵌入、导出与比较。
+JS 与 Wasm GC 各 27 个测试通过，另有 CLI 端到端验证。
 另外使用独立的稠密行消元算法核对 12 个点云在 11 个尺度的 Betti 数，
 使用穷举匹配核对瓶颈距离。CI 包含类型检查、构建、两种后端测试、覆盖率摘要和 CLI 场景。
 

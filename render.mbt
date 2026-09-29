@@ -1,7 +1,7 @@
 ///|
 fn chart_bounds(analysis : Analysis) -> (Double, Double) {
   let mut low = 0.0
-  let mut high = 1.0
+  let mut high = maximum(0.0, analysis.filtration.cutoff)
   for cell in analysis.filtration.cells {
     if cell.value < low {
       low = cell.value
@@ -9,6 +9,9 @@ fn chart_bounds(analysis : Analysis) -> (Double, Double) {
     if cell.value > high {
       high = cell.value
     }
+  }
+  if high <= low {
+    high = low + maximum(1.0, low.abs() * 0.1)
   }
   (low, high)
 }
@@ -43,7 +46,7 @@ pub fn barcode_svg(analysis : Analysis) -> String {
     let interval = analysis.intervals[i]
     let x1 = 100.0 + (interval.birth - low) / (high - low) * 740.0
     let end = match interval.death {
-      None => high
+      None => analysis.filtration.cutoff
       Some(d) => d
     }
     let x2 = 100.0 + (end - low) / (high - low) * 740.0

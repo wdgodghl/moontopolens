@@ -148,6 +148,7 @@ pub fn report_json(analysis : Analysis) -> Json {
     "project": "MoonTopoLens",
     "coefficients": "GF(2)",
     "kind": analysis.filtration.kind,
+    "cutoff": analysis.filtration.cutoff,
     "vertex_count": analysis.filtration.vertex_count,
     "cell_count": cells.length(),
     "column_additions": analysis.column_additions,

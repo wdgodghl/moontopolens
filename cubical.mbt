@@ -16,7 +16,7 @@ pub fn cubical_grid(
   check_budget(0, max_cells)
   let height = grid.length()
   if height == 0 {
-    return finalize([], 0, "cubical")
+    return finalize([], 0, "cubical", threshold)
   }
   let width = grid[0].length()
   if width < 1 || height > 64 || width > 64 {
@@ -106,5 +106,5 @@ pub fn cubical_grid(
       }
     }
   }
-  finalize(raw, vertex_count, "cubical")
+  finalize(raw, vertex_count, "cubical", threshold)
 }
