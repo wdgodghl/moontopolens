@@ -64,32 +64,28 @@ fn match_augment(
 }
 
 ///|
-fn perfect_matching(costs : Array[Array[Double]], epsilon : Double) -> Bool {
+fn matching_owners(
+  costs : Array[Array[Double]],
+  epsilon : Double,
+) -> Array[Int]? {
   let n = costs.length()
   let owners = Array::make(n, -1)
   for row = 0; row < n; row = row + 1 {
     if !match_augment(row, costs, epsilon, Array::make(n, false), owners) {
-      return false
+      return None
     }
   }
-  true
+  Some(owners)
 }
 
 ///|
-/// Exact finite-diagram bottleneck distance with diagonal matching, L-infinity.
-/// Binary-searches the candidate edge costs using bipartite perfect matching.
-pub fn bottleneck(
+fn diagram_costs(
   a : Array[(Double, Double)],
   b : Array[(Double, Double)],
-) -> Double raise TopologyError {
-  validate_diagram(a)
-  validate_diagram(b)
+) -> (Array[Array[Double]], Array[Double]) {
   let m = a.length()
   let n = b.length()
   let size = m + n
-  if size == 0 {
-    return 0.0
-  }
   let costs = Array::makei(size, fn(_) { Array::make(size, 0.0) })
   let candidates : Array[Double] = [0.0]
   for i = 0; i < m; i = i + 1 {
@@ -113,11 +109,24 @@ pub fn bottleneck(
     candidates.push((point.1 - point.0) / 2.0)
   }
   candidates.sort()
+  (costs, candidates)
+}
+
+///|
+/// Exact finite-diagram bottleneck distance with diagonal matching, L-infinity.
+/// Binary-searches the candidate edge costs using bipartite perfect matching.
+pub fn bottleneck(
+  a : Array[(Double, Double)],
+  b : Array[(Double, Double)],
+) -> Double raise TopologyError {
+  validate_diagram(a)
+  validate_diagram(b)
+  let (costs, candidates) = diagram_costs(a, b)
   let mut low = 0
   let mut high = candidates.length() - 1
   while low < high {
     let mid = low + (high - low) / 2
-    if perfect_matching(costs, candidates[mid]) {
+    if matching_owners(costs, candidates[mid]) is Some(_) {
       high = mid
     } else {
       low = mid + 1
