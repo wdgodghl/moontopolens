@@ -106,5 +106,8 @@ pub fn cubical_grid(
       }
     }
   }
-  finalize(raw, vertex_count, "cubical", threshold)
+  let positions = Array::makei(width * height, fn(i) {
+    [(i % width).to_double(), -(i / width).to_double()]
+  })
+  finalize(raw, vertex_count, "cubical", threshold, positions~)
 }

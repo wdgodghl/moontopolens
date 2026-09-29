@@ -28,6 +28,7 @@ pub struct Filtration {
   vertex_count : Int
   kind : String
   cutoff : Double
+  positions : Array[Array[Double]]
 } derive(@debug.Debug)
 
 ///|
@@ -120,6 +121,7 @@ fn finalize(
   count : Int,
   kind : String,
   cutoff : Double,
+  positions? : Array[Array[Double]] = [],
 ) -> Filtration raise TopologyError {
   raw.sort_by(fn(a, b) {
     if a.value < b.value {
@@ -160,5 +162,5 @@ fn finalize(
       vertices: cell.vertices.copy(),
     })
   }
-  { cells, vertex_count: count, kind, cutoff, }
+  { cells, vertex_count: count, kind, cutoff, positions, }
 }
