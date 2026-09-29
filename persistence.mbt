@@ -1,18 +1,33 @@
+///|
 /// Symmetric difference of sorted sparse GF(2) vectors (addition modulo two).
 fn xor_columns(a : Array[Int], b : Array[Int]) -> Array[Int] {
   let result : Array[Int] = []
   let mut i = 0
   let mut j = 0
   while i < a.length() && j < b.length() {
-    if a[i] == b[j] { i += 1; j += 1 }
-    else if a[i] < b[j] { result.push(a[i]); i += 1 }
-    else { result.push(b[j]); j += 1 }
+    if a[i] == b[j] {
+      i += 1
+      j += 1
+    } else if a[i] < b[j] {
+      result.push(a[i])
+      i += 1
+    } else {
+      result.push(b[j])
+      j += 1
+    }
   }
-  while i < a.length() { result.push(a[i]); i += 1 }
-  while j < b.length() { result.push(b[j]); j += 1 }
+  while i < a.length() {
+    result.push(a[i])
+    i += 1
+  }
+  while j < b.length() {
+    result.push(b[j])
+    j += 1
+  }
   result
 }
 
+///|
 /// Validate a public filtration before reduction, including boundary squared.
 /// Protects callers who construct or mutate the exposed data structures.
 pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError {
@@ -21,10 +36,15 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
   let keys : Map[String, Bool] = Map([])
   for i = 0; i < cells.length(); i = i + 1 {
     let cell = cells[i]
-    if !finite(cell.value) || cell.value.abs() > 1.0e100 || cell.dimension < 0 || cell.dimension > 2 {
+    if !finite(cell.value) ||
+      cell.value.abs() > 1.0e100 ||
+      cell.dimension < 0 ||
+      cell.dimension > 2 {
       raise TopologyError("invalid cell value or dimension")
     }
-    if keys.contains(cell.key) { raise TopologyError("duplicate cell key") }
+    if keys.contains(cell.key) {
+      raise TopologyError("duplicate cell key")
+    }
     keys.set(cell.key, true)
     if i > 0 && cell.value < cells[i - 1].value {
       raise TopologyError("filtration values must be nondecreasing")
@@ -36,7 +56,9 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
     let mut twice : Array[Int] = []
     for face in cell.boundary {
       if face <= last || face >= i || face < 0 {
-        raise TopologyError("boundary indices must be sorted, unique and earlier")
+        raise TopologyError(
+          "boundary indices must be sorted, unique and earlier",
+        )
       }
       if cells[face].dimension + 1 != cell.dimension {
         raise TopologyError("boundary face has wrong dimension")
@@ -44,14 +66,21 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
       twice = xor_columns(twice, cells[face].boundary)
       last = face
     }
-    if !twice.is_empty() { raise TopologyError("boundary squared must be zero") }
+    if !twice.is_empty() {
+      raise TopologyError("boundary squared must be zero")
+    }
   }
 }
 
+///|
 /// Standard left-to-right sparse boundary matrix reduction over GF(2).
 /// Tracks change-of-basis chains to return representatives at birth.
 /// Emits only H0 and H1. Zero-length intervals are omitted by default.
-pub fn analyze(filtration : Filtration, include_zero? : Bool = false, max_additions? : Int = 2000000) -> Analysis raise TopologyError {
+pub fn analyze(
+  filtration : Filtration,
+  include_zero? : Bool = false,
+  max_additions? : Int = 2000000,
+) -> Analysis raise TopologyError {
   validate_filtration(filtration)
   if max_additions < 1 || max_additions > 10000000 {
     raise TopologyError("max_additions must be between 1 and 10000000")
@@ -71,47 +100,80 @@ pub fn analyze(filtration : Filtration, include_zero? : Bool = false, max_additi
     while !column.is_empty() {
       let low = column[column.length() - 1]
       let k = owner[low]
-      if k < 0 { break }
+      if k < 0 {
+        break
+      }
       additions += 1
       if additions > max_additions {
-        raise TopologyError("reduction work budget exceeded; reduce the filtration")
+        raise TopologyError(
+          "reduction work budget exceeded; reduce the filtration",
+        )
       }
       column = xor_columns(column, reduced[k])
-      if cells[j].dimension < 2 { chain = xor_columns(chain, chains[k]) }
+      if cells[j].dimension < 2 {
+        chain = xor_columns(chain, chains[k])
+      }
     }
-    if column.is_empty() { positive[j] = true }
-    else {
+    if column.is_empty() {
+      positive[j] = true
+    } else {
       let low = column[column.length() - 1]
       owner[low] = j
       deaths[low] = j
     }
     stored_entries += column.length() + chain.length()
     if stored_entries > 2000000 {
-      raise TopologyError("sparse storage budget exceeded; reduce the filtration")
+      raise TopologyError(
+        "sparse storage budget exceeded; reduce the filtration",
+      )
     }
     reduced.push(column)
     chains.push(chain)
   }
   let intervals : Array[Interval] = []
   for i = 0; i < cells.length(); i = i + 1 {
-    if !positive[i] || cells[i].dimension > 1 { continue }
+    if !positive[i] || cells[i].dimension > 1 {
+      continue
+    }
     let d = deaths[i]
-    if d >= 0 && cells[d].value == cells[i].value && !include_zero { continue }
-    intervals.push({ dimension: cells[i].dimension, birth: cells[i].value,
-      death: if d < 0 { None } else { Some(cells[d].value) }, birth_cell: i,
-      death_cell: if d < 0 { None } else { Some(d) }, representative: chains[i].copy() })
+    if d >= 0 && cells[d].value == cells[i].value && !include_zero {
+      continue
+    }
+    intervals.push({
+      dimension: cells[i].dimension,
+      birth: cells[i].value,
+      death: if d < 0 {
+        None
+      } else {
+        Some(cells[d].value)
+      },
+      birth_cell: i,
+      death_cell: if d < 0 {
+        None
+      } else {
+        Some(d)
+      },
+      representative: chains[i].copy(),
+    })
   }
-  { filtration, intervals, column_additions: additions }
+  { filtration, intervals, column_additions: additions, }
 }
 
+///|
 /// Count classes alive at a scale in the analyzed (possibly truncated) complex.
-pub fn betti(analysis : Analysis, dimension : Int, scale : Double) -> Int raise TopologyError {
+pub fn betti(
+  analysis : Analysis,
+  dimension : Int,
+  scale : Double,
+) -> Int raise TopologyError {
   if dimension < 0 || dimension > 1 || !finite(scale) {
     raise TopologyError("Betti query requires dimension 0/1 and finite scale")
   }
   let mut count = 0
   for interval in analysis.intervals {
-    if interval.dimension != dimension || scale < interval.birth { continue }
+    if interval.dimension != dimension || scale < interval.birth {
+      continue
+    }
     match interval.death {
       None => count += 1
       Some(d) => if scale < d { count += 1 }
@@ -120,9 +182,15 @@ pub fn betti(analysis : Analysis, dimension : Int, scale : Double) -> Int raise 
   count
 }
 
+///|
 /// Decode an H1 representative into vertex pairs for plotting.
-pub fn cycle_edges(analysis : Analysis, interval : Interval) -> Array[(Int, Int)] raise TopologyError {
-  if interval.dimension != 1 { raise TopologyError("cycle_edges requires an H1 interval") }
+pub fn cycle_edges(
+  analysis : Analysis,
+  interval : Interval,
+) -> Array[(Int, Int)] raise TopologyError {
+  if interval.dimension != 1 {
+    raise TopologyError("cycle_edges requires an H1 interval")
+  }
   let edges : Array[(Int, Int)] = []
   for i in interval.representative {
     if i < 0 || i >= analysis.filtration.cells.length() {
@@ -136,4 +204,3 @@ pub fn cycle_edges(analysis : Analysis, interval : Interval) -> Array[(Int, Int)
   }
   edges
 }
-
