@@ -36,9 +36,22 @@ export function verifyReportUI(html, report, name) {
   assert.equal(api.fmt(0), '0');
   const alive = report.intervals.filter(i => i.dimension === 0 && i.birth <= report.cutoff && (i.death === null || i.death > report.cutoff)).length;
   assert.equal(elements.get('h0').textContent, String(alive));
+  const curves = elements.get('curve').children.filter(n => n.tag === 'polyline');
+  assert.equal(curves.length, 2);
+  const start = report.cells.reduce((low,c) => Math.min(low,c.value), report.cutoff);
+  for (let d = 0; d < 2; d++) {
+    const top = Math.max(1,...report.betti_events.flatMap(p => [p.h0,p.h1]));
+    const expected = report.betti_events.flatMap((p,i) => {
+      const x = report.cutoff === start ? 970 : 50 + (p.scale - start)/(report.cutoff - start)*920;
+      const value = d ? p.h1 : p.h0;
+      const previous = i ? (d ? report.betti_events[i-1].h1 : report.betti_events[i-1].h0) : value;
+      return i ? [`${x},${210-previous/top*180}`,`${x},${210-value/top*180}`] : [`${x},${210-value/top*180}`];
+    }).join(' ');
+    assert.equal(curves[d].attributes.points, expected, 'Curve must retain every exact event at its actual scale');
+  }
   if (name === 'matrix') assert.ok(elements.get('geometry').children.some(n => n.textContent.includes('无几何坐标')));
-  if (name === 'square' || name === 'ring-grid' || name === 'two-holes-grid') {
-    elements.get('scale').value = name === 'square' ? '500' : '0';
+  if (name === 'square' || name === 'ring-grid' || name === 'two-holes-grid' || name === 'short-loop-grid') {
+    elements.get('scale').value = name === 'square' ? '500' : name === 'short-loop-grid' ? '4' : '0';
     elements.get('scale').fire('input');
     assert.equal(elements.get('h1').textContent, name === 'two-holes-grid' ? '2' : '1');
     const first = elements.get('interval-table').children[0];
