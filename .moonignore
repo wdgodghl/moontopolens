@@ -1,0 +1,7 @@
+/_build/
+/.git/
+/out/
+/out-*/
+*.tmp
+*.log
+*.zip

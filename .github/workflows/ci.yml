@@ -1,0 +1,47 @@
+name: MoonTopoLens CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install official stable MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Version and substantive source check
+        run: |
+          moon version --all
+          node scripts/check-source.mjs
+      - name: Formatting
+        run: moon fmt --check
+      - name: Type check
+        run: |
+          moon check --target js
+          moon check --target wasm-gc
+      - name: Build
+        run: |
+          moon build --target js
+          moon build --target wasm-gc
+      - name: Core tests on JS and WebAssembly GC
+        run: |
+          moon test --target js --enable-coverage
+          moon test --target wasm-gc
+      - name: Coverage summary
+        run: moon coverage report -f summary
+      - name: Reproduce CLI scenarios
+        run: node scripts/smoke.mjs
+      - name: Package validation
+        run: moon package --list
