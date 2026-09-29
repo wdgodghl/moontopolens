@@ -32,12 +32,18 @@ fn xor_columns(a : Array[Int], b : Array[Int]) -> Array[Int] {
 /// Protects callers who construct or mutate the exposed data structures.
 pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError {
   let cells = filtration.cells
+  if !finite(filtration.cutoff) ||
+    filtration.cutoff.abs() > 1.0e100 ||
+    filtration.vertex_count < 0 {
+    raise TopologyError("invalid filtration cutoff or vertex count")
+  }
   check_budget(cells.length(), 10000)
   let keys : Map[String, Bool] = Map([])
   for i = 0; i < cells.length(); i = i + 1 {
     let cell = cells[i]
     if !finite(cell.value) ||
       cell.value.abs() > 1.0e100 ||
+      cell.value > filtration.cutoff ||
       cell.dimension < 0 ||
       cell.dimension > 2 {
       raise TopologyError("invalid cell value or dimension")

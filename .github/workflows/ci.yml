@@ -37,6 +37,7 @@ jobs:
           moon build --target wasm-gc
       - name: Core tests on JS and WebAssembly GC
         run: |
+          moon coverage clean
           moon test --target js --enable-coverage
           moon test --target wasm-gc
       - name: Coverage summary

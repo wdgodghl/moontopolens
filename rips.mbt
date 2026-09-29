@@ -58,7 +58,7 @@ pub fn rips_matrix(
       }
     }
   }
-  finalize(raw, n, "rips")
+  finalize(raw, n, "rips", threshold)
 }
 
 ///|
