@@ -14,6 +14,8 @@ pub fn barcode_svg(Analysis) -> String
 
 pub fn betti(Analysis, Int, Double) -> Int raise TopologyError
 
+pub fn betti_csv(Analysis, samples? : Int) -> String raise TopologyError
+
 pub fn betti_curve(Analysis, dimension~ : Int, Array[Double]) -> Array[Int] raise TopologyError
 
 pub fn bottleneck(Array[(Double, Double)], Array[(Double, Double)]) -> Double raise TopologyError
@@ -34,11 +36,21 @@ pub fn diagram_svg(Analysis) -> String
 
 pub fn distance_matrix(Array[Array[Double]]) -> Array[Array[Double]] raise TopologyError
 
+pub fn html_report(Analysis) -> String
+
+pub fn intervals_csv(Analysis) -> String
+
+pub fn observed_lifetime(Analysis, Interval) -> Double
+
+pub fn ranked_intervals(Analysis, dimension~ : Int, min_lifetime? : Double, include_alive? : Bool) -> Array[Interval] raise TopologyError
+
 pub fn report_json(Analysis) -> Json
 
 pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
 
 pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+
+pub fn summary_json(Analysis) -> Json
 
 pub fn validate_filtration(Filtration) -> Unit raise TopologyError
 
@@ -73,6 +85,7 @@ pub struct Filtration {
   vertex_count : Int
   kind : String
   cutoff : Double
+  positions : Array[Array[Double]]
 } derive(@debug.Debug)
 pub fn Filtration::to_repr(Self) -> @debug.Repr
 
