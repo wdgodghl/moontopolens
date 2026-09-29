@@ -68,5 +68,15 @@ pub fn rips(
   threshold~ : Double,
   max_cells? : Int = 4000,
 ) -> Filtration raise TopologyError {
-  rips_matrix(distance_matrix(points), threshold~, max_cells~)
+  let f = rips_matrix(distance_matrix(points), threshold~, max_cells~)
+  let positions = points.map(fn(point) {
+    [point[0], if point.length() > 1 { point[1] } else { 0.0 }]
+  })
+  {
+    cells: f.cells,
+    vertex_count: f.vertex_count,
+    kind: f.kind,
+    cutoff: f.cutoff,
+    positions,
+  }
 }

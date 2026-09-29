@@ -38,9 +38,29 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
     raise TopologyError("invalid filtration cutoff or vertex count")
   }
   check_budget(cells.length(), 10000)
+  if filtration.positions.length() > 4096 {
+    raise TopologyError("too many display positions")
+  }
+  for point in filtration.positions {
+    if point.length() != 2 {
+      raise TopologyError("display positions require two coordinates")
+    }
+    for x in point {
+      if !finite(x) || x.abs() > 1.0e100 {
+        raise TopologyError("invalid display coordinate")
+      }
+    }
+  }
   let keys : Map[String, Bool] = Map([])
   for i = 0; i < cells.length(); i = i + 1 {
     let cell = cells[i]
+    if !filtration.positions.is_empty() {
+      for vertex in cell.vertices {
+        if vertex < 0 || vertex >= filtration.positions.length() {
+          raise TopologyError("cell vertex outside display positions")
+        }
+      }
+    }
     if !finite(cell.value) ||
       cell.value.abs() > 1.0e100 ||
       cell.value > filtration.cutoff ||
