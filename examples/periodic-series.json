@@ -1,0 +1,8 @@
+{
+  "kind": "series",
+  "threshold": 3.0,
+  "dimension": 2,
+  "lag": 1,
+  "stride": 1,
+  "series": [0, 1, 0, -1, 0, 1, 0, -1, 0, 1, 0, -1, 0]
+}
