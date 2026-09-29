@@ -4,9 +4,13 @@ fn usage() -> Unit {
   println(
     "moon run --target js cmd/main -- analyze INPUT.json [--out NEW_DIRECTORY]",
   )
-  println("moon run --target js cmd/main -- compare LEFT.json RIGHT.json")
+  println(
+    "moon run --target js cmd/main -- compare LEFT.json RIGHT.json [--out NEW_DIRECTORY]",
+  )
   println("moon run --target js cmd/main -- summary INPUT.json")
-  println("moon run --target js cmd/main -- slice INPUT.json SCALE")
+  println(
+    "moon run --target js cmd/main -- slice INPUT.json SCALE [--out NEW_DIRECTORY [--interval INDEX]]",
+  )
   println(
     "moon run --target js cmd/main -- landscape INPUT.json DIMENSION START END [--out NEW_DIRECTORY]",
   )
@@ -47,13 +51,62 @@ fn main {
   try {
     match argument(0) {
       "slice" => {
-        if count != 3 {
-          print_error("slice requires INPUT.json SCALE")
+        if count != 3 && count != 5 && count != 7 {
+          print_error(
+            "slice requires INPUT.json SCALE and optional --out NEW_DIRECTORY [--interval INDEX]",
+          )
           return
         }
-        println(
-          @topo.snapshot_json(load(argument(1)), numeric_argument(2)).stringify(),
-        )
+        if count >= 5 && (argument(3) != "--out" || argument(4) == "") {
+          print_error("expected --out NEW_DIRECTORY")
+          return
+        }
+        let interval = if count == 7 {
+          if argument(5) != "--interval" {
+            raise @topo.TopologyError("expected --interval INDEX")
+          }
+          let value = numeric_argument(6)
+          if value < 0.0 ||
+            value > 10000.0 ||
+            value != value.to_int().to_double() {
+            raise @topo.TopologyError(
+              "interval index must be a nonnegative integer <= 10000",
+            )
+          }
+          Some(value.to_int())
+        } else {
+          None
+        }
+        let result = load(argument(1))
+        let scale = numeric_argument(2)
+        let report = @topo.snapshot_json(result, scale).stringify()
+        if count >= 5 {
+          let svg = if result.filtration.positions.is_empty() &&
+            interval is None {
+            None
+          } else {
+            Some(@topo.scale_svg(result, scale~, interval~))
+          }
+          let output = argument(4)
+          if !new_output(output) {
+            print_error(
+              "output directory must be new and have an existing parent: " +
+              output,
+            )
+            return
+          }
+          if !save_output(output, "slice.json", report) {
+            print_error("could not save snapshot")
+            return
+          }
+          if svg is Some(svg) {
+            if !save_output(output, "slice.svg", svg) {
+              print_error("could not save snapshot SVG")
+              return
+            }
+          }
+        }
+        println(report)
       }
       "landscape" => {
         if count != 5 && count != 7 {
@@ -151,35 +204,40 @@ fn main {
         println(report)
       }
       "compare" => {
-        if count != 3 {
-          print_error("compare requires LEFT.json RIGHT.json")
+        if count != 3 && count != 5 {
+          print_error(
+            "compare requires LEFT.json RIGHT.json and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        if count == 5 && (argument(3) != "--out" || argument(4) == "") {
+          print_error("expected --out NEW_DIRECTORY")
           return
         }
         let a = load(argument(1))
         let b = load(argument(2))
-        let distances : Array[Json] = []
-        for dimension = 0; dimension < 2; dimension = dimension + 1 {
-          let distance = @topo.compare_analyses(a, b, dimension~)
-          let d : Json = match distance {
-            None => Json::null()
-            Some(value) => value.to_json()
+        let report = @topo.comparison_json(a, b).stringify()
+        if count == 5 {
+          let output = argument(4)
+          let csv = @topo.matching_csv(a, b)
+          let html = @topo.comparison_html(a, b)
+          if !new_output(output) {
+            print_error(
+              "output directory must be new and have an existing parent: " +
+              output,
+            )
+            return
           }
-          distances.push({
-            "dimension": dimension,
-            "bottleneck": d,
-            "finite_distance": distance is Some(_),
-          })
+          if !save_output(output, "comparison.json", report) ||
+            !save_output(output, "matches.csv", csv) ||
+            !save_output(output, "comparison.html", html) ||
+            !save_output(output, "left-diagram.svg", @topo.diagram_svg(a)) ||
+            !save_output(output, "right-diagram.svg", @topo.diagram_svg(b)) {
+            print_error("could not save complete comparison report")
+            return
+          }
         }
-        let report : Json = {
-          "metric": "bottleneck",
-          "distances": distances,
-          "left_cutoff": a.filtration.cutoff,
-          "right_cutoff": b.filtration.cutoff,
-          "cutoffs_equal": a.filtration.cutoff == b.filtration.cutoff,
-          "complex_kinds_equal": a.filtration.kind == b.filtration.kind,
-          "note": "null means essential interval counts differ; use comparable cutoffs and units",
-        }
-        println(report.stringify())
+        println(report)
       }
       _ => {
         print_error("unknown command")

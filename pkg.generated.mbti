@@ -30,6 +30,10 @@ pub fn circle_points(Int, Double) -> Array[Array[Double]] raise TopologyError
 
 pub fn compare_analyses(Analysis, Analysis, dimension~ : Int) -> Double? raise TopologyError
 
+pub fn comparison_html(Analysis, Analysis) -> String raise TopologyError
+
+pub fn comparison_json(Analysis, Analysis) -> Json raise TopologyError
+
 pub fn connected_components(Analysis, Double) -> Array[Array[Int]] raise TopologyError
 
 pub fn cubical_grid(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
@@ -46,11 +50,15 @@ pub fn distance_matrix(Array[Array[Double]]) -> Array[Array[Double]] raise Topol
 
 pub fn html_report(Analysis) -> String
 
+pub fn interval_matching(Analysis, Analysis, dimension~ : Int) -> Array[IntervalMatch] raise TopologyError
+
 pub fn intervals_csv(Analysis) -> String
 
 pub fn landscape_csv(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> String raise TopologyError
 
 pub fn landscape_json(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> Json raise TopologyError
+
+pub fn matching_csv(Analysis, Analysis) -> String raise TopologyError
 
 pub fn observed_lifetime(Analysis, Interval) -> Double
 
@@ -63,6 +71,8 @@ pub fn report_json(Analysis) -> Json
 pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
 
 pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+
+pub fn scale_svg(Analysis, scale~ : Double, interval? : Int?) -> String raise TopologyError
 
 pub fn snapshot_json(Analysis, Double) -> Json raise TopologyError
 
@@ -121,6 +131,14 @@ pub struct Interval {
   representative : Array[Int]
 } derive(@debug.Debug)
 pub fn Interval::to_repr(Self) -> @debug.Repr
+
+pub struct IntervalMatch {
+  left : Int?
+  right : Int?
+  cost : Double?
+  kind : String
+} derive(@debug.Debug)
+pub fn IntervalMatch::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
