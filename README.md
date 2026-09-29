@@ -9,9 +9,10 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.3.0 分析特征版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
+当前版本：**0.4.0 比较与展示完善版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
 正式章程的执行口径尚待确认。发布作为生态扩展计划，不阻碍当前开发。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
+选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
 
 ## 能做什么
 
@@ -24,6 +25,7 @@
 | 持续同调 | GF(2) 稀疏边界矩阵约化、H0/H1 区间、出生时的代表链 |
 | 比较与特征 | 精确瓶颈距离、Betti 数与曲线、寿命排名/筛选、有限区间持续熵 |
 | 尺度与向量 | 精确 Betti 事件、指定尺度的连通分组、持久景观采样与特征向量 |
+| 解释与演示 | 区间最优匹配明细、离线双图对比、分组着色的尺度 SVG、存活代表链高亮 |
 | 输出 | 完整 JSON、区间/曲线 CSV、SVG 条形码/持续图、离线 HTML 报告 |
 
 H0 对应连接分量，H1 对应闭合环路。长寿命特征在较多尺度存在，
@@ -164,6 +166,33 @@ HTML 曲线现在使用精确事件，保留短暂环路；`betti.csv` 仍供均
 `examples/short-loop-grid.json` 的 H1 仅在 `[0.004,0.005)` 存活：
 101 点的均匀采样全部为 0，事件 CSV 和 HTML 曲线仍保留该环路。
 
+### 0.4.0：解释比较结果并导出尺度图
+
+```sh
+moon run --target js cmd/main -- compare examples/square.json examples/rectangle.json --out out-comparison
+moon run --target js cmd/main -- slice examples/clusters.json 0.5 --out out-clusters-slice
+moon run --target js cmd/main -- slice examples/square.json 1 --out out-loop-slice --interval 4
+```
+
+正方形默认分析中，区间 `#4` 是 H1 环路；自定义输入的编号应从其 `report.json` 或 `slice` 的存活区间列表获取。
+`--interval` 必须位于 `--out` 之后，且所选类必须是当前尺度仍存活的 H1。
+无效选择在创建输出目录前报错，不留下伪完整的结果。
+
+比较输出五个文件：`comparison.json`、`matches.csv`、`comparison.html`、
+`left-diagram.svg`、`right-diagram.svg`。直接打开 HTML 可看双侧持续图、距离、
+截止条件提示及可按维度/对角线筛选的匹配表。表格最多显示 200 行，CSV/JSON 保留完整匹配。
+比较命令原有 JSON 字段保留，新增匹配与摘要字段。
+
+匹配明细使用左右原始区间编号，区分有限配对、对角线配对、截止仍存活配对及未匹配存活类。
+这是瓶颈距离的一种最优匹配，可能不唯一；不保证最小总代价，也不代表真实对象身份对应。
+对角线代价为有限寿命的一半；未匹配存活类代价为空，完整距离为 `null`。
+不能将截止条件不同造成的差异直接解释为数据结构变化。
+
+尺度导出保存 `slice.json`；有坐标时还保存 `slice.svg`。
+SVG 顶点按 MoonBit 算出的连通分组着色，保留原始编号；七种颜色循环使用。
+选中的存活 H1 出生代表链使用橙色边。投影保持横纵等比例，未绘制二维填充。
+距离矩阵和空坐标输入只输出 JSON；不虚构几何位置。
+
 ## 自定义输入
 
 ```json
@@ -207,6 +236,9 @@ let snapshot = @topo.snapshot_json(analysis, 1.0)
 let landscape = @topo.persistence_landscape(
   analysis, dimension=1, start=0.0, end=2.0, samples=101, layers=3,
 )
+let matching = @topo.interval_matching(analysis, analysis, dimension=1)
+let comparison = @topo.comparison_json(analysis, analysis)
+let scale_picture = @topo.scale_svg(analysis, scale=1.0)
 ```
 
 调用者需要处理 `TopologyError`。公开 API 见 [pkg.generated.mbti](pkg.generated.mbti)，
@@ -250,10 +282,12 @@ moon package --list
 ```
 
 测试覆盖已知形状、重复点、截止语义、稀疏预算、无效输入、网格与嵌入、导出与比较。
-JS 与 Wasm GC 各 42 个测试通过，另有 CLI 端到端验证。
+JS 与 Wasm GC 各 47 个测试通过，另有 CLI 端到端验证。
 另外使用独立的稠密行消元算法核对 12 个点云在 11 个尺度的 Betti 数，
 使用穷举匹配核对瓶颈距离。CI 包含类型检查、构建、两种后端测试、覆盖率摘要和八个 CLI 场景。
 每个示例在全部 Betti 事件处验证快照分组数，持久景观用已知帐篷函数核对。
+匹配见证在 12 对形状中检查每个区间恰好出现一次、代价符合公式、最大代价等于瓶颈距离。
+另有三组离线对比报告、尺度 SVG、存活选择/无坐标/输出冲突的端到端验证。
 生成的 HTML 通过 DOM 替身检查滑块、筛选、选中环路与显示数值；该方法不验证真实浏览器视觉布局。
 
 ## 项目来源与许可证
