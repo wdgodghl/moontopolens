@@ -70,3 +70,32 @@ export function verifyReportUI(html, report, name) {
   }
   check(elements.get('geometry')); check(elements.get('curve'));
 }
+
+export function verifyComparisonUI(html, report) {
+  const data = html.match(/<script id="comparison-data" type="application\/json">([\s\S]*?)<\/script>/);
+  const source = html.match(/<\/script><script>([\s\S]*?)<\/script><\/main>/);
+  assert.ok(data && source);
+  assert.deepEqual(JSON.parse(data[1]), report);
+  assert.ok(!/<script[^>]+src=|<link[^>]+href=/.test(html));
+  const elements = new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(m => [m[1], new Element('element')]));
+  elements.get('comparison-data').textContent = data[1];
+  elements.get('dimension').value = 'all';
+  const document = {
+    getElementById(id) { assert.ok(elements.has(id)); return elements.get(id); },
+    createElement(tag) { return new Element(tag); },
+  };
+  vm.runInNewContext(source[1], { document }, { timeout: 10000 });
+  assert.equal(elements.get('matches').children.length, Math.min(200, report.distances.reduce((n,d)=>n+d.matches.length,0)));
+  for (const dimension of ['0','1']) {
+    elements.get('dimension').value = dimension;
+    elements.get('dimension').fire('input');
+    assert.equal(elements.get('matches').children.length, Math.min(200, report.distances[Number(dimension)].matches.length));
+    elements.get('diagonal-only').checked = true;
+    elements.get('diagonal-only').fire('input');
+    const expected = report.distances[Number(dimension)].matches.filter(m=>m.kind==='diagonal'||m.kind==='unmatched_censored').length;
+    assert.equal(elements.get('matches').children.length, Math.min(200,expected));
+    elements.get('diagonal-only').checked = false;
+  }
+  if (report.distances.some(d=>d.bottleneck===null)) assert.ok(elements.get('distances').textContent.includes('无有限匹配'));
+  if (!report.cutoffs_equal || !report.complex_kinds_equal) assert.ok(elements.get('comparability').textContent.includes('不同'));
+}
