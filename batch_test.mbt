@@ -9,6 +9,26 @@ test "batch parser accepts named JSON and PGM cases with references" {
   assert_eq(plan.cases[1].auto_threshold, false)
   assert_eq(plan.cases[1].invert, false)
   assert_eq(plan.comparisons[0].right, "b")
+  assert_eq(plan.all_pairs, false)
+}
+
+///|
+test "batch parser accepts optional all-pairs matrix flag" {
+  let plan = @moontopolens.parse_batch_manifest(
+    "{\"all_pairs\":true,\"cases\":[{\"name\":\"a\",\"input\":\"a.json\"}]}",
+  )
+  assert_true(plan.all_pairs)
+  let invalid = try {
+    ignore(
+      @moontopolens.parse_batch_manifest(
+        "{\"all_pairs\":1,\"cases\":[{\"name\":\"a\",\"input\":\"a.json\"}]}",
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(invalid)
 }
 
 ///|
