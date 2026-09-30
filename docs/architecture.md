@@ -11,6 +11,7 @@
 | rips.mbt | 截止距离下的点、边、三角形 |
 | cubical.mbt | 顶点 lower-star 的网格顶点、边与方格 |
 | pgm.mbt | P2/P5 单图像解析、像素范围与大小校验 |
+| image_processing.mbt | 灰度反转、Otsu 直方图阈值估计 |
 | batch.mbt | 有界批量清单的严格解析与案例引用校验 |
 | embedding.mbt | 有滞后与步长的时间序列窗口 |
 | persistence.mbt | 输入复形校验、稀疏列约化、代表链、Betti 数 |
