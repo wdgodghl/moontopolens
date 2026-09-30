@@ -1,0 +1,7 @@
+P2
+# Bright ring: invert before applying a lower-star threshold
+3 3
+255
+255 255 255
+255 0 255
+255 255 255

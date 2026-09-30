@@ -54,6 +54,8 @@ pub fn interval_matching(Analysis, Analysis, dimension~ : Int) -> Array[Interval
 
 pub fn intervals_csv(Analysis) -> String
 
+pub fn invert_pgm(PgmImage) -> PgmImage
+
 pub fn landscape_csv(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> String raise TopologyError
 
 pub fn landscape_json(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> Json raise TopologyError
@@ -61,6 +63,8 @@ pub fn landscape_json(Analysis, dimension~ : Int, start~ : Double, end~ : Double
 pub fn matching_csv(Analysis, Analysis) -> String raise TopologyError
 
 pub fn observed_lifetime(Analysis, Interval) -> Double
+
+pub fn otsu_threshold(PgmImage) -> Double
 
 pub fn parse_batch_manifest(String) -> BatchPlan raise TopologyError
 
@@ -106,6 +110,8 @@ pub struct BatchCase {
   input : String
   format : String
   threshold : Double?
+  auto_threshold : Bool
+  invert : Bool
 } derive(@debug.Debug)
 pub fn BatchCase::to_repr(Self) -> @debug.Repr
 
