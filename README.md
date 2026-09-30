@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.6.0 图像阈值与亮暗预处理版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
+当前版本：**0.7.0 批量全对比较版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
 正式章程的执行口径尚待确认。发布作为生态扩展计划，不阻碍当前开发。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -24,6 +24,7 @@
 | 灰度图像 | 直接解析 PGM P2/P5，保留原始灰度并进入网格过滤复形 |
 | 图像预处理 | 可选 Otsu 自动截止值与亮暗反转，记录可复现的实际参数 |
 | 批量项目 | 从一个 JSON 清单分析多份输入并生成指定两两比较和总索引 |
+| 全对比较 | 可选 H0/H1 距离方阵、CSV 与离线热图，提示比较条件不一致 |
 | 时间序列 | 指定维数、滞后、步长的延迟嵌入，随后进行 Rips 分析 |
 | 持续同调 | GF(2) 稀疏边界矩阵约化、H0/H1 区间、出生时的代表链 |
 | 比较与特征 | 精确瓶颈距离、Betti 数与曲线、寿命排名/筛选、有限区间持续熵 |
@@ -244,6 +245,26 @@ moon run --target js cmd/main -- image examples/bright-ring.pgm auto --invert --
 批量清单中的 PGM 案例也可写为
 `{"format":"pgm","threshold":"auto","invert":true}`。
 `examples/batch-study.json` 同时演示手动与自动阈值，并以等价 JSON 网格核对结果。
+
+### 0.7.0：批量全对距离热图
+
+在批量清单顶层添加 `"all_pairs": true`，运行同一条 `batch` 命令即可为最多八个案例
+计算全部无序案例对的 H0/H1 瓶颈距离。示例清单已启用：
+
+```sh
+moon run --target js cmd/main -- batch examples/batch-study.json --out out-study
+```
+
+输出新增 `distance-matrix.json`、`distance-h0.csv`、`distance-h1.csv` 和
+`distance-heatmap.html`。HTML 可离线打开，行标题链接到各案例报告；
+现有 `comparisons` 中具名配对仍各自生成详细匹配报告。
+矩阵顺序与清单中的 `cases` 顺序相同，主对角线为 0、矩阵对称。
+若两侧截止时存活的类数量不同，完整距离没有有限匹配，JSON 使用 `null`、
+CSV 留空、热图显示“—”，不能解释为距离 0。
+
+热图用橙框标出复形类型或截止值不同的案例对；即使两项相同，也仍须核对
+尺度单位、灰度变换及数据含义。颜色仅在各自维度内部按有限距离缩放，
+请用 CSV/JSON 数值比较。`all_pairs` 缺省为 `false`，保留旧清单行为。
 
 ## 自定义输入
 

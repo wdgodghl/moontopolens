@@ -13,6 +13,7 @@
 | pgm.mbt | P2/P5 单图像解析、像素范围与大小校验 |
 | image_processing.mbt | 灰度反转、Otsu 直方图阈值估计 |
 | batch.mbt | 有界批量清单的严格解析与案例引用校验 |
+| batch_matrix.mbt | 全对瓶颈矩阵、JSON/CSV 序列化与静态离线热图 |
 | embedding.mbt | 有滞后与步长的时间序列窗口 |
 | persistence.mbt | 输入复形校验、稀疏列约化、代表链、Betti 数 |
 | diagrams.mbt | 图点提取、瓶颈距离、未死亡类匹配、Betti 曲线 |
