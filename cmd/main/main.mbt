@@ -5,7 +5,7 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- analyze INPUT.json [--out NEW_DIRECTORY]",
   )
   println(
-    "moon run --target js cmd/main -- image INPUT.pgm CUTOFF [--out NEW_DIRECTORY]",
+    "moon run --target js cmd/main -- image INPUT.pgm CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
   )
   println(
     "moon run --target js cmd/main -- batch MANIFEST.json --out NEW_DIRECTORY",
@@ -63,6 +63,34 @@ fn save_analysis(
 }
 
 ///|
+fn image_info(
+  image : @topo.PgmImage,
+  cutoff : Double,
+  automatic : Bool,
+  inverted : Bool,
+) -> Json {
+  {
+    "source_format": "PGM",
+    "encoding": image.encoding,
+    "width": image.grid[0].length(),
+    "height": image.grid.length(),
+    "max_value": image.max_value,
+    "cutoff": cutoff,
+    "cutoff_mode": if automatic {
+      "auto_otsu"
+    } else {
+      "manual"
+    },
+    "inverted": inverted,
+    "pixel_meaning": if inverted {
+      "max_value minus raw grayscale; lower-star threshold uses transformed values"
+    } else {
+      "raw grayscale values without normalization; lower-star threshold uses the original values"
+    },
+  }
+}
+
+///|
 fn main {
   let count = argument_count()
   if count == 0 || argument(0) == "--help" {
@@ -108,19 +136,25 @@ fn main {
                 case.input,
               )
             }
-            let image = @topo.parse_pgm(
+            let original = @topo.parse_pgm(
               Array::makei(bytes.length(), fn(i) { bytes[i] }),
             )
-            let cutoff = case.threshold.unwrap()
-            let info : Json = {
-              "source_format": "PGM",
-              "encoding": image.encoding,
-              "width": image.grid[0].length(),
-              "height": image.grid.length(),
-              "max_value": image.max_value,
-              "cutoff": cutoff,
-              "pixel_meaning": "raw grayscale values without inversion or normalization; lower-star threshold uses the original values",
+            let image = if case.invert {
+              @topo.invert_pgm(original)
+            } else {
+              original
             }
+            let cutoff = if case.auto_threshold {
+              @topo.otsu_threshold(image)
+            } else {
+              case.threshold.unwrap()
+            }
+            let info = image_info(
+              image,
+              cutoff,
+              case.auto_threshold,
+              case.invert,
+            )
             image_infos.push(info.stringify())
             @topo.analyze(@topo.cubical_grid(image.grid, threshold=cutoff))
           }
@@ -222,14 +256,23 @@ fn main {
         println(output_text)
       }
       "image" => {
-        if count != 3 && count != 5 {
+        if count < 3 || count > 6 {
           print_error(
-            "image requires INPUT.pgm CUTOFF and optional --out NEW_DIRECTORY",
+            "image requires INPUT.pgm CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
           )
           return
         }
-        if count == 5 && (argument(3) != "--out" || argument(4) == "") {
-          print_error("expected --out NEW_DIRECTORY")
+        let inverted = count >= 4 && argument(3) == "--invert"
+        let out_index = if inverted { 4 } else { 3 }
+        let has_output = count == out_index + 2
+        if !(count == out_index || has_output) ||
+          (
+            has_output &&
+            (argument(out_index) != "--out" || argument(out_index + 1) == "")
+          ) {
+          print_error(
+            "expected optional --invert followed by --out NEW_DIRECTORY",
+          )
           return
         }
         let bytes = read_binary_input(argument(1))
@@ -238,25 +281,23 @@ fn main {
             "PGM input missing, unreadable, empty or exceeds 1MB",
           )
         }
-        let image = @topo.parse_pgm(
+        let original = @topo.parse_pgm(
           Array::makei(bytes.length(), fn(i) { bytes[i] }),
         )
-        let cutoff = numeric_argument(2)
+        let image = if inverted { @topo.invert_pgm(original) } else { original }
+        let automatic = argument(2) == "auto"
+        let cutoff = if automatic {
+          @topo.otsu_threshold(image)
+        } else {
+          numeric_argument(2)
+        }
         let result = @topo.analyze(
           @topo.cubical_grid(image.grid, threshold=cutoff),
         )
         let report = @topo.report_json(result).stringify()
-        if count == 5 {
-          let output = argument(4)
-          let info : Json = {
-            "source_format": "PGM",
-            "encoding": image.encoding,
-            "width": image.grid[0].length(),
-            "height": image.grid.length(),
-            "max_value": image.max_value,
-            "cutoff": cutoff,
-            "pixel_meaning": "raw grayscale values without inversion or normalization; lower-star threshold uses the original values",
-          }
+        if has_output {
+          let output = argument(out_index + 1)
+          let info = image_info(image, cutoff, automatic, inverted)
           if !new_output(output) {
             print_error(
               "output directory must be new and have an existing parent: " +

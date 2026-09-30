@@ -4,6 +4,8 @@ pub struct BatchCase {
   input : String
   format : String
   threshold : Double?
+  auto_threshold : Bool
+  invert : Bool
 } derive(@debug.Debug)
 
 ///|
@@ -124,7 +126,11 @@ pub fn parse_batch_manifest(text : String) -> BatchPlan raise TopologyError {
   let cases : Array[BatchCase] = []
   for value in case_values {
     let fields = batch_object(value, "case")
-    batch_fields(fields, ["name", "input", "format", "threshold"], "case")
+    batch_fields(
+      fields,
+      ["name", "input", "format", "threshold", "invert"],
+      "case",
+    )
     let name = batch_string(fields, "name")
     batch_name(name)
     if seen_cases.contains(name) {
@@ -142,23 +148,40 @@ pub fn parse_batch_manifest(text : String) -> BatchPlan raise TopologyError {
     if format != "json" && format != "pgm" {
       raise TopologyError("batch format must be json or pgm")
     }
+    let auto_threshold = match fields.get("threshold") {
+      Some(String("auto")) => true
+      _ => false
+    }
     let threshold = match fields.get("threshold") {
       Some(Number(n, ..)) => Some(n)
-      Some(_) => raise TopologyError("batch threshold must be numeric")
+      Some(String("auto")) => None
+      Some(_) => raise TopologyError("batch threshold must be numeric or auto")
       None => None
     }
-    if (format == "pgm" && threshold is None) ||
-      (format == "json" && threshold is Some(_)) {
+    if (format == "pgm" && threshold is None && !auto_threshold) ||
+      (format == "json" && fields.contains("threshold")) {
       raise TopologyError(
         "threshold is required for pgm and forbidden for json cases",
       )
+    }
+    let invert = match fields.get("invert") {
+      Some(value) => {
+        let parsed : Bool = @json.from_json(value) catch {
+          _ => raise TopologyError("batch invert must be boolean")
+        }
+        parsed
+      }
+      None => false
+    }
+    if format == "json" && fields.contains("invert") {
+      raise TopologyError("invert is only supported for pgm cases")
     }
     if threshold is Some(n) {
       if !finite(n) || n.abs() > 1.0e100 {
         raise TopologyError("PGM threshold must be bounded and finite")
       }
     }
-    cases.push({ name, input, format, threshold, })
+    cases.push({ name, input, format, threshold, auto_threshold, invert, })
   }
   let seen_pairs : Map[String, Bool] = Map([])
   let comparisons : Array[BatchPair] = []
