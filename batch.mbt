@@ -25,6 +25,7 @@ pub extend BatchPair with @debug.Debug::{to_repr}
 pub struct BatchPlan {
   cases : Array[BatchCase]
   comparisons : Array[BatchPair]
+  all_pairs : Bool
 } derive(@debug.Debug)
 
 ///|
@@ -104,6 +105,23 @@ fn batch_fields(
 }
 
 ///|
+fn batch_bool(
+  fields : Map[String, Json],
+  field : String,
+  fallback : Bool,
+) -> Bool raise TopologyError {
+  match fields.get(field) {
+    Some(value) => {
+      let parsed : Bool = @json.from_json(value) catch {
+        _ => raise TopologyError("batch " + field + " must be boolean")
+      }
+      parsed
+    }
+    None => fallback
+  }
+}
+
+///|
 /// Bounded manifest for up to eight local inputs and twelve comparisons.
 /// File paths are resolved and confined by the CLI host adapter.
 pub fn parse_batch_manifest(text : String) -> BatchPlan raise TopologyError {
@@ -114,7 +132,8 @@ pub fn parse_batch_manifest(text : String) -> BatchPlan raise TopologyError {
     _ => raise TopologyError("invalid batch manifest JSON")
   }
   let root = batch_object(parsed, "batch manifest")
-  batch_fields(root, ["cases", "comparisons"], "manifest")
+  batch_fields(root, ["cases", "comparisons", "all_pairs"], "manifest")
+  let all_pairs = batch_bool(root, "all_pairs", false)
   let case_values = batch_array(root, "cases", true)
   let pair_values = batch_array(root, "comparisons", false)
   if case_values.length() < 1 ||
@@ -164,15 +183,7 @@ pub fn parse_batch_manifest(text : String) -> BatchPlan raise TopologyError {
         "threshold is required for pgm and forbidden for json cases",
       )
     }
-    let invert = match fields.get("invert") {
-      Some(value) => {
-        let parsed : Bool = @json.from_json(value) catch {
-          _ => raise TopologyError("batch invert must be boolean")
-        }
-        parsed
-      }
-      None => false
-    }
+    let invert = batch_bool(fields, "invert", false)
     if format == "json" && fields.contains("invert") {
       raise TopologyError("invert is only supported for pgm cases")
     }
@@ -201,5 +212,5 @@ pub fn parse_batch_manifest(text : String) -> BatchPlan raise TopologyError {
     }
     comparisons.push({ name, left, right, })
   }
-  { cases, comparisons, }
+  { cases, comparisons, all_pairs, }
 }

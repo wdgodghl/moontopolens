@@ -167,7 +167,36 @@ const batchOut = path.join(temporary, 'batch');
 const batch = JSON.parse(cli(['batch', 'examples/batch-study.json', '--out', batchOut]));
 assert.equal(batch.case_count, 6);
 assert.equal(batch.comparison_count, 3);
+assert.equal(batch.all_pairs, true);
+assert.equal(batch.distance_matrix, 'distance-matrix.json');
 assert.deepEqual(JSON.parse(fs.readFileSync(path.join(batchOut, 'batch.json'), 'utf8')), batch);
+const distanceMatrix = JSON.parse(fs.readFileSync(path.join(batchOut, batch.distance_matrix), 'utf8'));
+assert.deepEqual(distanceMatrix.names, batch.cases.map(x => x.name));
+for (let i = 0; i < distanceMatrix.names.length; i++) {
+  assert.equal(distanceMatrix.h0[i][i], 0);
+  assert.equal(distanceMatrix.h1[i][i], 0);
+  for (let j = 0; j < distanceMatrix.names.length; j++) {
+    assert.equal(distanceMatrix.h0[i][j], distanceMatrix.h0[j][i]);
+    assert.equal(distanceMatrix.h1[i][j], distanceMatrix.h1[j][i]);
+    assert.equal(distanceMatrix.conditions_aligned[i][j], distanceMatrix.conditions_aligned[j][i]);
+  }
+}
+const squareIndex = distanceMatrix.names.indexOf('square');
+const rectangleIndex = distanceMatrix.names.indexOf('rectangle');
+assert.equal(distanceMatrix.h1[squareIndex][rectangleIndex], changed.distances.find(x => x.dimension === 1).bottleneck);
+assert.equal(distanceMatrix.conditions_aligned[squareIndex][rectangleIndex], false);
+const imageIndex = distanceMatrix.names.indexOf('ring-image');
+const gridIndex = distanceMatrix.names.indexOf('ring-grid');
+assert.equal(distanceMatrix.h0[imageIndex][gridIndex], 0);
+assert.equal(distanceMatrix.h1[imageIndex][gridIndex], 0);
+const h0Csv = fs.readFileSync(path.join(batchOut, 'distance-h0.csv'), 'utf8').trim().split('\n');
+const h1Csv = fs.readFileSync(path.join(batchOut, 'distance-h1.csv'), 'utf8').trim().split('\n');
+assert.equal(h0Csv.length, 1 + batch.case_count);
+assert.equal(h1Csv.length, 1 + batch.case_count);
+const heatmap = fs.readFileSync(path.join(batchOut, 'distance-heatmap.html'), 'utf8');
+assert.ok(heatmap.includes('H0 瓶颈距离') && heatmap.includes('H1 瓶颈距离'));
+assert.ok(heatmap.includes('class="cell caution"'));
+assert.ok(!heatmap.includes('<script') && !heatmap.includes('https://'));
 for (const item of batch.cases) {
   const report = JSON.parse(fs.readFileSync(path.join(batchOut, item.report), 'utf8'));
   assert.equal(report.schema_version, 1);
@@ -183,6 +212,14 @@ assert.ok(JSON.parse(fs.readFileSync(path.join(batchOut, 'comparisons', 'image-v
 assert.deepEqual(JSON.parse(fs.readFileSync(path.join(batchOut, 'cases', 'bright-ring', 'report.json'), 'utf8')).intervals, automatic.intervals);
 assert.ok(JSON.parse(fs.readFileSync(path.join(batchOut, 'comparisons', 'bright-vs-grid', 'comparison.json'), 'utf8')).distances.every(x => x.bottleneck === 0));
 cli(['batch', 'examples/batch-study.json', '--out', batchOut], 2);
+const noMatrixManifest = path.join(temporary, 'no-matrix.json');
+fs.writeFileSync(noMatrixManifest, JSON.stringify({cases:[{name:'one',input:'one.json'}]}));
+fs.copyFileSync('examples/square.json', path.join(temporary, 'one.json'));
+const noMatrixOut = path.join(temporary, 'no-matrix');
+const noMatrix = JSON.parse(cli(['batch', noMatrixManifest, '--out', noMatrixOut]));
+assert.equal(noMatrix.all_pairs, false);
+assert.equal(noMatrix.distance_matrix, null);
+assert.ok(!fs.existsSync(path.join(noMatrixOut, 'distance-matrix.json')));
 const badManifest = path.join(temporary, 'bad-manifest.json');
 fs.writeFileSync(badManifest, JSON.stringify({cases:[{name:'escape',input:'../outside.json'}]}));
 const rejectedOut = path.join(temporary, 'rejected-batch');

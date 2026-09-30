@@ -1,4 +1,5 @@
 {
+  "all_pairs": true,
   "cases": [
     {"name": "square", "input": "square.json"},
     {"name": "rectangle", "input": "rectangle.json"},

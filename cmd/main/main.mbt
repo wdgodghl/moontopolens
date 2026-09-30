@@ -180,6 +180,27 @@ fn main {
           comparison_csvs.push(@topo.matching_csv(left, right))
           comparison_htmls.push(@topo.comparison_html(left, right))
         }
+        let matrix = if plan.all_pairs {
+          Some(@topo.batch_distance_matrix(plan, analyses))
+        } else {
+          None
+        }
+        let matrix_json = match matrix {
+          Some(value) => @topo.batch_matrix_json(value).stringify()
+          None => ""
+        }
+        let matrix_h0_csv = match matrix {
+          Some(value) => @topo.batch_matrix_csv(value, 0)
+          None => ""
+        }
+        let matrix_h1_csv = match matrix {
+          Some(value) => @topo.batch_matrix_csv(value, 1)
+          None => ""
+        }
+        let matrix_html = match matrix {
+          Some(value) => @topo.batch_matrix_html(value)
+          None => ""
+        }
         let output = argument(3)
         if !new_output(output) {
           print_error(
@@ -241,12 +262,28 @@ fn main {
             "report": "comparisons/" + pair.name + "/comparison.json",
           })
         }
+        if plan.all_pairs &&
+          (
+            !save_output(output, "distance-matrix.json", matrix_json) ||
+            !save_output(output, "distance-h0.csv", matrix_h0_csv) ||
+            !save_output(output, "distance-h1.csv", matrix_h1_csv) ||
+            !save_output(output, "distance-heatmap.html", matrix_html)
+          ) {
+          print_error("could not save complete batch distance matrix")
+          return
+        }
         let summary : Json = {
           "case_count": plan.cases.length(),
           "comparison_count": plan.comparisons.length(),
           "total_cells": total_cells,
           "cases": case_summaries,
           "comparisons": pair_summaries,
+          "all_pairs": plan.all_pairs,
+          "distance_matrix": if plan.all_pairs {
+            "distance-matrix.json".to_json()
+          } else {
+            Json::null()
+          },
         }
         let output_text = summary.stringify()
         if !save_output(output, "batch.json", output_text) {

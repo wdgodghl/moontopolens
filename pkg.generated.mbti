@@ -12,6 +12,14 @@ pub fn analyze_json(String) -> Analysis raise TopologyError
 
 pub fn barcode_svg(Analysis) -> String
 
+pub fn batch_distance_matrix(BatchPlan, Array[Analysis]) -> BatchDistanceMatrix raise TopologyError
+
+pub fn batch_matrix_csv(BatchDistanceMatrix, Int) -> String raise TopologyError
+
+pub fn batch_matrix_html(BatchDistanceMatrix) -> String
+
+pub fn batch_matrix_json(BatchDistanceMatrix) -> Json
+
 pub fn betti(Analysis, Int, Double) -> Int raise TopologyError
 
 pub fn betti_csv(Analysis, samples? : Int) -> String raise TopologyError
@@ -115,6 +123,16 @@ pub struct BatchCase {
 } derive(@debug.Debug)
 pub fn BatchCase::to_repr(Self) -> @debug.Repr
 
+pub struct BatchDistanceMatrix {
+  names : Array[String]
+  kinds : Array[String]
+  cutoffs : Array[Double]
+  h0 : Array[Array[Double?]]
+  h1 : Array[Array[Double?]]
+  conditions_aligned : Array[Array[Bool]]
+} derive(@debug.Debug)
+pub fn BatchDistanceMatrix::to_repr(Self) -> @debug.Repr
+
 pub struct BatchPair {
   name : String
   left : String
@@ -125,6 +143,7 @@ pub fn BatchPair::to_repr(Self) -> @debug.Repr
 pub struct BatchPlan {
   cases : Array[BatchCase]
   comparisons : Array[BatchPair]
+  all_pairs : Bool
 } derive(@debug.Debug)
 pub fn BatchPlan::to_repr(Self) -> @debug.Repr
 
