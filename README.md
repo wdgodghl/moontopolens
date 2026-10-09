@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.7.0 批量全对比较版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
+当前版本：**0.8.0 观察尺度推荐版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
 正式章程的执行口径尚待确认。发布作为生态扩展计划，不阻碍当前开发。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -29,6 +29,7 @@
 | 持续同调 | GF(2) 稀疏边界矩阵约化、H0/H1 区间、出生时的代表链 |
 | 比较与特征 | 精确瓶颈距离、Betti 数与曲线、寿命排名/筛选、有限区间持续熵 |
 | 尺度与向量 | 精确 Betti 事件、指定尺度的连通分组、持久景观采样与特征向量 |
+| 观察尺度推荐 | 按 H1 已观察寿命挑选区间内尺度；无环路时可提示合并前分组尺度 |
 | 解释与演示 | 区间最优匹配明细、离线双图对比、分组着色的尺度 SVG、存活代表链高亮 |
 | 输出 | 完整 JSON、区间/曲线 CSV、SVG 条形码/持续图、离线 HTML 报告 |
 
@@ -118,6 +119,7 @@ moon run --target js cmd/main -- analyze examples/two-holes-grid.json --out out-
 - `intervals.csv`：所有区间、死亡状态、观察寿命和代表细胞索引。
 - `betti.csv`：101 个尺度上的 H0/H1，包含截止尺度。
 - `betti-events.csv`：全部出生/死亡尺度的精确 H0/H1，合并同尺度事件。
+- `recommendations.json` / `recommendations.csv`：建议查看的尺度、依据、区间编号和该尺度 H0/H1。
 - `report.html`：可离线打开的完整交互报告。
 
 ### 离线报告怎么用
@@ -206,7 +208,7 @@ moon run --target js cmd/main -- image examples/ring-image.pgm 1 --out out-ring-
 ```
 
 `CUTOFF` 是原始像素值尺度；默认不反色、不归一化。示例外围为 0、中心为 1，
-在尺度 0 有一个 H1 洞，在尺度 1 消失。输出与网格分析相同的七个报告文件，
+在尺度 0 有一个 H1 洞，在尺度 1 消失。输出与网格分析相同的报告文件，
 另有 `image-info.json` 记录 PGM 编码、尺寸、最大灰度和截止值。
 支持 P2/P5、8 位及 16 位 P5；16 位样本按大端读取。
 当前只读取单幅、最大 64×64 且不超过 1 MB 的 PGM；PNG/JPEG 尚未支持。
@@ -265,6 +267,26 @@ CSV 留空、热图显示“—”，不能解释为距离 0。
 热图用橙框标出复形类型或截止值不同的案例对；即使两项相同，也仍须核对
 尺度单位、灰度变换及数据含义。颜色仅在各自维度内部按有限距离缩放，
 请用 CSV/JSON 数值比较。`all_pairs` 缺省为 `false`，保留旧清单行为。
+
+### 0.8.0：推荐值得查看的尺度
+
+```sh
+moon run --target js cmd/main -- recommend examples/ring-grid.json
+moon run --target js cmd/main -- recommend examples/clusters.json --out out-recommend-clusters
+moon run --target js cmd/main -- slice examples/ring-grid.json 0.5 --out out-recommended-slice
+```
+
+第一个示例的 H1 在 `[0,1)` 存活，因此建议在 `0.5` 观察环路。
+工具最多按已观察寿命排序列出五个 H1 区间的内部尺度，并附上最终截止尺度。
+若没有 H1，但连接分量曾合并，还会给出一个精确的合并前 H0 事件尺度。
+`recommendations.json` 提供原因代码、原始区间编号、实际尺度和该处 H0/H1；
+`recommendations.csv` 便于表格处理。分析、图像和批量案例的输出目录也自动包含这两份文件。
+
+原因 `h1_finite` 表示有限环路；`h1_alive_at_cutoff` 表示环路仍活到输入截止，
+其已观察寿命仅是下界；`h0_before_merges` 表示更多分组尚未合并的事件尺度；
+`final_cutoff` 用作最终状态基线。可将推荐尺度传给 `slice` 查看细胞与分组；
+仅 H1 项的 `interval_index` 可用于 `slice --out ... --interval INDEX` 高亮代表链。
+这些建议用于浏览，不是最优阈值，也不自动判断数据的实际含义。
 
 ## 自定义输入
 
@@ -355,7 +377,7 @@ moon package --list
 ```
 
 测试覆盖已知形状、重复点、截止语义、稀疏预算、无效输入、网格与嵌入、导出与比较。
-JS 与 Wasm GC 各 47 个测试通过，另有 CLI 端到端验证。
+JS 与 Wasm GC 的最新测试数量及结果见 [验收记录](docs/acceptance.md)，另有 CLI 端到端验证。
 另外使用独立的稠密行消元算法核对 12 个点云在 11 个尺度的 Betti 数，
 使用穷举匹配核对瓶颈距离。CI 包含类型检查、构建、两种后端测试、覆盖率摘要和八个 CLI 场景。
 每个示例在全部 Betti 事件处验证快照分组数，持久景观用已知帐篷函数核对。

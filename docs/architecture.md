@@ -24,6 +24,7 @@
 | features.mbt | 观察寿命、区间筛选/排名、有限持续熵、CSV 导出 |
 | events.mbt | 出生/死亡事件排序、同尺度聚合、精确 Betti 阶梯曲线 |
 | snapshot.mbt | 带路径压缩的并查集、指定尺度的分组与快照 |
+| recommendations.mbt | H1 区间寿命排序、合并前 H0 尺度、推荐 JSON/CSV |
 | landscape.mbt | 有限区间帐篷函数、按层采样、向量与 CSV |
 | scale_render.mbt | 等比例投影、连通分组着色、存活代表链 SVG |
 | dashboard.mbt | 自包含 HTML；显示预先计算的区间与几何投影 |
