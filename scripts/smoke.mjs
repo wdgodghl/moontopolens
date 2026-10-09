@@ -26,6 +26,23 @@ for (const name of ['square', 'rectangle', 'clusters', 'ring-grid', 'two-holes-g
   assert.deepEqual(concise.summary, report.summary);
   assert.equal(concise.cutoff, report.cutoff);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(output, 'report.json'), 'utf8')), report);
+  const views = JSON.parse(fs.readFileSync(path.join(output, 'recommendations.json'), 'utf8'));
+  assert.equal(views.schema_version, 1);
+  assert.equal(views.recommendations.at(-1).reason, 'final_cutoff');
+  assert.equal(views.recommendations.at(-1).scale, report.cutoff);
+  const viewRows = fs.readFileSync(path.join(output, 'recommendations.csv'), 'utf8').trim().split('\n');
+  assert.equal(viewRows.length, views.recommendations.length + 1);
+  for (const view of views.recommendations) {
+    assert.equal(view.h0, betti(report, 0, view.scale));
+    assert.equal(view.h1, betti(report, 1, view.scale));
+    if (view.interval_index !== null) {
+      const interval = report.intervals[view.interval_index];
+      assert.equal(interval.dimension, 1);
+      assert.ok(interval.birth <= view.scale);
+      assert.ok(interval.death === null || view.scale < interval.death);
+      assert.equal(view.censored, interval.death === null);
+    }
+  }
   for (const svg of ['barcode.svg', 'diagram.svg']) {
     const text = fs.readFileSync(path.join(output, svg), 'utf8');
     assert.ok(text.startsWith('<svg') && text.endsWith('</svg>'));
@@ -56,10 +73,15 @@ for (const name of ['square', 'rectangle', 'clusters', 'ring-grid', 'two-holes-g
     assert.equal(betti(report, 1, 1), 1);
     assert.equal(betti(report, 1, Math.SQRT2), 0);
   }
-  if (name === 'clusters') assert.equal(betti(report, 0, 0.5), 2);
+  if (name === 'clusters') {
+    assert.equal(betti(report, 0, 0.5), 2);
+    assert.equal(views.recommendations[0].reason, 'h0_before_merges');
+    assert.ok(views.recommendations[0].h0 > views.recommendations.at(-1).h0);
+  }
   if (name === 'ring-grid') {
     assert.equal(betti(report, 1, 0), 1);
     assert.equal(betti(report, 1, 1), 0);
+    assert.equal(views.recommendations[0].scale, 0.5);
   }
   if (name === 'periodic-series') assert.equal(betti(report, 1, 1.5), 1);
   if (name === 'short-loop-grid') {
@@ -69,6 +91,16 @@ for (const name of ['square', 'rectangle', 'clusters', 'ring-grid', 'two-holes-g
   }
   cli(['analyze', `examples/${name}.json`, '--out', output], 2);
 }
+const recommendationOut = path.join(temporary, 'recommend-ring');
+const recommended = JSON.parse(cli(['recommend', 'examples/ring-grid.json', '--out', recommendationOut]));
+assert.equal(recommended.recommendations[0].scale, 0.5);
+assert.equal(recommended.recommendations[0].reason, 'h1_finite');
+assert.deepEqual(JSON.parse(fs.readFileSync(path.join(recommendationOut, 'recommendations.json'), 'utf8')), recommended);
+assert.ok(fs.readFileSync(path.join(recommendationOut, 'recommendations.csv'), 'utf8').includes('h1_finite'));
+assert.deepEqual(JSON.parse(cli(['recommend', 'examples/ring-grid.json'])), recommended);
+cli(['recommend', 'examples/ring-grid.json', '--out', recommendationOut], 2);
+const censoredRecommendation = JSON.parse(cli(['recommend', 'examples/square.json']));
+assert.ok(censoredRecommendation.recommendations.find(x => x.reason === 'h1_finite'));
 const landscapeOut = path.join(temporary, 'landscape');
 const landscape = JSON.parse(cli(['landscape', 'examples/two-holes-grid.json', '1', '0', '1', '--out', landscapeOut]));
 assert.equal(landscape.vector.length, 303);
@@ -140,6 +172,7 @@ assert.equal(betti(image, 1, 0), 1);
 assert.equal(betti(image, 1, 1), 0);
 assert.equal(JSON.parse(fs.readFileSync(path.join(imageOut, 'image-info.json'), 'utf8')).max_value, 1);
 assert.ok(fs.readFileSync(path.join(imageOut, 'report.html'), 'utf8').includes('<html'));
+assert.equal(JSON.parse(fs.readFileSync(path.join(imageOut, 'recommendations.json'), 'utf8')).recommendations[0].scale, 0.5);
 const autoOut = path.join(temporary, 'bright-ring');
 const automatic = JSON.parse(cli(['image', 'examples/bright-ring.pgm', 'auto', '--invert', '--out', autoOut]));
 assert.equal(automatic.cutoff, 0);
@@ -201,6 +234,7 @@ for (const item of batch.cases) {
   const report = JSON.parse(fs.readFileSync(path.join(batchOut, item.report), 'utf8'));
   assert.equal(report.schema_version, 1);
   assert.ok(fs.existsSync(path.join(batchOut, 'cases', item.name, 'report.html')));
+  assert.ok(fs.existsSync(path.join(batchOut, 'cases', item.name, 'recommendations.json')));
 }
 for (const item of batch.comparisons) {
   const report = JSON.parse(fs.readFileSync(path.join(batchOut, item.report), 'utf8'));
@@ -230,6 +264,7 @@ cli(['slice','examples/square.json','1','--bad','unused'],2);
 cli(['analyze', path.join(temporary, 'missing.json')], 2);
 cli(['compare'], 2);
 cli(['summary'], 2);
+cli(['recommend'], 2);
 cli(['unknown'], 2);
 assert.ok(cli(['--help']).includes('MoonTopoLens'));
-console.log('CLI smoke passed: eight data scenarios, P2/P5 image import, Otsu and inversion, batch study, exact events, snapshot SVG, landscapes, comparison matching, both offline UIs, exports and errors.');
+console.log('CLI smoke passed: eight data scenarios, scale recommendations, P2/P5 image import, Otsu and inversion, batch study, exact events, snapshot SVG, landscapes, comparison matching, both offline UIs, exports and errors.');

@@ -15,6 +15,9 @@ fn usage() -> Unit {
   )
   println("moon run --target js cmd/main -- summary INPUT.json")
   println(
+    "moon run --target js cmd/main -- recommend INPUT.json [--out NEW_DIRECTORY]",
+  )
+  println(
     "moon run --target js cmd/main -- slice INPUT.json SCALE [--out NEW_DIRECTORY [--interval INDEX]]",
   )
   println(
@@ -59,6 +62,12 @@ fn save_analysis(
   save_output(output, "intervals.csv", @topo.intervals_csv(result)) &&
   save_output(output, "betti.csv", @topo.betti_csv(result)) &&
   save_output(output, "betti-events.csv", @topo.betti_events_csv(result)) &&
+  save_output(
+    output,
+    "recommendations.json",
+    @topo.recommendations_json(result).stringify(),
+  ) &&
+  save_output(output, "recommendations.csv", @topo.recommendations_csv(result)) &&
   save_output(output, "report.html", @topo.html_report(result))
 }
 
@@ -461,6 +470,37 @@ fn main {
           "note": "observed lifetimes of alive classes are lower bounds; finite entropy excludes them",
         }
         println(summary.stringify())
+      }
+      "recommend" => {
+        if count != 2 && count != 4 {
+          print_error(
+            "recommend requires INPUT.json and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        if count == 4 && (argument(2) != "--out" || argument(3) == "") {
+          print_error("expected --out NEW_DIRECTORY")
+          return
+        }
+        let result = load(argument(1))
+        let report = @topo.recommendations_json(result).stringify()
+        let csv = @topo.recommendations_csv(result)
+        if count == 4 {
+          let output = argument(3)
+          if !new_output(output) {
+            print_error(
+              "output directory must be new and have an existing parent: " +
+              output,
+            )
+            return
+          }
+          if !save_output(output, "recommendations.json", report) ||
+            !save_output(output, "recommendations.csv", csv) {
+            print_error("could not save complete recommendations")
+            return
+          }
+        }
+        println(report)
       }
       "analyze" => {
         if count != 2 && count != 4 {

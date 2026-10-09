@@ -82,6 +82,12 @@ pub fn persistence_landscape(Analysis, dimension~ : Int, start~ : Double, end~ :
 
 pub fn ranked_intervals(Analysis, dimension~ : Int, min_lifetime? : Double, include_alive? : Bool) -> Array[Interval] raise TopologyError
 
+pub fn recommend_scales(Analysis, max_loops? : Int) -> Array[ScaleRecommendation] raise TopologyError
+
+pub fn recommendations_csv(Analysis, max_loops? : Int) -> String raise TopologyError
+
+pub fn recommendations_json(Analysis, max_loops? : Int) -> Json raise TopologyError
+
 pub fn report_json(Analysis) -> Json
 
 pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
@@ -196,6 +202,15 @@ pub struct PgmImage {
   encoding : String
 } derive(@debug.Debug)
 pub fn PgmImage::to_repr(Self) -> @debug.Repr
+
+pub struct ScaleRecommendation {
+  scale : Double
+  interval_index : Int?
+  reason : String
+  observed_lifetime : Double?
+  censored : Bool
+} derive(@debug.Debug)
+pub fn ScaleRecommendation::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
