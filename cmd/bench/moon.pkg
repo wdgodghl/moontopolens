@@ -1,0 +1,7 @@
+import {
+  "wdgodghl/moontopolens" @topo,
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "js"

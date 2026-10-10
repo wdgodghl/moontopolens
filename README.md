@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.10.0 网格填充与报告分页版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
+当前版本：**0.11.0 外部对照与性能基准版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
 正式章程的执行口径尚待确认。发布作为生态扩展计划，不阻碍当前开发。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -33,6 +33,7 @@
 | 观察尺度推荐 | 按 H1 已观察寿命挑选区间内尺度；无环路时可提示合并前分组尺度 |
 | 解释与演示 | 区间最优匹配明细、离线双图对比、分组着色的尺度 SVG、网格填充、存活代表链高亮 |
 | 输出 | 完整 JSON、区间/曲线 CSV、SVG 条形码/持续图、离线 HTML 报告 |
+| 可复现验证 | GUDHI Rips 外部区间对照、不同点数的耗时和进程内存基准 |
 
 H0 对应连接分量，H1 对应闭合环路。长寿命特征在较多尺度存在，
 可以作为进一步分析的线索；其物理意义需要结合输入数据判断。
@@ -396,8 +397,17 @@ moon test --target wasm-gc
 moon coverage report -f summary
 node scripts/check-source.mjs
 node scripts/smoke.mjs
+python -m pip install gudhi==3.13.0
+python scripts/reference_gudhi.py
+node scripts/benchmark.mjs
 moon package --list
 ```
+
+外部对照先运行 `moon build --target js`，再用 GUDHI 3.13.0 独立计算
+22 组 Rips 点云、距离矩阵和延迟嵌入的 H0/H1 区间；CI 会执行这一检查。
+基准使用确定性二维点云、相同截止值和三次独立进程，报告 MoonBit 构造/约化的中位耗时与分析后的进程 RSS。
+RSS 包含 Node 运行时且**不是峰值**；基准仅说明已测规模，不代表大规模性能承诺。
+测试细节见 [外部对照](docs/reference-validation.md) 与 [性能记录](docs/performance.md)。
 
 测试覆盖已知形状、重复点、截止语义、稀疏预算、无效输入、网格与嵌入、导出与比较。
 JS 与 Wasm GC 的最新测试数量及结果见 [验收记录](docs/acceptance.md)，另有 CLI 端到端验证。
