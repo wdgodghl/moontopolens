@@ -9,8 +9,8 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.11.0 外部对照与性能基准版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
-正式章程的执行口径尚待确认。发布作为生态扩展计划，不阻碍当前开发。
+当前版本：**0.11.0 外部对照与性能基准版**。
+Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
 
@@ -64,8 +64,8 @@ moon test --target wasm-gc
 moon run --target wasm-gc cmd/demo
 ```
 
-命令行文件操作适配器目前仅支持 JS/Node。未发布前请从本仓库运行；
-`moon add wdgodghl/moontopolens` 将在 Mooncakes 发布成功后可用。
+命令行文件操作适配器目前仅支持 JS/Node。也可以在自己的 MoonBit 项目中运行
+`moon add wdgodghl/moontopolens` 引入已发布的核心库。
 
 ## 三个完整使用场景
 
@@ -329,7 +329,7 @@ moon run --target js cmd/main -- sweep examples/periodic-sweep.json --out out-pe
 
 ## MoonBit 库用法
 
-包导入（发布后，或通过本地路径依赖）：
+包导入（先运行 `moon add wdgodghl/moontopolens@0.11.0`）：
 
 ```text
 import {

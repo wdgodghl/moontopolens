@@ -1,10 +1,9 @@
 # 初步开发与验收记录
 
-截至 2026-10-10。这是工程证据，不代表赛事评审保证通过。
+截至 2026-10-11。这是工程证据，不代表赛事评审保证通过。
 
-赛事口径说明：用户先前提供的九条参考标准包含 Mooncakes 发布。
-重新核对官网当前“验收标准”与“注意事项”，公开摘要未列出强制 Mooncakes 发布。
-官网注明以正式章程和通知为准，飞书章程当前未能读取，因此不把发布当作当前开发阻塞。
+赛事口径说明：参赛者提供的九条验收指南包含 Mooncakes 发布，本项目按该指南执行。
+官网公开摘要与正式章程可能另有补充，最终以赛事通知为准。
 来源：https://moonbitlang.github.io/Hackathon2026/ ；
 官网文字源码：https://github.com/moonbitlang/Hackathon2026/blob/main/src/App.tsx 。
 
@@ -17,7 +16,7 @@
 | CI 检查/构建/测试 | .github/workflows/ci.yml；增加 GUDHI 外部 Rips 区间对照，远端运行结果以 Actions 为准 |
 | 运行示例 | cmd/demo + examples 的十个 JSON 输入、两个 PGM 图像及一份批量清单；CLI smoke 已通过 |
 | 核心测试 | JS 和 Wasm GC 各 68 个测试；稠密参考、穷举匹配、匹配见证、景观、PGM、Otsu、批量矩阵、尺度推荐、参数扫描与网格填充显示已核对 |
-| Mooncakes 生态发布（参考标准，必需性待章程确认） | 暂未发布；已准备发布包，可在后续登录账号后发布 |
+| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开，注册表返回 `0.11.0`、MIT；独立项目安装并运行成功 |
 | OSI 许可证与来源 | MIT；独立实现，公开算法背景见查重记录 |
 
 ## 本地验证
@@ -39,7 +38,7 @@
 - 网格填充与分页：尺度 0 的环形网格不绘制方格面，尺度 1 绘制四个；Rips 点云不绘制投影三角形。离线报告模拟超过 120 条区间，核对每页 50 条、翻页和筛选后页码重置。
 - GUDHI 外部差分：5 个仓库样例、5 个正方形截止尺度和 12 组确定性点云，共 22 个 Rips 案例的 H0/H1 区间一致；方法和局限见 reference-validation.md。
 - 性能基准：8–28 点的密集 Rips 2-骨架，三次独立运行取中位数；记录核心耗时和分析后进程 RSS，见 performance.md。
-- 已生成的包不代表已上传 Mooncakes。
+- Mooncakes 注册表 `wdgodghl/moontopolens` 返回 0.11.0，公开模块页 HTTP 200；独立项目运行 `moon add wdgodghl/moontopolens@0.11.0`，最小示例输出 `H1 at scale 1 = 1`。
 
 源码量由 `node scripts/check-source.mjs` 复算。
 统计排除测试和 host.mbt FFI，并另报告去除纯括号行后的代码行数。
@@ -52,7 +51,7 @@ CLI 另有端到端场景验证。覆盖率不等于全部行为正确；外部�
 ## 下一阶段
 
 1. 扩充外部参考至 cubical 网格与更多异常尺度；有条件时再与 Ripser 独立交叉核验。
-2. 如决定发布到 Mooncakes，再完成账号登录、发布与独立安装验证。
+2. 后续版本按语义化版本更新，并持续核验 Mooncakes 的独立安装路径。
 3. 扩大性能样本并记录峰值内存、不同硬件和更复杂输入分布。
 4. 根据使用反馈完善离线报告的视觉布局与可访问性；在线上传应用不纳入本轮完成范围。
 

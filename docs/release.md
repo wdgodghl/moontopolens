@@ -1,10 +1,11 @@
 # Mooncakes 发布说明
 
-当前发布状态：**尚未发布**。包名暂定 `wdgodghl/moontopolens`，版本 `0.8.0`。
-账号命名空间必须与实际 Mooncakes 用户名一致，不能只凭 GitHub 用户名假定拥有发布权限。
+发布状态：**2026-10-11 已发布**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
+验收指南要求发布到 Mooncakes；以注册表中的实际模块条目作为完成证据。
 
-当前官网公开验收摘要没有强制发布条款。先前九条参考标准包含此项，
-正式章程当前未能读取，应按赛事通知确认。此处保留后续生态发布操作说明。
+公开页面：https://mooncakes.io/docs/wdgodghl/moontopolens 。
+注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 返回版本 `0.11.0`、许可证 `MIT`。
+在独立新项目执行 `moon add wdgodghl/moontopolens@0.11.0`，运行正方形最小样例得到 `H1 at scale 1 = 1`。
 
 ## 发布前
 
@@ -21,10 +22,9 @@ moon login
 moon publish
 ```
 
-登录和凭据由账号持有人完成，不把 token 写入仓库。
-发布后查询 https://mooncakes.io/ 的模块条目，记录实际链接；
-在一个独立示例项目中通过 `moon add wdgodghl/moontopolens` 安装并运行示例，
-再将 README 和验收表更新为“已发布”。
+登录凭据不写入仓库。
+后续版本发布后继续查询公开模块条目；
+在独立示例项目中通过 `moon add wdgodghl/moontopolens@<version>` 安装并运行示例。
 
 发布不可被本地打包代替；必须得到注册表成功响应并核实包条目。
 同版本如已上传，需要按真实变更递增版本，不能覆盖既有版本。
