@@ -1,6 +1,6 @@
 """Optional external differential check for MoonTopoLens Rips H0/H1.
 
-Requires GUDHI 3.13.0 and a prior `moon build --target js`. The reference
+Requires NumPy 2.3.5, GUDHI 3.13.0 and a prior `moon build --target js`. The reference
 package is used only by this validation script, never by the MoonBit core.
 """
 
@@ -13,7 +13,10 @@ from pathlib import Path
 try:
     import gudhi
 except ImportError as exc:
-    raise SystemExit("Install the optional reference dependency: pip install gudhi==3.13.0") from exc
+    raise SystemExit(
+        "Install optional reference dependencies: "
+        f"pip install numpy==2.3.5 gudhi==3.13.0 ({exc})"
+    ) from exc
 
 
 ROOT = Path(__file__).resolve().parents[1]

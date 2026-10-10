@@ -9,7 +9,7 @@ GUDHI 不参与项目的日常分析、发布包核心算法或输出生成。
 安装 Python 3.12、Node.js 22 和项目要求的 MoonBit 工具链。在仓库根目录执行：
 
 ```sh
-python -m pip install gudhi==3.13.0
+python -m pip install numpy==2.3.5 gudhi==3.13.0
 moon build --target js
 python scripts/reference_gudhi.py
 ```

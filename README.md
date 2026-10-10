@@ -397,7 +397,7 @@ moon test --target wasm-gc
 moon coverage report -f summary
 node scripts/check-source.mjs
 node scripts/smoke.mjs
-python -m pip install gudhi==3.13.0
+python -m pip install numpy==2.3.5 gudhi==3.13.0
 python scripts/reference_gudhi.py
 node scripts/benchmark.mjs
 moon package --list
