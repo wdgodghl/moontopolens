@@ -1,0 +1,8 @@
+{
+  "kind": "series_sweep",
+  "threshold": 3,
+  "dimensions": [2, 3],
+  "lags": [1, 2],
+  "stride": 1,
+  "series": [0, 1, 0, -1, 0, 1, 0, -1, 0, 1, 0, -1, 0]
+}

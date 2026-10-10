@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.8.0 观察尺度推荐版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
+当前版本：**0.9.0 时间序列参数敏感性版**。当前尚未发布到 Mooncakes；官网公开验收摘要未将其列为必需项，
 正式章程的执行口径尚待确认。发布作为生态扩展计划，不阻碍当前开发。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -26,6 +26,7 @@
 | 批量项目 | 从一个 JSON 清单分析多份输入并生成指定两两比较和总索引 |
 | 全对比较 | 可选 H0/H1 距离方阵、CSV 与离线热图，提示比较条件不一致 |
 | 时间序列 | 指定维数、滞后、步长的延迟嵌入，随后进行 Rips 分析 |
+| 参数敏感性 | 同一时间序列扫描多组维数/滞后值，导出环路摘要和对齐的景观向量 |
 | 持续同调 | GF(2) 稀疏边界矩阵约化、H0/H1 区间、出生时的代表链 |
 | 比较与特征 | 精确瓶颈距离、Betti 数与曲线、寿命排名/筛选、有限区间持续熵 |
 | 尺度与向量 | 精确 Betti 事件、指定尺度的连通分组、持久景观采样与特征向量 |
@@ -288,6 +289,24 @@ moon run --target js cmd/main -- slice examples/ring-grid.json 0.5 --out out-rec
 仅 H1 项的 `interval_index` 可用于 `slice --out ... --interval INDEX` 高亮代表链。
 这些建议用于浏览，不是最优阈值，也不自动判断数据的实际含义。
 
+### 0.9.0：检查时间序列嵌入参数的影响
+
+```sh
+moon run --target js cmd/main -- sweep examples/periodic-sweep.json --out out-periodic-sweep
+```
+
+输入中 `kind` 为 `series_sweep`，提供同一组 `series`、正数 `threshold`、
+`dimensions` 和 `lags` 数组；`stride` 默认为 1，`max_cells` 默认为 4000。
+工具分析维数与滞后值的所有组合，最多 12 组，且总细胞数不得超过 16000。
+每组参数若使信号太短、嵌入超过 128 点或超过细胞预算，将明确报错。
+
+`sweep.json` 记录每组嵌入点数、H1 有限区间和截止时存活区间数量、
+最长已观察寿命、截止处 H1，以及 303 维持久景观向量；
+`sweep-summary.csv` 便于比较摘要，`sweep-landscape.csv` 每行是一组参数的向量。
+所有向量都在 `[0,threshold]` 上以相同的 101 个采样点和 3 层计算，
+按层和尺度顺序排列；存活至截止的环路不进入向量，因此应同时查看其数量。
+维数和滞后值可能改变嵌入点数，扫描结果只能说明敏感性，不能自动选出最佳参数或证明周期。
+
 ## 自定义输入
 
 ```json
@@ -299,7 +318,8 @@ moon run --target js cmd/main -- slice examples/ring-grid.json 0.5 --out out-rec
 }
 ```
 
-`kind` 支持 `points` / `matrix` / `grid` / `series`，对应数据字段同名。
+普通分析的 `kind` 支持 `points` / `matrix` / `grid` / `series`，对应数据字段同名。
+`series_sweep` 是独立的扫描输入类型，只用于 `sweep` 命令。
 `threshold` 必填；`max_cells` 默认 4000。
 `series` 可指定 `dimension`（默认 2）、`lag`（默认 1）、`stride`（默认 1）。
 未知字段、非法形状、非有限值和超出预算的输入会返回错误，CLI 退出码为 2。
@@ -338,6 +358,7 @@ let scale_picture = @topo.scale_svg(analysis, scale=1.0)
 
 调用者需要处理 `TopologyError`。公开 API 见 [pkg.generated.mbti](pkg.generated.mbti)，
 可运行库样例见 [cmd/demo/main.mbt](cmd/demo/main.mbt)。
+参数扫描库入口为 `@topo.series_sweep(request_text)`，返回 JSON 报告、摘要 CSV 和景观向量 CSV。
 
 ## 算法约定与边界
 
@@ -354,6 +375,7 @@ let scale_picture = @topo.scale_svg(analysis, scale=1.0)
 - 持续熵仅统计有限区间，使用自然对数；无正寿命有限区间时约定为 0。
   未死亡类的观察寿命为 `cutoff-birth` 下界，不能当作完整寿命。
 - 持久景观限 2–1001 个采样点、1–16 层，并限制 `有限区间数×采样点数×层数 ≤ 2,000,000`。
+  参数扫描固定 101 点、3 层；最多 12 组参数和 16000 个总细胞。
   连通分组要求零细胞/边保留一/两个原始顶点 ID；不支持缺失该编码的自定义过滤。
 - 只处理小规模内存数据，未做大数据性能承诺；完整 H2、最短环路和在线上传应用仍属后续计划。
 
@@ -379,7 +401,7 @@ moon package --list
 测试覆盖已知形状、重复点、截止语义、稀疏预算、无效输入、网格与嵌入、导出与比较。
 JS 与 Wasm GC 的最新测试数量及结果见 [验收记录](docs/acceptance.md)，另有 CLI 端到端验证。
 另外使用独立的稠密行消元算法核对 12 个点云在 11 个尺度的 Betti 数，
-使用穷举匹配核对瓶颈距离。CI 包含类型检查、构建、两种后端测试、覆盖率摘要和八个 CLI 场景。
+使用穷举匹配核对瓶颈距离。CI 包含类型检查、构建、两种后端测试、覆盖率摘要和 CLI 场景。
 每个示例在全部 Betti 事件处验证快照分组数，持久景观用已知帐篷函数核对。
 匹配见证在 12 对形状中检查每个区间恰好出现一次、代价符合公式、最大代价等于瓶颈距离。
 另有三组离线对比报告、尺度 SVG、存活选择/无坐标/输出冲突的端到端验证。

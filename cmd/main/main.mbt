@@ -11,6 +11,9 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- batch MANIFEST.json --out NEW_DIRECTORY",
   )
   println(
+    "moon run --target js cmd/main -- sweep SERIES_SWEEP.json [--out NEW_DIRECTORY]",
+  )
+  println(
     "moon run --target js cmd/main -- compare LEFT.json RIGHT.json [--out NEW_DIRECTORY]",
   )
   println("moon run --target js cmd/main -- summary INPUT.json")
@@ -108,6 +111,43 @@ fn main {
   }
   try {
     match argument(0) {
+      "sweep" => {
+        if count != 2 && count != 4 {
+          print_error(
+            "sweep requires SERIES_SWEEP.json and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        if count == 4 && (argument(2) != "--out" || argument(3) == "") {
+          print_error("expected --out NEW_DIRECTORY")
+          return
+        }
+        let source = read_input(argument(1))
+        if source == "" {
+          raise @topo.TopologyError(
+            "sweep input missing, unreadable, empty or exceeds 1MB",
+          )
+        }
+        let (report, summary_csv, vector_csv) = @topo.series_sweep(source)
+        let report_text = report.stringify()
+        if count == 4 {
+          let output = argument(3)
+          if !new_output(output) {
+            print_error(
+              "output directory must be new and have an existing parent: " +
+              output,
+            )
+            return
+          }
+          if !save_output(output, "sweep.json", report_text) ||
+            !save_output(output, "sweep-summary.csv", summary_csv) ||
+            !save_output(output, "sweep-landscape.csv", vector_csv) {
+            print_error("could not save complete parameter sweep")
+            return
+          }
+        }
+        println(report_text)
+      }
       "batch" => {
         if count != 4 || argument(2) != "--out" || argument(3) == "" {
           print_error("batch requires MANIFEST.json --out NEW_DIRECTORY")

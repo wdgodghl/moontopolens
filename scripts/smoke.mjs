@@ -92,6 +92,26 @@ for (const name of ['square', 'rectangle', 'clusters', 'ring-grid', 'two-holes-g
   cli(['analyze', `examples/${name}.json`, '--out', output], 2);
 }
 const recommendationOut = path.join(temporary, 'recommend-ring');
+const sweepOut = path.join(temporary, 'periodic-sweep');
+const sweep = JSON.parse(cli(['sweep', 'examples/periodic-sweep.json', '--out', sweepOut]));
+assert.equal(sweep.kind, 'series_sweep');
+assert.equal(sweep.case_count, 4);
+assert.deepEqual(sweep.cases.map(c => [c.dimension, c.lag]), [[2, 1], [2, 2], [3, 1], [3, 2]]);
+assert.deepEqual(sweep.landscape.grid.length, 101);
+assert.ok(sweep.cases.every(c => c.h1_landscape_vector.length === 303));
+assert.ok(sweep.cases.every(c => c.h1_alive_at_cutoff === c.h1_at_cutoff));
+assert.deepEqual(JSON.parse(fs.readFileSync(path.join(sweepOut, 'sweep.json'), 'utf8')), sweep);
+const sweepSummary = fs.readFileSync(path.join(sweepOut, 'sweep-summary.csv'), 'utf8').trim().split('\n');
+const sweepVectors = fs.readFileSync(path.join(sweepOut, 'sweep-landscape.csv'), 'utf8').trim().split('\n');
+assert.equal(sweepSummary.length, 5);
+assert.equal(sweepVectors.length, 5);
+for (let i = 0; i < sweep.cases.length; i++) {
+  const item = sweep.cases[i];
+  assert.deepEqual(sweepSummary[i + 1].split(',').map(Number), [item.dimension, item.lag, item.stride, item.point_count, item.cell_count, item.h1_finite_count, item.h1_alive_at_cutoff, item.longest_h1_observed_lifetime, item.h1_at_cutoff]);
+  assert.deepEqual(sweepVectors[i + 1].split(',').map(Number), [item.dimension, item.lag, item.stride, ...item.h1_landscape_vector]);
+}
+assert.deepEqual(JSON.parse(cli(['sweep', 'examples/periodic-sweep.json'])), sweep);
+cli(['sweep', 'examples/periodic-sweep.json', '--out', sweepOut], 2);
 const recommended = JSON.parse(cli(['recommend', 'examples/ring-grid.json', '--out', recommendationOut]));
 assert.equal(recommended.recommendations[0].scale, 0.5);
 assert.equal(recommended.recommendations[0].reason, 'h1_finite');
@@ -265,6 +285,7 @@ cli(['analyze', path.join(temporary, 'missing.json')], 2);
 cli(['compare'], 2);
 cli(['summary'], 2);
 cli(['recommend'], 2);
+cli(['sweep'], 2);
 cli(['unknown'], 2);
 assert.ok(cli(['--help']).includes('MoonTopoLens'));
-console.log('CLI smoke passed: eight data scenarios, scale recommendations, P2/P5 image import, Otsu and inversion, batch study, exact events, snapshot SVG, landscapes, comparison matching, both offline UIs, exports and errors.');
+console.log('CLI smoke passed: eight data scenarios, parameter sweep, scale recommendations, P2/P5 image import, Otsu and inversion, batch study, exact events, snapshot SVG, landscapes, comparison matching, both offline UIs, exports and errors.');

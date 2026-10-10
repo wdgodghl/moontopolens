@@ -96,6 +96,8 @@ pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int) 
 
 pub fn scale_svg(Analysis, scale~ : Double, interval? : Int?) -> String raise TopologyError
 
+pub fn series_sweep(String) -> (Json, String, String) raise TopologyError
+
 pub fn snapshot_json(Analysis, Double) -> Json raise TopologyError
 
 pub fn summary_json(Analysis) -> Json
