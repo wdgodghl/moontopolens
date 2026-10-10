@@ -31,11 +31,13 @@ export function verifyReportUI(html, report, name) {
     createElement(tag) { return new Element(tag); },
     createElementNS(_ns, tag) { return new Element(tag); },
   };
-  const api = vm.runInNewContext(source[1] + '\n({fmt,counts})', { document }, { timeout: 10000 });
+  const api = vm.runInNewContext(source[1] + '\n({fmt,counts,DATA,renderTable})', { document }, { timeout: 10000 });
   assert.equal(api.fmt(1000), '1000');
   assert.equal(api.fmt(0), '0');
   const alive = report.intervals.filter(i => i.dimension === 0 && i.birth <= report.cutoff && (i.death === null || i.death > report.cutoff)).length;
   assert.equal(elements.get('h0').textContent, String(alive));
+  const activeFaces = report.kind === 'cubical' ? report.cells.filter(c => c.dimension === 2 && c.value <= report.cutoff).length : 0;
+  assert.equal(elements.get('geometry').children.filter(n => n.tag === 'polygon').length, activeFaces);
   const curves = elements.get('curve').children.filter(n => n.tag === 'polyline');
   assert.equal(curves.length, 2);
   const start = report.cells.reduce((low,c) => Math.min(low,c.value), report.cutoff);
@@ -54,6 +56,7 @@ export function verifyReportUI(html, report, name) {
     elements.get('scale').value = name === 'square' ? '500' : name === 'short-loop-grid' ? '4' : '0';
     elements.get('scale').fire('input');
     assert.equal(elements.get('h1').textContent, name === 'two-holes-grid' ? '2' : '1');
+    if (name === 'ring-grid') assert.equal(elements.get('geometry').children.filter(n => n.tag === 'polygon').length, 0);
     const first = elements.get('interval-table').children[0];
     assert.ok(first, 'A loop row should be available');
     first.children[0].children[0].fire('click');
@@ -62,6 +65,23 @@ export function verifyReportUI(html, report, name) {
     elements.get('minimum').fire('input');
     assert.equal(elements.get('interval-table').children.length, 0);
   }
+  elements.get('dimension').value = 'all';
+  elements.get('minimum').value = '0';
+  elements.get('dimension').fire('input');
+  const template = api.DATA.intervals[0];
+  assert.ok(template);
+  for (let i = 0; i < 120; i++) api.DATA.intervals.push({ ...template });
+  api.renderTable();
+  assert.equal(elements.get('interval-table').children.length, 50);
+  assert.equal(elements.get('previous-page').disabled, true);
+  assert.equal(elements.get('next-page').disabled, false);
+  elements.get('next-page').fire('click');
+  assert.equal(elements.get('interval-table').children.length, 50);
+  assert.equal(elements.get('previous-page').disabled, false);
+  elements.get('minimum').value = '999';
+  elements.get('minimum').fire('input');
+  assert.equal(elements.get('interval-table').children.length, 0);
+  assert.equal(elements.get('page-status').textContent, '第 1 / 1 页');
   function check(element) {
     for (const [key, value] of Object.entries(element.attributes)) {
       if (['points', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy'].includes(key)) assert.ok(!/NaN|Infinity/.test(value));

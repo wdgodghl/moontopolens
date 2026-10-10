@@ -73,7 +73,20 @@ pub fn scale_svg(
       335.0 - 400.0 * ((point[1] - min_y) / span - (max_y - min_y) / span / 2.0),
     )
   })
-  let mut svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 800 600\" role=\"img\" aria-label=\"MoonTopoLens scale snapshot\"><rect width=\"800\" height=\"600\" fill=\"#0f172a\"/><g font-family=\"sans-serif\" fill=\"#e2e8f0\"><text x=\"24\" y=\"32\" font-size=\"20\">MoonTopoLens | Scale snapshot</text><text x=\"24\" y=\"58\" font-size=\"14\">scale=\{scale} | H0=\{groups.length()} | H1=\{betti(analysis, 1, scale)}</text><text x=\"24\" y=\"80\" font-size=\"12\">Vertex colors: components (palette repeats after 7); orange edges: selected H1 birth chain</text>"
+  let mut svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 800 600\" role=\"img\" aria-label=\"MoonTopoLens scale snapshot\"><rect width=\"800\" height=\"600\" fill=\"#0f172a\"/><g font-family=\"sans-serif\" fill=\"#e2e8f0\"><text x=\"24\" y=\"32\" font-size=\"20\">MoonTopoLens | Scale snapshot</text><text x=\"24\" y=\"58\" font-size=\"14\">scale=\{scale} | H0=\{groups.length()} | H1=\{betti(analysis, 1, scale)}</text><text x=\"24\" y=\"80\" font-size=\"12\">Vertex colors: components; orange edges: selected H1 birth chain; teal squares: filled grid faces</text>"
+  if analysis.filtration.kind == "cubical" {
+    for i = 0; i < analysis.filtration.cells.length(); i = i + 1 {
+      let cell = analysis.filtration.cells[i]
+      if cell.dimension != 2 || cell.value > scale {
+        continue
+      }
+      let a = xy[cell.vertices[0]]
+      let b = xy[cell.vertices[1]]
+      let c = xy[cell.vertices[2]]
+      let d = xy[cell.vertices[3]]
+      svg += "<polygon data-cell-index=\"\{i}\" points=\"\{a.0},\{a.1} \{b.0},\{b.1} \{d.0},\{d.1} \{c.0},\{c.1}\" fill=\"#2dd4bf\" fill-opacity=\"0.22\"><title>filled grid face \{i}, entered at scale \{cell.value}</title></polygon>"
+    }
+  }
   for i = 0; i < analysis.filtration.cells.length(); i = i + 1 {
     let cell = analysis.filtration.cells[i]
     if cell.value > scale || cell.dimension != 1 {
@@ -96,5 +109,5 @@ pub fn scale_svg(
     svg += "<circle cx=\"\{p.0}\" cy=\"\{p.1}\" r=\"6\" fill=\"\{fill}\"><title>input vertex \{vertex}</title></circle><text x=\"\{p.0 + 8.0}\" y=\"\{p.1 - 8.0}\" font-size=\"11\">\{vertex}</text>"
   }
   svg +
-  "<text x=\"24\" y=\"580\" font-size=\"12\">Display projection only; 2D fillings not drawn; birth chains are not guaranteed shortest.</text></g></svg>"
+  "<text x=\"24\" y=\"580\" font-size=\"12\">Grid squares show actual 2D cells; Rips triangles are not drawn; birth chains are not guaranteed shortest.</text></g></svg>"
 }
