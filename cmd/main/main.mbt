@@ -14,6 +14,9 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- sweep SERIES_SWEEP.json [--out NEW_DIRECTORY]",
   )
   println(
+    "moon run --target js cmd/main -- lag-hints SERIES_HINTS.json [--out NEW_DIRECTORY]",
+  )
+  println(
     "moon run --target js cmd/main -- stability POINTS.json EPSILON [--out NEW_DIRECTORY]",
   )
   println(
@@ -119,6 +122,36 @@ fn main {
   }
   try {
     match argument(0) {
+      "lag-hints" => {
+        if count != 2 && count != 4 {
+          print_error(
+            "lag-hints requires SERIES_HINTS.json and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        if count == 4 && (argument(2) != "--out" || argument(3) == "") {
+          print_error("expected --out NEW_DIRECTORY")
+          return
+        }
+        let source = read_input(argument(1))
+        if source == "" {
+          raise @topo.TopologyError(
+            "series hints input missing, unreadable, empty or exceeds 1MB",
+          )
+        }
+        let (report, csv) = @topo.series_lag_hints(source)
+        let report_text = report.stringify()
+        if count == 4 {
+          let output = argument(3)
+          if !new_output(output) ||
+            !save_output(output, "lag-hints.json", report_text) ||
+            !save_output(output, "lag-hints.csv", csv) {
+            print_error("could not save lag hints")
+            return
+          }
+        }
+        println(report_text)
+      }
       "stability" => {
         if (count != 3 && count != 5) ||
           (count == 5 && (argument(3) != "--out" || argument(4) == "")) {
