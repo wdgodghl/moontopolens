@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { deflateSync } from 'node:zlib';
-import { verifyReportUI, verifyComparisonUI, verifyStudyUI, verifyVolumeUI } from './report-ui-smoke.mjs';
+import { deflateSync, gzipSync } from 'node:zlib';
+import { verifyReportUI, verifyComparisonUI, verifyStudyUI, verifyVolumeUI, verifyVolumeSequenceUI } from './report-ui-smoke.mjs';
 
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'moontopolens-smoke-'));
 function cli(args, code = 0) {
@@ -413,6 +413,47 @@ assert.equal(betti(volumeReport, 2, 1), 0);
 assert.deepEqual(volumeReport.intervals.filter(x => x.dimension === 2).map(x => [x.birth, x.death]), [[0, 1]]);
 const volumeHtml = fs.readFileSync(path.join(volumeOut, 'volume-slices.html'), 'utf8');
 verifyVolumeUI(volumeHtml, volumeReport);
+const surfaces = JSON.parse(fs.readFileSync(path.join(volumeOut, 'volume-surfaces.json'), 'utf8'));
+assert.equal(surfaces.kind, 'volume_h2_representatives');
+assert.equal(surfaces.surfaces.length, 1);
+assert.ok(surfaces.surfaces[0].face_count > 0);
+const evolutionOut = path.join(temporary, 'volume-evolution');
+const evolution = JSON.parse(cli(['volume-sequence', 'examples/volume-evolution.json', '--out', evolutionOut]));
+assert.deepEqual(evolution.frames.map(frame => frame.h2_at_cutoff), [0, 0, 0]);
+assert.deepEqual(evolution.transitions.map(change => [change.disappeared_h2, change.appeared_h2]), [[1, 0], [0, 1]]);
+assert.equal(evolution.tracks.length, 2);
+verifyVolumeSequenceUI(fs.readFileSync(path.join(evolutionOut, 'volume-sequence.html'), 'utf8'), evolution);
+const fieldOut = path.join(temporary, 'volume-stability');
+const field = JSON.parse(cli(['field-stability', 'examples/hollow-volume.json', '0', '--out', fieldOut]));
+assert.equal(field.source_kind, 'volume');
+assert.equal(field.cases.length, 6);
+assert.ok(field.cases.every(row => row.bottleneck_by_dimension.every(distance => distance === 0)));
+for (const image of ['examples/ring-image.pgm', 'examples/ring-image.png']) {
+  const imageField = JSON.parse(cli(['field-stability', image, '1', '0']));
+  assert.equal(imageField.source_kind, 'grid');
+  assert.ok(imageField.cases.every(row => row.bottleneck_by_dimension.every(distance => distance === 0)));
+}
+const nii = Buffer.alloc(360);
+nii.writeInt32LE(348, 0);
+nii.writeInt16LE(3, 40);
+for (let offset = 42; offset <= 46; offset += 2) nii.writeInt16LE(2, offset);
+nii.writeInt16LE(1, 48);
+nii.writeInt16LE(2, 70);
+nii.writeInt16LE(8, 72);
+nii.writeFloatLE(352, 108);
+nii.write('n+1\0', 344, 'ascii');
+for (let i = 0; i < 8; i++) nii[352 + i] = i;
+const niiPath = path.join(temporary, 'sample.nii');
+const gzPath = path.join(temporary, 'sample.nii.gz');
+fs.writeFileSync(niiPath, nii);
+fs.writeFileSync(gzPath, gzipSync(nii));
+for (const pathName of [niiPath, gzPath]) {
+  const result = JSON.parse(cli(['volume', pathName, '7']));
+  assert.equal(result.kind, 'cubical_volume');
+  assert.equal(result.homology_dimension, 2);
+  assert.equal(result.vertex_count, 8);
+}
+cli(['volume', niiPath, 'bad'], 2);
 verifyReportUI(fs.readFileSync(path.join(volumeOut, 'report.html'), 'utf8'), volumeReport, 'volume');
 const volumeSliceOut = path.join(temporary, 'volume-scale-zero');
 const volumeSlice = JSON.parse(cli(['slice', 'examples/hollow-volume.json', '0', '--out', volumeSliceOut]));

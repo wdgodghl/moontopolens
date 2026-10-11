@@ -70,6 +70,8 @@ pub fn diagram_svg(Analysis) -> String
 
 pub fn distance_matrix(Array[Array[Double]]) -> Array[Array[Double]] raise TopologyError
 
+pub fn field_stability_json(String, Double, trials? : Int) -> Json raise TopologyError
+
 pub fn html_report(Analysis) -> String
 
 pub fn interval_matching(Analysis, Analysis, dimension~ : Int) -> Array[IntervalMatch] raise TopologyError
@@ -89,6 +91,8 @@ pub fn observed_lifetime(Analysis, Interval) -> Double
 pub fn otsu_threshold(PgmImage) -> Double
 
 pub fn parse_batch_manifest(String) -> BatchPlan raise TopologyError
+
+pub fn parse_nifti1(Array[Int]) -> Array[Array[Array[Double]]] raise TopologyError
 
 pub fn parse_pgm(Array[Int]) -> PgmImage raise TopologyError
 
@@ -131,6 +135,12 @@ pub fn topology_sequence_html(Json) -> String
 pub fn validate_filtration(Filtration) -> Unit raise TopologyError
 
 pub fn validate_matrix(Array[Array[Double]]) -> Unit raise TopologyError
+
+pub fn volume_h2_surfaces_json(Analysis) -> Json raise TopologyError
+
+pub fn volume_sequence_html(Json) -> String
+
+pub fn volume_sequence_json(String) -> Json raise TopologyError
 
 pub fn volume_slices_html(Analysis) -> String raise TopologyError
 

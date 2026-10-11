@@ -38,7 +38,8 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
     raise TopologyError("invalid filtration cutoff or vertex count")
   }
   check_budget(cells.length(), 10000)
-  if filtration.positions.length() > 4096 {
+  if filtration.positions.length() >
+    (if filtration.kind == "cubical_volume" { 32768 } else { 4096 }) {
     raise TopologyError("too many display positions")
   }
   for point in filtration.positions {

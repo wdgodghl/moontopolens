@@ -14,6 +14,18 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- sequence FRAMES.json [--out NEW_DIRECTORY]",
   )
   println(
+    "moon run --target js cmd/main -- volume INPUT.nii|INPUT.nii.gz CUTOFF [--out NEW_DIRECTORY]",
+  )
+  println(
+    "moon run --target js cmd/main -- volume-sequence FRAMES.json [--out NEW_DIRECTORY]",
+  )
+  println(
+    "moon run --target js cmd/main -- field-stability GRID_OR_VOLUME.json EPSILON [--out NEW_DIRECTORY]",
+  )
+  println(
+    "moon run --target js cmd/main -- field-stability IMAGE.pgm|IMAGE.png CUTOFF EPSILON [--out NEW_DIRECTORY]",
+  )
+  println(
     "moon run --target js cmd/main -- sweep SERIES_SWEEP.json [--out NEW_DIRECTORY]",
   )
   println(
@@ -83,7 +95,18 @@ fn save_analysis(
   save_output(output, "report.html", @topo.html_report(result)) &&
   (
     result.filtration.kind != "cubical_volume" ||
-    save_output(output, "volume-slices.html", @topo.volume_slices_html(result))
+    (
+      save_output(
+        output,
+        "volume-slices.html",
+        @topo.volume_slices_html(result),
+      ) &&
+      save_output(
+        output,
+        "volume-surfaces.json",
+        @topo.volume_h2_surfaces_json(result).stringify(),
+      )
+    )
   )
 }
 
@@ -129,6 +152,137 @@ fn main {
   }
   try {
     match argument(0) {
+      "volume" => {
+        if (count != 3 && count != 5) ||
+          (count == 5 && (argument(3) != "--out" || argument(4) == "")) {
+          print_error(
+            "volume requires INPUT.nii|INPUT.nii.gz CUTOFF and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        let path = argument(1).to_lower()
+        if !path.has_suffix(".nii") && !path.has_suffix(".nii.gz") {
+          raise @topo.TopologyError(
+            "volume input must end with .nii or .nii.gz",
+          )
+        }
+        let bytes = read_nifti_input(argument(1))
+        if bytes.length() == 0 {
+          raise @topo.TopologyError(
+            "NIfTI input missing, invalid or exceeds 1 MB",
+          )
+        }
+        let volume = @topo.parse_nifti1(
+          Array::makei(bytes.length(), fn(i) { bytes[i] }),
+        )
+        let cutoff = numeric_argument(2)
+        let analysis = @topo.analyze(
+          @topo.cubical_volume(volume, threshold=cutoff),
+          max_homology_dimension=2,
+        )
+        let report = @topo.report_json(analysis).stringify()
+        if count == 5 {
+          let output = argument(4)
+          if !new_output(output) || !save_analysis(output, analysis, report) {
+            print_error("could not save NIfTI analysis")
+            return
+          }
+        }
+        println(report)
+      }
+      "volume-sequence" => {
+        if (count != 2 && count != 4) ||
+          (count == 4 && (argument(2) != "--out" || argument(3) == "")) {
+          print_error(
+            "volume-sequence requires FRAMES.json and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        let source = read_input(argument(1))
+        if source == "" {
+          raise @topo.TopologyError(
+            "volume sequence input missing or exceeds 1 MB",
+          )
+        }
+        let report = @topo.volume_sequence_json(source)
+        let output_text = report.stringify()
+        if count == 4 {
+          let output = argument(3)
+          if !new_output(output) ||
+            !save_output(output, "volume-sequence.json", output_text) ||
+            !save_output(
+              output,
+              "volume-sequence.html",
+              @topo.volume_sequence_html(report),
+            ) {
+            print_error("could not save volume sequence")
+            return
+          }
+        }
+        println(output_text)
+      }
+      "field-stability" => {
+        let image_path = argument(1).to_lower().has_suffix(".pgm") ||
+          argument(1).to_lower().has_suffix(".png")
+        let basic = if image_path { 4 } else { 3 }
+        if (count != basic && count != basic + 2) ||
+          (
+            count == basic + 2 &&
+            (argument(basic) != "--out" || argument(basic + 1) == "")
+          ) {
+          print_error(
+            "field-stability requires JSON EPSILON or IMAGE CUTOFF EPSILON and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        let source = if image_path {
+          let bytes = read_binary_input(argument(1))
+          if bytes.length() == 0 {
+            raise @topo.TopologyError(
+              "field stability image missing or exceeds 1 MB",
+            )
+          }
+          let raster = if argument(1).to_lower().has_suffix(".png") {
+            png_as_pgm(bytes)
+          } else {
+            bytes
+          }
+          if raster.length() == 0 {
+            raise @topo.TopologyError("invalid or unsupported stability image")
+          }
+          let image = @topo.parse_pgm(
+            Array::makei(raster.length(), fn(i) { raster[i] }),
+          )
+          (
+            {
+              "kind": "grid",
+              "threshold": numeric_argument(2),
+              "grid": image.grid,
+            } : Json).stringify()
+        } else {
+          let value = read_input(argument(1))
+          if value == "" {
+            raise @topo.TopologyError(
+              "field stability input missing or exceeds 1 MB",
+            )
+          }
+          value
+        }
+        let report = @topo.field_stability_json(
+          source,
+          numeric_argument(if image_path { 3 } else { 2 }),
+        )
+        let output_text = report.stringify()
+        if count == basic + 2 {
+          let output = argument(basic + 1)
+          if !new_output(output) ||
+            !save_output(output, "field-stability.json", output_text) {
+            print_error("could not save field stability")
+            return
+          }
+        }
+        println(output_text)
+      }
       "sequence" => {
         if count != 2 && count != 4 {
           print_error(

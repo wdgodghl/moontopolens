@@ -38,16 +38,16 @@ pub fn cubical_volume(
   }
   check_budget(0, max_cells)
   let depth = volume.length()
-  if depth < 2 || depth > 12 {
-    raise TopologyError("volume depth must be between 2 and 12")
+  if depth < 2 || depth > 32 {
+    raise TopologyError("volume depth must be between 2 and 32")
   }
   let height = volume[0].length()
-  if height < 2 || height > 12 {
-    raise TopologyError("volume height must be between 2 and 12")
+  if height < 2 || height > 32 {
+    raise TopologyError("volume height must be between 2 and 32")
   }
   let width = volume[0][0].length()
-  if width < 2 || width > 12 {
-    raise TopologyError("volume width must be between 2 and 12")
+  if width < 2 || width > 32 {
+    raise TopologyError("volume width must be between 2 and 32")
   }
   let values : Array[Double] = []
   for layer in volume {
@@ -73,9 +73,12 @@ pub fn cubical_volume(
     for y = 0; y < height; y = y + 1 {
       for x = 0; x < width; x = x + 1 {
         let a = z * plane + y * width + x
-        if values[a] <= threshold {
-          vertex_count += 1
+        // Every cell anchored here contains this vertex. Skip all allocations
+        // when it cannot enter the filtration, which helps sparse large grids.
+        if values[a] > threshold {
+          continue
         }
+        vertex_count += 1
         volume_cell(
           raw,
           values,

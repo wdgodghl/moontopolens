@@ -30,6 +30,20 @@ extern "js" fn read_binary_input(path : String) -> FixedArray[Int] =
   #|  } catch (_) { return []; }
   #|}
 
+///|
+extern "js" fn read_nifti_input(path : String) -> FixedArray[Int] =
+  #|(path) => {
+  #|  const fs = require("node:fs"), zlib = require("node:zlib");
+  #|  try {
+  #|    const stat = fs.statSync(path);
+  #|    if (!stat.isFile() || stat.size > 1000000) return [];
+  #|    const source = fs.readFileSync(path);
+  #|    const bytes = path.toLowerCase().endsWith(".nii.gz")
+  #|      ? zlib.gunzipSync(source, { maxOutputLength: 1000001 }) : source;
+  #|    return bytes.length <= 1000000 ? Array.from(bytes) : [];
+  #|  } catch (_) { return []; }
+  #|}
+
 // Only allow children of the manifest's real directory, even across symlinks.
 
 ///|

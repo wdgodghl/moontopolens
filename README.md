@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.16.0 三维体素分析版**。
+当前版本：**0.17.0 三维空腔解释与动态分析版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -391,7 +391,7 @@ H2 匹配；截止值不同的案例会被标出，分组只使用条件一致�
 ### 0.16.0：三维体素与空腔
 
 `volume[z][y][x]` 提供采样顶点值；每条棱、每个方形面和每个立方体在所有角点进入后出现。
-`volume` 默认计算 H0/H1/H2，输入的宽、高、深均为 2–12；细胞总数仍受
+`volume` 默认计算 H0/H1/H2；0.16.0 的输入宽、高、深均为 2–12。细胞总数受
 `max_cells` 默认 4000、最高 10000 的预算限制。
 
 ```sh
@@ -406,7 +406,35 @@ moon run --target js cmd/main -- batch examples/batch-volume-study.json --out ou
 同时显示整个三维复形的 H0/H1/H2。普通 `report.html` 保留全部区间和 Betti 曲线。
 `slice` 对体数据输出全复形的 JSON 快照，避免把重叠层投影成误导性的二维 SVG。
 批量示例将空心体与实心体比较，H2 瓶颈距离为 0.5。
-切片是采样顶点视图，不是医学图像格式；当前只读取 JSON 体数据，不读取 DICOM/NIfTI。
+切片是采样顶点视图，不是医学影像空间渲染。0.17.0 增加了下述 NIfTI-1 导入。
+
+### 0.17.0：空腔解释、动态体数据与文件导入
+
+体数据现在允许宽、高、深各 2–32，但仍受默认 4000、最高 10000 个过滤细胞限制。
+较大的低尺度稀疏体数据可以分析；稠密体数据仍可能因预算明确报错。
+`volume-surfaces.json` 导出 H2 出生时代表链的方形面、角点和对应区间；
+`volume-slices.html` 可选中 H2 区间，橙色标出代表面经过的采样顶点。
+代表链不是唯一或最短的物理空腔边界。
+
+```sh
+moon run --target js cmd/main -- analyze examples/hollow-volume.json --out out-hollow-017
+moon run --target js cmd/main -- volume-sequence examples/volume-evolution.json --out out-evolution
+moon run --target js cmd/main -- field-stability examples/hollow-volume.json 0.05 --out out-field-stability
+moon run --target js cmd/main -- field-stability examples/ring-image.png 1 0.05 --out out-image-stability
+moon run --target js cmd/main -- volume sample.nii.gz 1 --out out-nifti
+```
+
+`volume-sequence` 比较 2–8 帧同尺寸体数据，导出逐帧摘要、相邻 H0/H1/H2
+瓶颈距离、H2 区间轨迹和离线 HTML。轨迹是一种最优持久图匹配，不能证明
+物理空腔身份。`field-stability` 对顶点值或图像灰度值施加确定性有界扰动，
+给出各维瓶颈距离及截止尺度 Betti 数；这不是置信区间。
+
+`volume` 接受未压缩 `.nii` 和 gzip 压缩 `.nii.gz` 的 NIfTI-1 单文件、
+单幅三维图像；支持小端/大端 uint8、int16、int32、float32，按头部线性
+缩放读取。尚不支持 NIfTI-2、4D 时间序列、其他数据类型、空间方向矩阵
+或医学意义上的体素尺寸解释。压缩前后均限制 1 MB；过滤分析仍由 MoonBit 实现。
+格式定义参照 [NIfTI-1 官方说明](https://nifti.nimh.nih.gov/nifti-1/)；
+项目未复制其参考实现代码。
 
 ## 自定义输入
 
@@ -428,7 +456,7 @@ moon run --target js cmd/main -- batch examples/batch-volume-study.json --out ou
 
 ## MoonBit 库用法
 
-包导入（先运行 `moon add wdgodghl/moontopolens@0.16.0`）：
+包导入（先运行 `moon add wdgodghl/moontopolens@0.17.0`）：
 
 ```text
 import {

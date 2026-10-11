@@ -139,6 +139,27 @@ export function verifyVolumeUI(html, report) {
   assert.equal(elements.get('h2').textContent, '1');
   assert.equal(elements.get('slice').children.filter(cell => cell.attributes.fill === '#2dd4bf').length, 8);
   assert.ok(elements.get('slice-note').textContent.includes('当前进入 8 个'));
+  const h2Index = report.intervals.findIndex(interval => interval.dimension === 2);
+  elements.get('feature').value = String(h2Index);
+  elements.get('feature').fire('input');
+  assert.ok(elements.get('slice').children.some(cell => cell.attributes.fill === '#fb923c'));
+}
+
+export function verifyVolumeSequenceUI(html, report) {
+  const data = html.match(/<script id="data" type="application\/json">([\s\S]*?)<\/script>/);
+  const source = html.match(/<\/script><script>([\s\S]*?)<\/script><\/body>/);
+  assert.ok(data && source);
+  assert.deepEqual(JSON.parse(data[1]), report);
+  const tables = new Map(['frames', 'transitions', 'tracks'].map(name => [name, new Element('tbody')]));
+  const document = {
+    getElementById(id) { assert.equal(id, 'data'); return { textContent: data[1] }; },
+    createElement(tag) { return new Element(tag); },
+    querySelector(selector) { const name = selector.match(/^#(frames|transitions|tracks) tbody$/)?.[1]; assert.ok(name); return tables.get(name); },
+  };
+  vm.runInNewContext(source[1], { document }, { timeout: 10000 });
+  assert.equal(tables.get('frames').children.length, report.frames.length);
+  assert.equal(tables.get('transitions').children.length, report.transitions.length);
+  assert.equal(tables.get('tracks').children.length, report.tracks.length);
 }
 
 export function verifyComparisonUI(html, report) {
