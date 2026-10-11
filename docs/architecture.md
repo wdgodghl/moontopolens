@@ -30,6 +30,7 @@
 | stability.mbt | 点云确定性有界扰动与 H0/H1 结果敏感性统计 |
 | series_sweep.mbt | 延迟嵌入参数扫描与有限 H1 候选排序 |
 | series_hints.mbt | 逐滞后配对自相关、等宽分箱互信息与探索性参数提示 |
+| sequence.mbt | 有界多帧点云分析、相邻帧瓶颈距离与 H1 区间轨迹 |
 | study_report.mbt | 时间序列和稳定性研究的离线 HTML |
 | scale_render.mbt | 等比例投影、连通分组着色、存活代表链 SVG |
 | dashboard.mbt | 自包含 HTML；显示预先计算的区间与几何投影 |

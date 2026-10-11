@@ -6,13 +6,31 @@ import vm from 'node:vm';
 class Element {
   constructor(tag) {
     this.tag = tag; this.children = []; this.attributes = {};
-    this.listeners = {}; this.textContent = ''; this.value = ''; this.checked = false;
+    this.listeners = {}; this.style = {}; this.textContent = ''; this.value = ''; this.checked = false;
   }
   setAttribute(name, value) { this.attributes[name] = value; }
   append(...nodes) { this.children.push(...nodes); }
   replaceChildren(...nodes) { this.children = [...nodes]; }
   addEventListener(event, handler) { this.listeners[event] = handler; }
   fire(event) { assert.ok(this.listeners[event], `No listener for ${event}`); this.listeners[event](); }
+}
+
+export function verifyStudyUI(html, report) {
+  const data = html.match(/<script id="data" type="application\/json">([\s\S]*?)<\/script>/);
+  const source = html.match(/<\/script><script>([\s\S]*?)<\/script><\/body>/);
+  assert.ok(data && source, 'Study data and script must be embedded');
+  assert.deepEqual(JSON.parse(data[1]), report);
+  assert.ok(!/<script[^>]+src=|<link[^>]+href=/.test(html));
+  const elements = new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(match => [match[1], new Element('element')]));
+  elements.get('data').textContent = data[1];
+  const document = {
+    getElementById(id) { assert.ok(elements.has(id), `Unknown element ${id}`); return elements.get(id); },
+    createElement(tag) { return new Element(tag); },
+  };
+  vm.runInNewContext(source[1], { document }, { timeout: 10000 });
+  assert.equal(elements.get('rows').children.length, report.frames.length);
+  assert.equal(elements.get('recommendations').children.length, report.transitions.length + report.tracks.length);
+  assert.ok(elements.get('interpretation').textContent.includes('diagram'));
 }
 
 export function verifyReportUI(html, report, name) {

@@ -1,0 +1,9 @@
+{
+  "kind": "topology_sequence",
+  "threshold": 2,
+  "frames": [
+    {"name": "square", "points": [[0, 0], [1, 0], [1, 1], [0, 1]]},
+    {"name": "expanded", "points": [[0, 0], [1.1, 0], [1.1, 1.1], [0, 1.1]]},
+    {"name": "triangle", "points": [[0, 0], [1, 0], [0.5, 0.9]]}
+  ]
+}
