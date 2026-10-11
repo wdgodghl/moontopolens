@@ -11,10 +11,13 @@
 | rips.mbt | 沿邻接表枚举截止距离下的点、边、三角形及可选四面体 |
 | cubical.mbt | 顶点 lower-star 的网格顶点、边与方格 |
 | volume.mbt | 三维顶点值网格的顶点、棱、面与立方体；形状和资源预算校验 |
-| volume_view.mbt | 体数据的离线 Z 层切片和全局 Betti 数展示 |
+| volume_view.mbt | 体数据的离线 Z 层切片、三维代表面投影和全局 Betti 数展示 |
 | volume_surfaces.mbt | H2 出生代表面导出、角点映射与解释 |
+| representative_simplify.mbt | 在出生过滤层内用边界异或贪心缩短 H1/H2 代表链 |
+| volume_resample.mbt | 有界粗网格采样与显式近似体数据分析 |
 | volume_sequence.mbt | 有序体数据的 H2 区间轨迹与相邻帧距离 |
 | nifti.mbt | NIfTI-1 三维头部、数据类型和强度缩放解析 |
+| nifti_study.mbt | NIfTI-1 4D 帧序列、sform/qform/pixdim 仿射与时空元数据 |
 | field_stability.mbt | 网格与体数据的确定性强度扰动及距离汇总 |
 | pgm.mbt | P2/P5 单图像解析、像素范围与大小校验 |
 | image_processing.mbt | 灰度反转、Otsu 直方图阈值估计 |
@@ -62,7 +65,8 @@ Rips 默认只构建到二维，因为 H1 死亡由二维边界确定。显式�
 
 对需输出的维度累计换基链，得到出生时的代表。默认仅保留 0/1 维链；
 请求 H2 时还保留二维链，不保留三维链。零长度类可在 API 中启用，CLI 默认省略。
-代表不是最短环，不保证在其他同调实现中选出相同边集合。
+代表链可在出生尺度内通过异或高一维细胞边界做贪心缩短，保留同调类，
+但不是最短环，不保证在其他同调实现中选出相同边集合。
 
 ## 瓶颈距离
 

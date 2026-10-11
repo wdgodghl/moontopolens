@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.17.0 三维空腔解释与动态分析版**。
+当前版本：**0.18.0 三维代表面、时空元数据与粗网格分析版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -21,7 +21,7 @@ Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/mo
 | 点云 | 1–32 维欧氏距离、Vietoris–Rips 过滤复形；可选完整 H2 分析 |
 | 距离/不相似度矩阵 | 校验对称非负矩阵，构建 Rips 2-骨架或 H2 所需的 3-骨架 |
 | 二维网格 | 顶点值的 lower-star 方格复形，检测连接区域和洞 |
-| 三维体素 | 小型三维顶点网格的 lower-star 立方复形，分析 H0/H1/H2 并离线浏览 Z 层切片 |
+| 三维体素 | 小型三维顶点网格的 lower-star 立方复形，分析 H0/H1/H2，浏览可旋转的代表面与联动 Z 层切片 |
 | 灰度图像 | PGM P2/P5 或 8 位 PNG 灰度/RGB/RGBA，经灰度转换后进入网格过滤复形 |
 | 图像预处理 | 可选 Otsu 自动截止值与亮暗反转，记录可复现的实际参数 |
 | 批量项目 | 从一个 JSON 清单分析多份输入并生成指定两两比较和总索引 |
@@ -406,7 +406,7 @@ moon run --target js cmd/main -- batch examples/batch-volume-study.json --out ou
 同时显示整个三维复形的 H0/H1/H2。普通 `report.html` 保留全部区间和 Betti 曲线。
 `slice` 对体数据输出全复形的 JSON 快照，避免把重叠层投影成误导性的二维 SVG。
 批量示例将空心体与实心体比较，H2 瓶颈距离为 0.5。
-切片是采样顶点视图，不是医学影像空间渲染。0.17.0 增加了下述 NIfTI-1 导入。
+切片是采样顶点视图，不是医学影像空间渲染。NIfTI-1 的空间坐标作为独立元数据导出。
 
 ### 0.17.0：空腔解释、动态体数据与文件导入
 
@@ -431,10 +431,34 @@ moon run --target js cmd/main -- volume sample.nii.gz 1 --out out-nifti
 
 `volume` 接受未压缩 `.nii` 和 gzip 压缩 `.nii.gz` 的 NIfTI-1 单文件、
 单幅三维图像；支持小端/大端 uint8、int16、int32、float32，按头部线性
-缩放读取。尚不支持 NIfTI-2、4D 时间序列、其他数据类型、空间方向矩阵
-或医学意义上的体素尺寸解释。压缩前后均限制 1 MB；过滤分析仍由 MoonBit 实现。
+缩放读取。压缩前后均限制 1 MB；过滤分析仍由 MoonBit 实现。
 格式定义参照 [NIfTI-1 官方说明](https://nifti.nimh.nih.gov/nifti-1/)；
 项目未复制其参考实现代码。
+
+### 0.18.0：时空元数据、代表面与有界粗网格
+
+`volume-slices.html` 在 Z 层切片之外绘制可旋转的 H2 代表面投影。选择 H2 区间后，
+点击面片或用键盘聚焦并按 Enter/空格，可以跳到相应切片。代表链由 MoonBit
+在同一出生尺度内贪心加入高维细胞边界以缩短；它保留同调类，但不保证全局最短。
+报告增加跳转链接、键盘焦点提示和状态播报。
+
+`volume` 另外导出 `nifti-info.json`（sform/qform/pixdim 选用结果、体素到物理坐标
+的仿射矩阵、单位代码、时间间隔）和 `volume-surfaces-world.json`（代表面角点的
+物理坐标）。`volume-sequence` 可直接读取 2–8 帧的 4D `.nii` / `.nii.gz`，
+并导出相同的时空元数据。拓扑仍在原体素网格上计算，不做空间重定向或重采样。
+
+```sh
+moon run --target js cmd/main -- volume sample.nii.gz 1 --out out-nifti
+moon run --target js cmd/main -- volume-sequence study-4d.nii.gz 1 --out out-study
+moon run --target js cmd/main -- volume-coarse dense-volume.json --out out-coarse
+moon run --target js cmd/main -- volume-coarse dense.nii.gz 1 --out out-coarse-nifti
+```
+
+`volume-coarse` 是稠密数据超出细胞预算时的显式近似选项：选择满足预算的最小
+步长，局部均值采样，再在粗网格上计算 H0/H1/H2；输出 `coarsening-info.json`
+记录步长和 `approximate`。步长大于 1 的结果**不是原始分辨率的精确持续同调**，
+可与普通 `volume` 命令的精确、小规模结果对照。每轴仍限 2–32，输入限 1 MB；
+NIfTI-2、多文件 NIfTI 和超过 8 帧的时间序列暂不支持。
 
 ## 自定义输入
 
@@ -456,7 +480,7 @@ moon run --target js cmd/main -- volume sample.nii.gz 1 --out out-nifti
 
 ## MoonBit 库用法
 
-包导入（先运行 `moon add wdgodghl/moontopolens@0.17.0`）：
+包导入（先运行 `moon add wdgodghl/moontopolens@0.18.0`）：
 
 ```text
 import {

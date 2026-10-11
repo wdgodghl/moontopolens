@@ -10,6 +10,10 @@ pub fn analyze(Filtration, include_zero? : Bool, max_additions? : Int, max_homol
 
 pub fn analyze_json(String) -> Analysis raise TopologyError
 
+pub fn analyze_volume_coarse(Array[Array[Array[Double]]], threshold~ : Double, max_cells? : Int) -> (Analysis, Int) raise TopologyError
+
+pub fn analyze_volume_coarse_json(String) -> (Analysis, Int) raise TopologyError
+
 pub fn barcode_svg(Analysis) -> String
 
 pub fn batch_clustering(BatchDistanceMatrix, Int) -> BatchClustering raise TopologyError
@@ -86,6 +90,8 @@ pub fn landscape_json(Analysis, dimension~ : Int, start~ : Double, end~ : Double
 
 pub fn matching_csv(Analysis, Analysis) -> String raise TopologyError
 
+pub fn nifti_study_metadata(NiftiStudy) -> Json
+
 pub fn observed_lifetime(Analysis, Interval) -> Double
 
 pub fn otsu_threshold(PgmImage) -> Double
@@ -93,6 +99,8 @@ pub fn otsu_threshold(PgmImage) -> Double
 pub fn parse_batch_manifest(String) -> BatchPlan raise TopologyError
 
 pub fn parse_nifti1(Array[Int]) -> Array[Array[Array[Double]]] raise TopologyError
+
+pub fn parse_nifti1_study(Array[Int]) -> NiftiStudy raise TopologyError
 
 pub fn parse_pgm(Array[Int]) -> PgmImage raise TopologyError
 
@@ -112,6 +120,8 @@ pub fn recommendations_json(Analysis, max_loops? : Int) -> Json raise TopologyEr
 
 pub fn report_json(Analysis) -> Json
 
+pub fn resample_volume(Array[Array[Array[Double]]], Int, sampling? : String) -> Array[Array[Array[Double]]] raise TopologyError
+
 pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
 
 pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
@@ -123,6 +133,8 @@ pub fn series_lag_hints(String) -> (Json, String) raise TopologyError
 pub fn series_sweep(String) -> (Json, String, String) raise TopologyError
 
 pub fn series_sweep_html(Json) -> String
+
+pub fn simplify_representative(Analysis, Int) -> Array[Int] raise TopologyError
 
 pub fn snapshot_json(Analysis, Double) -> Json raise TopologyError
 
@@ -137,6 +149,8 @@ pub fn validate_filtration(Filtration) -> Unit raise TopologyError
 pub fn validate_matrix(Array[Array[Double]]) -> Unit raise TopologyError
 
 pub fn volume_h2_surfaces_json(Analysis) -> Json raise TopologyError
+
+pub fn volume_h2_world_surfaces_json(Analysis, Array[Array[Double]]) -> Json raise TopologyError
 
 pub fn volume_sequence_html(Json) -> String
 
@@ -257,6 +271,17 @@ pub struct IntervalMatch {
   kind : String
 } derive(@debug.Debug)
 pub fn IntervalMatch::to_repr(Self) -> @debug.Repr
+
+pub struct NiftiStudy {
+  volumes : Array[Array[Array[Array[Double]]]]
+  affine : Array[Array[Double]]
+  spatial_units : Int
+  temporal_units : Int
+  time_step : Double
+  time_offset : Double
+  transform_source : String
+} derive(@debug.Debug)
+pub fn NiftiStudy::to_repr(Self) -> @debug.Repr
 
 pub struct PgmImage {
   grid : Array[Array[Double]]

@@ -17,7 +17,10 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- volume INPUT.nii|INPUT.nii.gz CUTOFF [--out NEW_DIRECTORY]",
   )
   println(
-    "moon run --target js cmd/main -- volume-sequence FRAMES.json [--out NEW_DIRECTORY]",
+    "moon run --target js cmd/main -- volume-sequence FRAMES.json|4D.nii[.gz] [CUTOFF] [--out NEW_DIRECTORY]",
+  )
+  println(
+    "moon run --target js cmd/main -- volume-coarse INPUT.json|INPUT.nii[.gz] [CUTOFF] [--out NEW_DIRECTORY]",
   )
   println(
     "moon run --target js cmd/main -- field-stability GRID_OR_VOLUME.json EPSILON [--out NEW_DIRECTORY]",
@@ -172,18 +175,32 @@ fn main {
             "NIfTI input missing, invalid or exceeds 1 MB",
           )
         }
-        let volume = @topo.parse_nifti1(
+        let study = @topo.parse_nifti1_study(
           Array::makei(bytes.length(), fn(i) { bytes[i] }),
         )
+        if study.volumes.length() != 1 {
+          raise @topo.TopologyError("4D NIfTI requires volume-sequence command")
+        }
         let cutoff = numeric_argument(2)
         let analysis = @topo.analyze(
-          @topo.cubical_volume(volume, threshold=cutoff),
+          @topo.cubical_volume(study.volumes[0], threshold=cutoff),
           max_homology_dimension=2,
         )
         let report = @topo.report_json(analysis).stringify()
         if count == 5 {
           let output = argument(4)
-          if !new_output(output) || !save_analysis(output, analysis, report) {
+          if !new_output(output) ||
+            !save_analysis(output, analysis, report) ||
+            !save_output(
+              output,
+              "nifti-info.json",
+              @topo.nifti_study_metadata(study).stringify(),
+            ) ||
+            !save_output(
+              output,
+              "volume-surfaces-world.json",
+              @topo.volume_h2_world_surfaces_json(analysis, study.affine).stringify(),
+            ) {
             print_error("could not save NIfTI analysis")
             return
           }
@@ -191,35 +208,137 @@ fn main {
         println(report)
       }
       "volume-sequence" => {
-        if (count != 2 && count != 4) ||
-          (count == 4 && (argument(2) != "--out" || argument(3) == "")) {
+        let path = argument(1).to_lower()
+        let nifti = path.has_suffix(".nii") || path.has_suffix(".nii.gz")
+        let basic = if nifti { 3 } else { 2 }
+        if (count != basic && count != basic + 2) ||
+          (
+            count == basic + 2 &&
+            (argument(basic) != "--out" || argument(basic + 1) == "")
+          ) {
           print_error(
-            "volume-sequence requires FRAMES.json and optional --out NEW_DIRECTORY",
+            "volume-sequence requires FRAMES.json or 4D.nii[.gz] CUTOFF and optional --out NEW_DIRECTORY",
           )
           return
         }
-        let source = read_input(argument(1))
-        if source == "" {
-          raise @topo.TopologyError(
-            "volume sequence input missing or exceeds 1 MB",
+        let mut metadata : Json? = None
+        let report = if nifti {
+          let bytes = read_nifti_input(argument(1))
+          if bytes.length() == 0 {
+            raise @topo.TopologyError("4D NIfTI missing or exceeds 1 MB")
+          }
+          let study = @topo.parse_nifti1_study(
+            Array::makei(bytes.length(), fn(i) { bytes[i] }),
           )
+          if study.volumes.length() < 2 {
+            raise @topo.TopologyError(
+              "4D sequence requires at least two frames",
+            )
+          }
+          metadata = Some(@topo.nifti_study_metadata(study))
+          let frames : Array[Json] = []
+          for index, volume in study.volumes {
+            frames.push({ "name": "frame-\{index}", "volume": volume })
+          }
+          let request : Json = {
+            "kind": "volume_sequence",
+            "threshold": numeric_argument(2),
+            "frames": frames,
+          }
+          @topo.volume_sequence_json(request.stringify())
+        } else {
+          let source = read_input(argument(1))
+          if source == "" {
+            raise @topo.TopologyError(
+              "volume sequence input missing or exceeds 1 MB",
+            )
+          }
+          @topo.volume_sequence_json(source)
         }
-        let report = @topo.volume_sequence_json(source)
         let output_text = report.stringify()
-        if count == 4 {
-          let output = argument(3)
+        if count == basic + 2 {
+          let output = argument(basic + 1)
           if !new_output(output) ||
             !save_output(output, "volume-sequence.json", output_text) ||
             !save_output(
               output,
               "volume-sequence.html",
               @topo.volume_sequence_html(report),
-            ) {
+            ) ||
+            (match metadata {
+              Some(value) =>
+                !save_output(output, "nifti-info.json", value.stringify())
+              None => false
+            }) {
             print_error("could not save volume sequence")
             return
           }
         }
         println(output_text)
+      }
+      "volume-coarse" => {
+        let path = argument(1).to_lower()
+        let nifti = path.has_suffix(".nii") || path.has_suffix(".nii.gz")
+        let basic = if nifti { 3 } else { 2 }
+        if (count != basic && count != basic + 2) ||
+          (
+            count == basic + 2 &&
+            (argument(basic) != "--out" || argument(basic + 1) == "")
+          ) {
+          print_error(
+            "volume-coarse requires JSON or NIfTI CUTOFF and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        let mut metadata : Json? = None
+        let (analysis, stride) = if nifti {
+          let bytes = read_nifti_input(argument(1))
+          if bytes.length() == 0 {
+            raise @topo.TopologyError("NIfTI input missing or exceeds 1 MB")
+          }
+          let study = @topo.parse_nifti1_study(
+            Array::makei(bytes.length(), fn(i) { bytes[i] }),
+          )
+          if study.volumes.length() != 1 {
+            raise @topo.TopologyError("coarse volume requires one NIfTI frame")
+          }
+          metadata = Some(@topo.nifti_study_metadata(study))
+          @topo.analyze_volume_coarse(
+            study.volumes[0],
+            threshold=numeric_argument(2),
+          )
+        } else {
+          let source = read_input(argument(1))
+          if source == "" {
+            raise @topo.TopologyError(
+              "coarse volume JSON missing or exceeds 1 MB",
+            )
+          }
+          @topo.analyze_volume_coarse_json(source)
+        }
+        let info : Json = {
+          "kind": "volume_coarse",
+          "stride": stride,
+          "approximate": stride > 1,
+          "sampling": "local_mean",
+          "interpretation": "topology is computed on the coarse grid; it is not the exact full-resolution persistence",
+        }
+        let report = @topo.report_json(analysis).stringify()
+        if count == basic + 2 {
+          let output = argument(basic + 1)
+          if !new_output(output) ||
+            !save_analysis(output, analysis, report) ||
+            !save_output(output, "coarsening-info.json", info.stringify()) ||
+            (match metadata {
+              Some(value) =>
+                !save_output(output, "nifti-info.json", value.stringify())
+              None => false
+            }) {
+            print_error("could not save coarse volume")
+            return
+          }
+        }
+        println(info.stringify())
       }
       "field-stability" => {
         let image_path = argument(1).to_lower().has_suffix(".pgm") ||

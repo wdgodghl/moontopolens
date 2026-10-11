@@ -12,7 +12,7 @@ class Element {
   append(...nodes) { this.children.push(...nodes); }
   replaceChildren(...nodes) { this.children = [...nodes]; }
   addEventListener(event, handler) { this.listeners[event] = handler; }
-  fire(event) { assert.ok(this.listeners[event], `No listener for ${event}`); this.listeners[event](); }
+  fire(event, detail) { assert.ok(this.listeners[event], `No listener for ${event}`); this.listeners[event](detail); }
 }
 
 export function verifyStudyUI(html, report) {
@@ -116,12 +116,16 @@ export function verifyReportUI(html, report, name) {
 
 export function verifyVolumeUI(html, report) {
   const data = html.match(/<script id="volume-data" type="application\/json">([\s\S]*?)<\/script>/);
+  const surfaceData = html.match(/<script id="surface-data" type="application\/json">([\s\S]*?)<\/script>/);
   const source = html.match(/<\/script><script>([\s\S]*?)<\/script><\/body>/);
-  assert.ok(data && source, 'Volume data and script must be embedded');
+  assert.ok(data && surfaceData && source, 'Volume data and script must be embedded');
   assert.deepEqual(JSON.parse(data[1]), report);
+  const surfaces = JSON.parse(surfaceData[1]);
   assert.ok(!/<script[^>]+src=|<link[^>]+href=/.test(html));
+  assert.ok(html.includes('href="#explorer"') && html.includes('aria-live="polite"'));
   const elements = new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(match => [match[1], new Element('element')]));
   elements.get('volume-data').textContent = data[1];
+  elements.get('surface-data').textContent = surfaceData[1];
   elements.get('scale').value = '1000';
   elements.get('layer').value = '0';
   const document = {
@@ -143,6 +147,18 @@ export function verifyVolumeUI(html, report) {
   elements.get('feature').value = String(h2Index);
   elements.get('feature').fire('input');
   assert.ok(elements.get('slice').children.some(cell => cell.attributes.fill === '#fb923c'));
+  assert.equal(elements.get('surface').children.length, surfaces.surfaces[0].face_count);
+  elements.get('yaw').value = '90';
+  elements.get('yaw').fire('input');
+  assert.equal(elements.get('surface').children.length, surfaces.surfaces[0].face_count);
+  const face = elements.get('surface').children[0];
+  assert.equal(face.attributes.role, 'button');
+  assert.equal(face.attributes.tabindex, '0');
+  face.fire('click');
+  assert.ok(Number(elements.get('layer').value) >= 0);
+  let prevented = false;
+  face.fire('keydown', { key: 'Enter', preventDefault() { prevented = true; } });
+  assert.equal(prevented, true);
 }
 
 export function verifyVolumeSequenceUI(html, report) {
