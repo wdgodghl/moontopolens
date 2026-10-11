@@ -52,7 +52,7 @@ fn rows_field(
 
 ///|
 /// Parse a bounded JSON request, construct a filtration, then analyze it.
-/// Supported kinds: points, matrix, grid, series. Unknown fields are errors.
+/// Supported kinds: points, matrix, grid, volume, series. Unknown fields are errors.
 pub fn analyze_json(text : String) -> Analysis raise TopologyError {
   if text.length() > 1000000 {
     raise TopologyError("JSON request exceeds one million characters")
@@ -69,15 +69,29 @@ pub fn analyze_json(text : String) -> Analysis raise TopologyError {
   }
   let threshold = number_field(object, "threshold")
   let budget = integer_field(object, "max_cells", 4000)
-  let homology_dimension = integer_field(object, "homology_dimension", 1)
+  let homology_dimension = integer_field(
+    object,
+    "homology_dimension",
+    if kind == "volume" {
+      2
+    } else {
+      1
+    },
+  )
   if homology_dimension != 1 && homology_dimension != 2 {
     raise TopologyError("homology_dimension must be 1 or 2")
   }
   if homology_dimension == 2 &&
     kind != "points" &&
     kind != "matrix" &&
-    kind != "series" {
-    raise TopologyError("H2 currently requires points, matrix or series")
+    kind != "series" &&
+    kind != "volume" {
+    raise TopologyError(
+      "H2 currently requires points, matrix, series or volume",
+    )
+  }
+  if kind == "volume" && homology_dimension != 2 {
+    raise TopologyError("volume requires homology_dimension 2")
   }
   let allowed = match kind {
     "points" =>
@@ -85,6 +99,8 @@ pub fn analyze_json(text : String) -> Analysis raise TopologyError {
     "matrix" =>
       ["kind", "threshold", "max_cells", "matrix", "homology_dimension"]
     "grid" => ["kind", "threshold", "max_cells", "grid"]
+    "volume" =>
+      ["kind", "threshold", "max_cells", "volume", "homology_dimension"]
     "series" =>
       [
         "kind", "threshold", "max_cells", "series", "dimension", "lag", "stride",
@@ -92,7 +108,7 @@ pub fn analyze_json(text : String) -> Analysis raise TopologyError {
       ]
     _ =>
       raise TopologyError(
-        "unknown kind; expected points, matrix, grid or series",
+        "unknown kind; expected points, matrix, grid, volume or series",
       )
   }
   for field in object.keys() {
@@ -117,6 +133,14 @@ pub fn analyze_json(text : String) -> Analysis raise TopologyError {
       )
     "grid" =>
       cubical_grid(rows_field(object, "grid"), threshold~, max_cells=budget)
+    "volume" => {
+      let volume : Array[Array[Array[Double]]] = @json.from_json(
+        required_field(object, "volume"),
+      ) catch {
+        _ => raise TopologyError("volume must be an array of number matrices")
+      }
+      cubical_volume(volume, threshold~, max_cells=budget)
+    }
     "series" => {
       let series : Array[Double] = @json.from_json(
         required_field(object, "series"),

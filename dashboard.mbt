@@ -44,11 +44,11 @@ pub fn html_report(analysis : Analysis) -> String {
     #|if(DATA.homology_dimension===2){el('h2-card').hidden=false;const option=document.createElement('option');option.value='2';option.textContent='H2 空腔';el('dimension').append(option);}
     #|el('meta').textContent=`复形类型 ${DATA.kind} · ${DATA.vertex_count} 个顶点 · 截止尺度 ${fmt(DATA.cutoff)} · ${DATA.column_additions} 次列加法`;
     #|el('cells').textContent=String(DATA.cell_count);el('longest').textContent=DATA.summary[1].longest_finite_lifetime===null?'—':fmt(DATA.summary[1].longest_finite_lifetime);
-    #|el('projection-note').textContent=DATA.positions.length?'按输入坐标投影；网格使用列坐标与负行坐标。':'此输入不含几何坐标，可通过区间表与曲线观察拓扑。';
+    #|el('projection-note').textContent=DATA.kind==='cubical_volume'?'三维体数据请打开同目录 volume-slices.html 按 Z 层查看；此处仍展示全体区间与 Betti 曲线。':DATA.positions.length?'按输入坐标投影；网格使用列坐标与负行坐标。':'此输入不含几何坐标，可通过区间表与曲线观察拓扑。';
     #|function counts(scale){return Array.from({length:DATA.homology_dimension+1},(_,d)=>DATA.intervals.filter(i=>i.dimension===d&&live(i,scale)).length);}
     #|const curveSamples=DATA.betti_events.map(p=>({s:p.scale,b:DATA.homology_dimension===2?[p.h0,p.h1,p.h2]:[p.h0,p.h1]})),curveTop=curveSamples.reduce((top,p)=>Math.max(top,...p.b),1);
     #|function renderGeometry(){
-    #| const svg=el('geometry');svg.replaceChildren();if(!DATA.positions.length){svg.append(node('text',{x:35,y:180,fill:'#94a3b8'},'距离矩阵无几何坐标'));return;}
+    #| const svg=el('geometry');svg.replaceChildren();if(DATA.kind==='cubical_volume'){svg.append(node('text',{x:35,y:180,fill:'#94a3b8'},'请打开 volume-slices.html 查看三维切片'));return;}if(!DATA.positions.length){svg.append(node('text',{x:35,y:180,fill:'#94a3b8'},'距离矩阵无几何坐标'));return;}
     #| let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
     #| for(const p of DATA.positions){minX=Math.min(minX,p[0]);maxX=Math.max(maxX,p[0]);minY=Math.min(minY,p[1]);maxY=Math.max(maxY,p[1]);}
     #| const span=Math.max(maxX-minX,maxY-minY)||1,xy=i=>{const p=DATA.positions[i];return p?[320+330*((p[0]-minX)/span-(maxX-minX)/span/2),215-330*((p[1]-minY)/span-(maxY-minY)/span/2)]:null;};

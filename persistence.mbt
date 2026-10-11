@@ -42,8 +42,11 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
     raise TopologyError("too many display positions")
   }
   for point in filtration.positions {
-    if point.length() != 2 {
-      raise TopologyError("display positions require two coordinates")
+    if point.length() != 2 &&
+      !(filtration.kind == "cubical_volume" && point.length() == 3) {
+      raise TopologyError(
+        "display positions require two coordinates, or three for cubical_volume",
+      )
     }
     for x in point {
       if !finite(x) || x.abs() > 1.0e100 {

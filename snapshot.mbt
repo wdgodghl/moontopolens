@@ -100,7 +100,11 @@ pub fn snapshot_json(
   scale : Double,
 ) -> Json raise TopologyError {
   let components = connected_components(analysis, scale)
-  let cells_by_dimension = [0, 0, 0]
+  let cells_by_dimension = if analysis.homology_dimension == 2 {
+    [0, 0, 0, 0]
+  } else {
+    [0, 0, 0]
+  }
   for cell in analysis.filtration.cells {
     if cell.value <= scale {
       cells_by_dimension[cell.dimension] += 1
@@ -124,6 +128,11 @@ pub fn snapshot_json(
     "kind": analysis.filtration.kind,
     "h0": betti(analysis, 0, scale),
     "h1": betti(analysis, 1, scale),
+    "h2": if analysis.homology_dimension == 2 {
+      betti(analysis, 2, scale).to_json()
+    } else {
+      Json::null()
+    },
     "active_cells_by_dimension": cells_by_dimension,
     "components": components,
     "alive_interval_indices": alive,

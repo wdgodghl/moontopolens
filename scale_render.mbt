@@ -14,6 +14,11 @@ pub fn scale_svg(
   scale~ : Double,
   interval? : Int? = None,
 ) -> String raise TopologyError {
+  if analysis.filtration.kind == "cubical_volume" {
+    raise TopologyError(
+      "3D volume has no 2D scale projection; use volume-slices.html",
+    )
+  }
   let groups = connected_components(analysis, scale)
   let positions = analysis.filtration.positions
   if positions.is_empty() {

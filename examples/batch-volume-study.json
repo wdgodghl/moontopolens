@@ -1,0 +1,10 @@
+{
+  "all_pairs": true,
+  "cases": [
+    { "name": "hollow", "input": "hollow-volume.json" },
+    { "name": "solid", "input": "solid-volume.json" }
+  ],
+  "comparisons": [
+    { "name": "cavity-change", "left": "hollow", "right": "solid" }
+  ]
+}

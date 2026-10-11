@@ -5,11 +5,11 @@
 
 **基于 MoonBit 的持续同调与数据拓扑分析工具箱。**
 
-让点云、距离数据、时间序列和二维网格中的连接分量、环路与空腔变得可计算、可比较、可解释。
+让点云、距离数据、时间序列、二维网格和三维体素中的连接分量、环路与空腔变得可计算、可比较、可解释。
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.15.0 H2 比较与轨迹可视化版**。
+当前版本：**0.16.0 三维体素分析版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -21,6 +21,7 @@ Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/mo
 | 点云 | 1–32 维欧氏距离、Vietoris–Rips 过滤复形；可选完整 H2 分析 |
 | 距离/不相似度矩阵 | 校验对称非负矩阵，构建 Rips 2-骨架或 H2 所需的 3-骨架 |
 | 二维网格 | 顶点值的 lower-star 方格复形，检测连接区域和洞 |
+| 三维体素 | 小型三维顶点网格的 lower-star 立方复形，分析 H0/H1/H2 并离线浏览 Z 层切片 |
 | 灰度图像 | PGM P2/P5 或 8 位 PNG 灰度/RGB/RGBA，经灰度转换后进入网格过滤复形 |
 | 图像预处理 | 可选 Otsu 自动截止值与亮暗反转，记录可复现的实际参数 |
 | 批量项目 | 从一个 JSON 清单分析多份输入并生成指定两两比较和总索引 |
@@ -36,7 +37,7 @@ Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/mo
 | 观察尺度推荐 | 按 H1 已观察寿命挑选区间内尺度；无环路时可提示合并前分组尺度 |
 | 解释与演示 | 区间最优匹配明细、离线双图对比、分组着色的尺度 SVG、网格填充、存活代表链高亮 |
 | 输出 | 完整 JSON、区间/曲线 CSV、SVG 条形码/持续图、分析与研究用离线 HTML 报告 |
-| 可复现验证 | GUDHI Rips 外部区间对照、稠密与稀疏输入的耗时和进程内存基准 |
+| 可复现验证 | GUDHI Rips 与方格复形外部区间对照、稠密与稀疏输入的耗时和进程内存基准 |
 
 H0 对应连接分量，H1 对应闭合环路。长寿命特征在较多尺度存在，
 可以作为进一步分析的线索；其物理意义需要结合输入数据判断。
@@ -387,6 +388,26 @@ moon run --target js cmd/main -- batch examples/batch-h2-study.json --out out-h2
 H2 匹配；截止值不同的案例会被标出，分组只使用条件一致且距离有限的案例对。
 稀疏 Rips 构建使用邻接点枚举三角形和四面体，仍受 128 点与 10000 细胞的硬预算保护。
 
+### 0.16.0：三维体素与空腔
+
+`volume[z][y][x]` 提供采样顶点值；每条棱、每个方形面和每个立方体在所有角点进入后出现。
+`volume` 默认计算 H0/H1/H2，输入的宽、高、深均为 2–12；细胞总数仍受
+`max_cells` 默认 4000、最高 10000 的预算限制。
+
+```sh
+moon run --target js cmd/main -- analyze examples/hollow-volume.json --out out-hollow-volume
+moon run --target js cmd/main -- slice examples/hollow-volume.json 0 --out out-volume-slice
+moon run --target js cmd/main -- batch examples/batch-volume-study.json --out out-volume-batch
+```
+
+空心 3×3×3 示例的中心顶点值为 1，其余为 0：尺度 0 的完整三维复形有一个 H2 空腔；
+尺度 1 中心进入并填充空腔，H2 区间为 `[0,1)`。
+`out-hollow-volume/volume-slices.html` 可离线选择 Z 层和尺度，显示该层进入的采样顶点，
+同时显示整个三维复形的 H0/H1/H2。普通 `report.html` 保留全部区间和 Betti 曲线。
+`slice` 对体数据输出全复形的 JSON 快照，避免把重叠层投影成误导性的二维 SVG。
+批量示例将空心体与实心体比较，H2 瓶颈距离为 0.5。
+切片是采样顶点视图，不是医学图像格式；当前只读取 JSON 体数据，不读取 DICOM/NIfTI。
+
 ## 自定义输入
 
 ```json
@@ -398,7 +419,7 @@ H2 匹配；截止值不同的案例会被标出，分组只使用条件一致�
 }
 ```
 
-普通分析的 `kind` 支持 `points` / `matrix` / `grid` / `series`，对应数据字段同名。
+普通分析的 `kind` 支持 `points` / `matrix` / `grid` / `volume` / `series`，对应数据字段同名。
 `series_sweep` 是独立的扫描输入类型，只用于 `sweep` 命令。
 `threshold` 必填；`max_cells` 默认 4000。
 `series` 可指定 `dimension`（默认 2）、`lag`（默认 1）、`stride`（默认 1）。
@@ -407,7 +428,7 @@ H2 匹配；截止值不同的案例会被标出，分组只使用条件一致�
 
 ## MoonBit 库用法
 
-包导入（先运行 `moon add wdgodghl/moontopolens@0.12.1`）：
+包导入（先运行 `moon add wdgodghl/moontopolens@0.16.0`）：
 
 ```text
 import {
@@ -444,7 +465,7 @@ let scale_picture = @topo.scale_svg(analysis, scale=1.0)
 
 - Rips 使用**直径约定**：距离 d 的边在 d 出现，无半径除二。
 - 矩阵要求严格对称、对角线为零；无需满足三角不等式，不偷偷修正输入。
-- 计算系数域为 GF(2)，默认分析 H0/H1；显式构建完整三维 Rips 骨架时分析 H2。不支持整数同调。
+- 计算系数域为 GF(2)，通常默认分析 H0/H1；三维体数据默认分析 H0/H1/H2，Rips 显式构建三维骨架时也分析 H2。不支持整数同调。
 - `death: null` 表示在**输入截止处仍存在**，不能据此证明在完整过滤中无限存活。
 - 区间为 `[birth,death)`，默认省略零长度区间；代表环路在出生时有效，不保证最短。
 - 比较包含有限区间和未死亡区间；后者数量不等时结果为 null。
@@ -482,7 +503,7 @@ moon package --list
 ```
 
 外部对照先运行 `moon build --target js`，再用 GUDHI 3.13.0 独立计算
-22 组 Rips 点云、距离矩阵和延迟嵌入的 H0/H1 区间，加上 1 组八面体 H2 区间；CI 会执行这一检查。
+30 组 Rips 点云、距离矩阵、延迟嵌入和 cubical 网格/体数据的相应 H0/H1/H2 区间；CI 会执行这一检查。
 基准使用确定性二维点云的稠密和稀疏分布，每组运行三次独立进程，报告 MoonBit 构造/约化的中位耗时与分析后的进程 RSS。
 RSS 包含 Node 运行时且**不是峰值**；基准仅说明已测规模，不代表大规模性能承诺。
 测试细节见 [外部对照](docs/reference-validation.md) 与 [性能记录](docs/performance.md)。

@@ -58,6 +58,8 @@ pub fn connected_components(Analysis, Double) -> Array[Array[Int]] raise Topolog
 
 pub fn cubical_grid(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
 
+pub fn cubical_volume(Array[Array[Array[Double]]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+
 pub fn cycle_edges(Analysis, Interval) -> Array[(Int, Int)] raise TopologyError
 
 pub fn delay_embed(Array[Double], dimension~ : Int, lag~ : Int, stride? : Int) -> Array[Array[Double]] raise TopologyError
@@ -129,6 +131,8 @@ pub fn topology_sequence_html(Json) -> String
 pub fn validate_filtration(Filtration) -> Unit raise TopologyError
 
 pub fn validate_matrix(Array[Array[Double]]) -> Unit raise TopologyError
+
+pub fn volume_slices_html(Analysis) -> String raise TopologyError
 
 // Errors
 pub(all) suberror TopologyError {

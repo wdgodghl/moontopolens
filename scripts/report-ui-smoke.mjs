@@ -62,7 +62,7 @@ export function verifyReportUI(html, report, name) {
   const activeFaces = report.kind === 'cubical' ? report.cells.filter(c => c.dimension === 2 && c.value <= report.cutoff).length : 0;
   assert.equal(elements.get('geometry').children.filter(n => n.tag === 'polygon').length, activeFaces);
   const curves = elements.get('curve').children.filter(n => n.tag === 'polyline');
-  assert.equal(curves.length, 2);
+  assert.equal(curves.length, report.homology_dimension + 1);
   const start = report.cells.reduce((low,c) => Math.min(low,c.value), report.cutoff);
   for (let d = 0; d < 2; d++) {
     const top = Math.max(1,...report.betti_events.flatMap(p => [p.h0,p.h1]));
@@ -112,6 +112,33 @@ export function verifyReportUI(html, report, name) {
     for (const child of element.children) check(child);
   }
   check(elements.get('geometry')); check(elements.get('curve'));
+}
+
+export function verifyVolumeUI(html, report) {
+  const data = html.match(/<script id="volume-data" type="application\/json">([\s\S]*?)<\/script>/);
+  const source = html.match(/<\/script><script>([\s\S]*?)<\/script><\/body>/);
+  assert.ok(data && source, 'Volume data and script must be embedded');
+  assert.deepEqual(JSON.parse(data[1]), report);
+  assert.ok(!/<script[^>]+src=|<link[^>]+href=/.test(html));
+  const elements = new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(match => [match[1], new Element('element')]));
+  elements.get('volume-data').textContent = data[1];
+  elements.get('scale').value = '1000';
+  elements.get('layer').value = '0';
+  const document = {
+    getElementById(id) { assert.ok(elements.has(id)); return elements.get(id); },
+    createElement(tag) { return new Element(tag); },
+    createElementNS(_ns, tag) { return new Element(tag); },
+  };
+  vm.runInNewContext(source[1], { document }, { timeout: 10000 });
+  assert.equal(elements.get('layer').children.length, 3);
+  assert.equal(elements.get('slice').children.length, 9);
+  assert.equal(elements.get('h2').textContent, '0');
+  elements.get('scale').value = '0';
+  elements.get('layer').value = '1';
+  elements.get('scale').fire('input');
+  assert.equal(elements.get('h2').textContent, '1');
+  assert.equal(elements.get('slice').children.filter(cell => cell.attributes.fill === '#2dd4bf').length, 8);
+  assert.ok(elements.get('slice-note').textContent.includes('当前进入 8 个'));
 }
 
 export function verifyComparisonUI(html, report) {

@@ -1,4 +1,4 @@
-"""Optional external differential check for MoonTopoLens Rips H0/H1/H2.
+"""Optional external differential check for MoonTopoLens Rips and cubical H0/H1/H2.
 
 Requires NumPy 2.3.5, GUDHI 3.13.0 and a prior `moon build --target js`. The reference
 package is used only by this validation script, never by the MoonBit core.
@@ -12,6 +12,7 @@ from pathlib import Path
 
 try:
     import gudhi
+    import numpy as np
 except ImportError as exc:
     raise SystemExit(
         "Install optional reference dependencies: "
@@ -61,11 +62,27 @@ def moon_diagrams(request, input_path):
             ],
             key=lambda bar: (bar[0], math.inf if bar[1] is None else bar[1]),
         )
-        for dimension in range(request.get("homology_dimension", 1) + 1)
+        for dimension in range(request.get("homology_dimension", 2 if request["kind"] == "volume" else 1) + 1)
     ]
 
 
 def gudhi_diagrams(request):
+    if request["kind"] in ("volume", "grid"):
+        vertices = request["volume"] if request["kind"] == "volume" else request["grid"]
+        complex_ = gudhi.CubicalComplex(vertices=np.asarray(vertices, dtype=float))
+        bars = complex_.persistence(homology_coeff_field=2, min_persistence=0.0)
+        cutoff = request["threshold"]
+        return [
+            sorted(
+                [
+                    (float(birth), None if death > cutoff else float(death))
+                    for degree, (birth, death) in bars
+                    if degree == dimension and birth <= cutoff
+                ],
+                key=lambda bar: (bar[0], math.inf if bar[1] is None else bar[1]),
+            )
+            for dimension in range(request.get("homology_dimension", 2 if request["kind"] == "volume" else 1) + 1)
+        ]
     points, matrix = coordinates(request)
     options = {"max_edge_length": request["threshold"]}
     if points is not None:
@@ -112,6 +129,22 @@ def cases():
     for name in ("square", "rectangle", "clusters", "matrix", "periodic-series"):
         yield name, json.loads((ROOT / "examples" / f"{name}.json").read_text(encoding="utf-8"))
     yield "octahedron-h2", json.loads((ROOT / "examples" / "octahedron-h2.json").read_text(encoding="utf-8"))
+    yield "ring-grid", json.loads((ROOT / "examples" / "ring-grid.json").read_text(encoding="utf-8"))
+    hollow = json.loads((ROOT / "examples" / "hollow-volume.json").read_text(encoding="utf-8"))
+    yield "hollow-volume", hollow
+    yield "hollow-volume-cutoff-0", {**hollow, "threshold": 0}
+    for seed in range(4):
+        yield f"deterministic-volume-{seed}", {
+            "kind": "volume",
+            "threshold": 2,
+            "volume": [
+                [
+                    [(x * 3 + y * 5 + z * 7 + seed * (x + z + 1)) % 3 for x in range(3)]
+                    for y in range(3)
+                ]
+                for z in range(3)
+            ],
+        }
     for cutoff in (0.5, 1.0, 1.25, math.sqrt(2), 2.0):
         yield f"square-cutoff-{cutoff:.6g}", {
             "kind": "points",
@@ -137,13 +170,13 @@ def main():
         for name, request in cases():
             moon = moon_diagrams(request, input_path)
             reference = gudhi_diagrams(request)
-            for degree in range(request.get("homology_dimension", 1) + 1):
+            for degree in range(request.get("homology_dimension", 2 if request["kind"] == "volume" else 1) + 1):
                 if not same_bars(moon[degree], reference[degree]):
                     raise AssertionError(
                         f"{name} H{degree} mismatch:\nMoonBit {moon[degree]}\nGUDHI  {reference[degree]}"
                     )
             checked += 1
-    print(f"GUDHI {gudhi.__version__}: {checked} Rips cases agree in requested H0/H1/H2 dimensions")
+    print(f"GUDHI {gudhi.__version__}: {checked} Rips/cubical cases agree in requested H0/H1/H2 dimensions")
 
 
 if __name__ == "__main__":

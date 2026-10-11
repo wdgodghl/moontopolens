@@ -36,7 +36,7 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- landscape INPUT.json DIMENSION START END [--out NEW_DIRECTORY]",
   )
   println(
-    "Request kinds: points / matrix / grid / series. See examples and README.",
+    "Request kinds: points / matrix / grid / volume / series. See examples and README.",
   )
 }
 
@@ -80,7 +80,11 @@ fn save_analysis(
     @topo.recommendations_json(result).stringify(),
   ) &&
   save_output(output, "recommendations.csv", @topo.recommendations_csv(result)) &&
-  save_output(output, "report.html", @topo.html_report(result))
+  save_output(output, "report.html", @topo.html_report(result)) &&
+  (
+    result.filtration.kind != "cubical_volume" ||
+    save_output(output, "volume-slices.html", @topo.volume_slices_html(result))
+  )
 }
 
 ///|
@@ -653,7 +657,10 @@ fn main {
         let scale = numeric_argument(2)
         let report = @topo.snapshot_json(result, scale).stringify()
         if count >= 5 {
-          let svg = if result.filtration.positions.is_empty() &&
+          let svg = if (
+              result.filtration.positions.is_empty() ||
+              result.filtration.kind == "cubical_volume"
+            ) &&
             interval is None {
             None
           } else {
