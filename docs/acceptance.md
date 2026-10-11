@@ -16,7 +16,7 @@
 | CI 检查/构建/测试 | .github/workflows/ci.yml；增加 GUDHI 外部 Rips 区间对照，远端运行结果以 Actions 为准 |
 | 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
 | 核心测试 | JS 和 Wasm GC 各 73 个测试；另有 CLI 全流程覆盖 PNG、分组、稳定性、候选排序和 H2 |
-| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；0.11.0 独立项目安装成功，0.12.0 待本轮发布核验 |
+| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；注册表返回 0.12.0、MIT、构建成功；独立项目安装并运行 H2 样例成功 |
 | OSI 许可证与来源 | MIT；独立实现，公开算法背景见查重记录 |
 
 ## 本地验证
@@ -37,9 +37,9 @@
 - 参数扫描：四组维数/滞后组合、统一景观采样网格、JSON/两份 CSV 的顺序与数值一致；重复或超量参数、信号长度不足会报错。
 - 扩展功能：四案例层次分组与建议切分、点云八次固定扰动、参数候选排序、PNG 单图及批量输入、H2 八面体 `[1,2)` 均通过 CLI 场景。
 - 网格填充与分页：尺度 0 的环形网格不绘制方格面，尺度 1 绘制四个；Rips 点云不绘制投影三角形。离线报告模拟超过 120 条区间，核对每页 50 条、翻页和筛选后页码重置。
-- GUDHI 外部差分：既有 22 个 Rips 案例的 H0/H1 区间一致；新增八面体 H2 参考将在 CI 中核对，方法和局限见 reference-validation.md。
+- GUDHI 外部差分：既有 22 个 Rips 案例的 H0/H1 区间一致；新增八面体 H2 样例在本版 GitHub CI 中核对通过，方法和局限见 reference-validation.md。
 - 性能基准：8–28 点稠密输入和 32–128 点稀疏输入，三次独立运行取中位数；记录核心耗时和分析后进程 RSS，见 performance.md。
-- Mooncakes 注册表 `wdgodghl/moontopolens` 返回 0.11.0，公开模块页 HTTP 200；独立项目运行 `moon add wdgodghl/moontopolens@0.11.0`，最小示例输出 `H1 at scale 1 = 1`。
+- Mooncakes 注册表 `wdgodghl/moontopolens` 返回 0.12.0、MIT、`build_status=success`；独立项目运行 `moon add wdgodghl/moontopolens@0.12.0`，最小样例输出 `H2 at scale 1 = 1`。
 
 源码量由 `node scripts/check-source.mjs` 复算。
 统计排除测试和 host.mbt FFI，并另报告去除纯括号行后的代码行数。
@@ -47,7 +47,7 @@
 该统计口径用于内部质量检查，组织方“有效源码”口径由评审决定。
 
 0.11.0 的单元覆盖率记录为 1125/1652 个计数点（约 68.1%）；新增功能尚未重测覆盖率，
-CLI 另有端到端场景验证。覆盖率不等于全部行为正确；新增 H2 的 GUDHI 对照待 CI 核验。
+CLI 另有端到端场景验证。覆盖率不等于全部行为正确；新增 H2 的 GUDHI 对照已在 GitHub CI 核验。
 
 ## 下一阶段
 

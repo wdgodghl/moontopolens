@@ -1,11 +1,12 @@
 # Mooncakes 发布说明
 
-发布状态：**2026-10-11 已发布**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
+发布状态：**2026-10-11 已发布 0.12.0**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
 验收指南要求发布到 Mooncakes；以注册表中的实际模块条目作为完成证据。
 
 公开页面：https://mooncakes.io/docs/wdgodghl/moontopolens 。
-注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 返回版本 `0.11.0`、许可证 `MIT`。
-在独立新项目执行 `moon add wdgodghl/moontopolens@0.11.0`，运行正方形最小样例得到 `H1 at scale 1 = 1`。
+注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 返回最新版本 `0.12.0`、许可证 `MIT`、构建成功。
+在独立新项目执行 `moon add wdgodghl/moontopolens@0.12.0`，运行八面体最小样例得到 `H2 at scale 1 = 1`。
+对应 GitHub 提交 `caeb04f` 的 CI 全部通过，包含 JS/Wasm GC、CLI 场景和 GUDHI H2 对照。
 
 ## 发布前
 
