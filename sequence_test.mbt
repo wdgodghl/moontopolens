@@ -40,6 +40,28 @@ test "censored H1 mismatch keeps null distance" {
 }
 
 ///|
+test "new H1 interval starts a track and continues in the next frame" {
+  let (report, _, _, tracks) = @moontopolens.topology_sequence(
+    "{\"kind\":\"topology_sequence\",\"threshold\":2,\"frames\":[{\"name\":\"triangle\",\"points\":[[0,0],[1,0],[0.5,0.9]]},{\"name\":\"square1\",\"points\":[[0,0],[1,0],[1,1],[0,1]]},{\"name\":\"square2\",\"points\":[[0,0],[1,0],[1,1],[0,1]]}]}",
+  )
+  let output = report.stringify()
+  assert_true(output.contains("\"appeared_h1\":1"))
+  assert_true(output.contains("\"continued_h1\":1"))
+  assert_true(output.contains("\"observation_count\":2"))
+  assert_true(tracks.contains("0,1,square1,"))
+  assert_true(tracks.contains("0,2,square2,"))
+}
+
+///|
+test "frames without loops produce no H1 tracks" {
+  let (report, _, _, tracks) = @moontopolens.topology_sequence(
+    "{\"kind\":\"topology_sequence\",\"threshold\":2,\"frames\":[{\"name\":\"first\",\"points\":[[0,0],[1,0],[0.5,0.9]]},{\"name\":\"second\",\"points\":[[0,0],[1,0],[0.5,0.9]]}]}",
+  )
+  assert_true(report.stringify().contains("\"track_count\":0"))
+  assert_eq(tracks.split("\n").length(), 2)
+}
+
+///|
 test "sequence rejects malformed and incomparable frames" {
   let invalid = [
     "{\"kind\":\"topology_sequence\",\"threshold\":2,\"frames\":[]}", "{\"kind\":\"topology_sequence\",\"threshold\":0,\"frames\":[{},{}]}",
