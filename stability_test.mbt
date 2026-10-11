@@ -29,5 +29,15 @@ test "stability rejects unsupported or unbounded studies" {
   } catch {
     _ => true
   }
-  assert_true(invalid_epsilon && invalid_kind)
+  let empty = try {
+    ignore(
+      @moontopolens.point_stability_json(
+        "{\"kind\":\"points\",\"threshold\":1,\"points\":[]}", 0.1,
+      ),
+    )
+    false
+  } catch {
+    _ => true
+  }
+  assert_true(invalid_epsilon && invalid_kind && empty)
 }

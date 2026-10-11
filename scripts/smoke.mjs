@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { deflateSync } from 'node:zlib';
 import { verifyReportUI, verifyComparisonUI } from './report-ui-smoke.mjs';
 
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'moontopolens-smoke-'));
@@ -206,6 +207,54 @@ const pngOut = path.join(temporary, 'ring-png');
 const pngReport = JSON.parse(cli(['image', 'examples/ring-image.png', 'auto', '--out', pngOut]));
 assert.equal(betti(pngReport, 1, 0), 1);
 assert.equal(JSON.parse(fs.readFileSync(path.join(pngOut, 'image-info.json'), 'utf8')).source_format, 'PNG');
+function pngChunk(type, payload) {
+  const body = Buffer.concat([Buffer.from(type), payload]);
+  let crc = 0xffffffff;
+  for (const byte of body) {
+    crc ^= byte;
+    for (let i = 0; i < 8; i++) crc = (crc & 1) ? (0xedb88320 ^ (crc >>> 1)) : (crc >>> 1);
+  }
+  const length = Buffer.alloc(4), checksum = Buffer.alloc(4);
+  length.writeUInt32BE(payload.length); checksum.writeUInt32BE((crc ^ 0xffffffff) >>> 0);
+  return Buffer.concat([length, body, checksum]);
+}
+function pngWithFilter(color, filter) {
+  const channels = color === 0 ? 1 : color === 4 ? 2 : 4;
+  const lines = [];
+  let previous = Buffer.alloc(3 * channels);
+  for (let y = 0; y < 3; y++) {
+    const row = Buffer.from(Array.from({length:3}, (_,x) => {
+      const value = x === 1 && y === 1 ? 255 : 0;
+      return color === 0 ? [value] : color === 4 ? [value,255] : [value,value,value,255];
+    }).flat());
+    const encoded = Buffer.alloc(row.length);
+    for (let i = 0; i < row.length; i++) {
+      const left = i >= channels ? row[i-channels] : 0;
+      const up = previous[i];
+      const corner = i >= channels ? previous[i-channels] : 0;
+      let predicted = 0;
+      if (filter === 1) predicted = left;
+      if (filter === 2) predicted = up;
+      if (filter === 3) predicted = Math.floor((left + up) / 2);
+      if (filter === 4) {
+        const p = left + up - corner, a = Math.abs(p-left), b = Math.abs(p-up), c = Math.abs(p-corner);
+        predicted = a <= b && a <= c ? left : b <= c ? up : corner;
+      }
+      encoded[i] = (row[i] - predicted) & 255;
+    }
+    lines.push(Buffer.from([filter]), encoded);
+    previous = row;
+  }
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(3,0); ihdr.writeUInt32BE(3,4); ihdr[8]=8; ihdr[9]=color;
+  return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),pngChunk('IHDR',ihdr),pngChunk('IDAT',deflateSync(Buffer.concat(lines))),pngChunk('IEND',Buffer.alloc(0))]);
+}
+for (const [color, filter] of [[0,1],[4,2],[6,3],[6,4]]) {
+  const filename = path.join(temporary, `ring-${color}-${filter}.png`);
+  fs.writeFileSync(filename, pngWithFilter(color, filter));
+  const report = JSON.parse(cli(['image', filename, 'auto']));
+  assert.equal(betti(report, 1, 0), 1);
+}
 const corruptPng = path.join(temporary, 'corrupt.png');
 const pngBytes = fs.readFileSync('examples/ring-image.png');
 pngBytes[pngBytes.length - 5] ^= 1;
