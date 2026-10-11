@@ -6,7 +6,6 @@
 公开页面：https://mooncakes.io/docs/wdgodghl/moontopolens 。
 注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 确认最新版本 `0.18.0`、许可证 `MIT`、`build_status=success`。
 在独立项目安装 `wdgodghl/moontopolens@0.18.0`，调用粗网格分析与 H2 世界坐标代表面 API，JS 与 Wasm GC 最小样例均通过。
-对应 GitHub 提交 `75672ab` 的 [CI 运行](https://github.com/wdgodghl/moontopolens/actions/runs/38141723895) 全部通过，包含 JS/Wasm GC、CLI 场景和 GUDHI Rips/cubical 对照；本地测试两后端各 95 项通过。
 
 ## 发布前
 
