@@ -1,6 +1,6 @@
 # Mooncakes 发布说明
 
-发布状态：**2026-10-11 已发布 0.13.0**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
+发布状态：**0.13.0 已发布；0.14.0 发布包准备中**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
 验收指南要求发布到 Mooncakes；以注册表中的实际模块条目作为完成证据。
 
 公开页面：https://mooncakes.io/docs/wdgodghl/moontopolens 。
