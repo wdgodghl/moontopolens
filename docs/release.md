@@ -1,12 +1,12 @@
 # Mooncakes 发布说明
 
-发布状态：**2026-10-11 已发布 0.15.0**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
+发布状态：**2026-10-11 已发布 0.16.0**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
 验收指南要求发布到 Mooncakes；以注册表中的实际模块条目作为完成证据。
 
 公开页面：https://mooncakes.io/docs/wdgodghl/moontopolens 。
-注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 确认最新版本 `0.15.0`、许可证 `MIT`、`build_status=success`。
-在独立项目安装 `wdgodghl/moontopolens@0.15.0`，调用 H2 详细比较及多帧 HTML API，JS 与 Wasm GC 最小样例均通过。
-对应 GitHub 提交 `c6f0fc5` 的 [CI 运行](https://github.com/wdgodghl/moontopolens/actions/runs/38114919866) 全部通过，包含 JS/Wasm GC、CLI 场景和 GUDHI H2 对照；本地测试两后端各 82 项通过。
+注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 确认最新版本 `0.16.0`、许可证 `MIT`、`build_status=success`。
+在独立项目安装 `wdgodghl/moontopolens@0.16.0`，调用空心体 H2 分析及三维切片 HTML API，JS 与 Wasm GC 最小样例均通过。
+对应 GitHub 提交 `b4af152` 的 [CI 运行](https://github.com/wdgodghl/moontopolens/actions/runs/38137033949) 全部通过，包含 JS/Wasm GC、CLI 场景和 GUDHI Rips/cubical 对照；本地测试两后端各 85 项通过。
 
 ## 发布前
 

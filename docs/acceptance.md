@@ -11,18 +11,18 @@
 | --- | --- |
 | MoonBit 主实现，moonc ≥ 0.10.14 | 核心算法与 CLI 逻辑为 MoonBit；本地 moonc 0.10.14 |
 | 公开仓库、清晰提交 | https://github.com/wdgodghl/moontopolens ；按功能逐步提交 |
-| 结构清晰且核心功能可运行 | H0/H1 与可选 H2、四种普通 JSON 输入、参数扫描与候选排序、滞后参考值、多帧点云轨迹及可视化、PGM/PNG 图像、Otsu 与反转、批量全对 H0/H1/可选 H2 距离与层次分组、点云扰动稳定性、代表链、瓶颈距离、精确事件、尺度快照与推荐、景观向量、离线 HTML 等已实现 |
+| 结构清晰且核心功能可运行 | H0/H1 与可选 H2、点云/矩阵/序列/二维网格/三维体数据 JSON 输入、参数扫描与候选排序、滞后参考值、多帧点云轨迹及可视化、PGM/PNG 图像、Otsu 与反转、批量全对 H0/H1/可选 H2 距离与层次分组、点云扰动稳定性、代表链、瓶颈距离、精确事件、尺度快照与推荐、景观向量、离线 HTML 和体数据切片等已实现 |
 | README 可复现 | 安装、命令、预期结果、算法限制、三种完整场景 |
-| CI 检查/构建/测试 | .github/workflows/ci.yml；增加 GUDHI 外部 Rips 区间对照，远端运行结果以 Actions 为准 |
-| 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
-| 核心测试 | JS 和 Wasm GC 各 82 个测试；另有 CLI 全流程覆盖 PNG、分组、稳定性、多帧追踪、候选排序及 H2 比较/批量 |
-| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.15.0 注册表显示 MIT、构建成功，独立项目安装与 API 测试通过 |
+| CI 检查/构建/测试 | .github/workflows/ci.yml；含 GUDHI 外部 Rips/cubical 区间对照；0.16.0 对应运行全部通过 |
+| 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、三维体素、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
+| 核心测试 | JS 和 Wasm GC 各 85 个测试；另有 CLI 全流程覆盖 PNG、分组、稳定性、多帧追踪、候选排序、H2 比较/批量及三维体数据 |
+| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.16.0 注册表显示 MIT、构建成功，独立项目安装与体数据 API 测试通过 |
 | OSI 许可证与来源 | MIT；独立实现，公开算法背景见查重记录 |
 
 ## 本地验证
 
 - 类型检查和构建：JS、Wasm GC。
-- 测试：两后端各 82 个测试；参考测试内部覆盖 12×11 个形状/尺度组合，匹配见证覆盖 12 对形状。
+- 测试：两后端各 85 个测试；参考测试内部覆盖 12×11 个形状/尺度组合，匹配见证覆盖 12 对形状。
 - CLI：八种基础示例、九种分析导出文件、快捷摘要、尺度推荐、同图/异图比较、帮助、错误和输出冲突路径。
 - 新功能：每个示例在全部事件尺度核对快照 H0/H1 与分组数；景观 JSON/CSV/向量一致，双洞帐篷高度已核对。
 - 比较：三组报告导出、原始索引与代价 CSV 一致、同图零距离与存活类数量不同路径。
@@ -37,23 +37,23 @@
 - 参数扫描：四组维数/滞后组合、统一景观采样网格、JSON/两份 CSV 的顺序与数值一致；重复或超量参数、信号长度不足会报错。
 - 扩展功能：四案例层次分组与建议切分、点云八次固定扰动、参数候选排序、PNG 单图及批量输入、H2 八面体 `[1,2)` 及双侧比较均通过 CLI 场景。
 - 网格填充与分页：尺度 0 的环形网格不绘制方格面，尺度 1 绘制四个；Rips 点云不绘制投影三角形。离线报告模拟超过 120 条区间，核对每页 50 条、翻页和筛选后页码重置。
-- GUDHI 外部差分：既有 22 个 Rips 案例的 H0/H1 区间一致；新增八面体 H2 样例在本版 GitHub CI 中核对通过，方法和局限见 reference-validation.md。
+- GUDHI 外部差分：30 个 Rips/cubical 案例的相应 H0/H1/H2 区间一致，含八面体与空心体 H2；方法和局限见 reference-validation.md。
 - 性能基准：8–28 点稠密输入和 32–128 点稀疏输入，三次独立运行取中位数；记录核心耗时和分析后进程 RSS，见 performance.md。
 - 时间序列滞后提示：交替序列和无效输入用例通过；CLI 示例产生六行扫描结果和两个参考值。
 - 多帧追踪：正方形扩张后变为三角形的轨迹延续/终止、无环路、环路出现、截断类不匹配与非法输入路径均已核对；离线时间线和变化图的 DOM 场景测试通过。
-- GitHub 提交 `c6f0fc5` 的 [CI 运行](https://github.com/wdgodghl/moontopolens/actions/runs/38114919866) 显示全部通过；Mooncakes 注册表 `wdgodghl/moontopolens` 返回最新 0.15.0、MIT、`build_status=success`；独立项目安装 `wdgodghl/moontopolens@0.15.0` 后，H2 比较与多帧 HTML API 的 JS/Wasm GC 样例均通过。
+- GitHub 提交 `b4af152` 的 [CI 运行](https://github.com/wdgodghl/moontopolens/actions/runs/38137033949) 显示全部通过；Mooncakes 注册表 `wdgodghl/moontopolens` 返回最新 0.16.0、MIT、`build_status=success`；独立项目安装 `wdgodghl/moontopolens@0.16.0` 后，空心体 H2 与切片 HTML API 的 JS/Wasm GC 样例均通过。
 
 源码量由 `node scripts/check-source.mjs` 复算。
 统计排除测试和 host.mbt FFI，并另报告去除纯括号行后的代码行数。
-当前非空非注释行 4611；再排除纯括号行后为 3580 行（也排除 HTML/JS 多行模板）。
+当前非空非注释行 4872；再排除纯括号行后为 3786 行（也排除 HTML/JS 多行模板）。
 该统计口径用于内部质量检查，组织方“有效源码”口径由评审决定。
 
 0.11.0 的单元覆盖率记录为 1125/1652 个计数点（约 68.1%）；新增功能尚未重测覆盖率，
-CLI 另有端到端场景验证。覆盖率不等于全部行为正确；新增 H2 的 GUDHI 对照已在 GitHub CI 核验。
+CLI 另有端到端场景验证。覆盖率不等于全部行为正确；新增 cubical 与 H2 的 GUDHI 对照已在 GitHub CI 核验。
 
 ## 下一阶段
 
-1. 扩充外部参考至 cubical 网格与更多异常尺度；有条件时再与 Ripser 独立交叉核验。
+1. 扩充外部参考至更多异常尺度；有条件时再与 Ripser 独立交叉核验。
 2. 后续版本按语义化版本更新，并持续核验 Mooncakes 的独立安装路径。
 3. 扩大性能样本并记录峰值内存、不同硬件和更复杂输入分布。
 4. 根据使用反馈完善离线报告的视觉布局与可访问性；在线上传应用不纳入本轮完成范围。
