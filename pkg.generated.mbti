@@ -6,11 +6,23 @@ import {
 }
 
 // Values
-pub fn analyze(Filtration, include_zero? : Bool, max_additions? : Int) -> Analysis raise TopologyError
+pub fn analyze(Filtration, include_zero? : Bool, max_additions? : Int, max_homology_dimension? : Int) -> Analysis raise TopologyError
 
 pub fn analyze_json(String) -> Analysis raise TopologyError
 
 pub fn barcode_svg(Analysis) -> String
+
+pub fn batch_clustering(BatchDistanceMatrix, Int) -> BatchClustering raise TopologyError
+
+pub fn batch_clustering_csv(BatchClustering) -> String
+
+pub fn batch_clustering_groups(BatchClustering, Double) -> Array[Array[String]] raise TopologyError
+
+pub fn batch_clustering_json(BatchClustering) -> Json
+
+pub fn batch_clustering_suggested_cut(BatchClustering) -> Double?
+
+pub fn batch_clustering_svg(BatchClustering) -> String
 
 pub fn batch_distance_matrix(BatchPlan, Array[Analysis]) -> BatchDistanceMatrix raise TopologyError
 
@@ -80,6 +92,10 @@ pub fn parse_pgm(Array[Int]) -> PgmImage raise TopologyError
 
 pub fn persistence_landscape(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> Array[Array[Double]] raise TopologyError
 
+pub fn point_stability_html(Json) -> String
+
+pub fn point_stability_json(String, Double, trials? : Int) -> Json raise TopologyError
+
 pub fn ranked_intervals(Analysis, dimension~ : Int, min_lifetime? : Double, include_alive? : Bool) -> Array[Interval] raise TopologyError
 
 pub fn recommend_scales(Analysis, max_loops? : Int) -> Array[ScaleRecommendation] raise TopologyError
@@ -90,17 +106,25 @@ pub fn recommendations_json(Analysis, max_loops? : Int) -> Json raise TopologyEr
 
 pub fn report_json(Analysis) -> Json
 
-pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
 
-pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
 
 pub fn scale_svg(Analysis, scale~ : Double, interval? : Int?) -> String raise TopologyError
 
+pub fn series_lag_hints(String) -> (Json, String) raise TopologyError
+
 pub fn series_sweep(String) -> (Json, String, String) raise TopologyError
+
+pub fn series_sweep_html(Json) -> String
 
 pub fn snapshot_json(Analysis, Double) -> Json raise TopologyError
 
 pub fn summary_json(Analysis) -> Json
+
+pub fn topology_sequence(String) -> (Json, String, String, String) raise TopologyError
+
+pub fn topology_sequence_html(Json) -> String
 
 pub fn validate_filtration(Filtration) -> Unit raise TopologyError
 
@@ -118,6 +142,7 @@ pub struct Analysis {
   filtration : Filtration
   intervals : Array[Interval]
   column_additions : Int
+  homology_dimension : Int
 } derive(@debug.Debug)
 pub fn Analysis::to_repr(Self) -> @debug.Repr
 
@@ -131,12 +156,32 @@ pub struct BatchCase {
 } derive(@debug.Debug)
 pub fn BatchCase::to_repr(Self) -> @debug.Repr
 
+pub struct BatchClusterMerge {
+  left : Int
+  right : Int
+  distance : Double
+  members : Array[String]
+} derive(@debug.Debug)
+pub fn BatchClusterMerge::to_repr(Self) -> @debug.Repr
+
+pub struct BatchClustering {
+  names : Array[String]
+  dimension : Int
+  merges : Array[BatchClusterMerge]
+  roots : Array[Int]
+  groups : Array[Array[String]]
+  omitted_pairs : Int
+} derive(@debug.Debug)
+pub fn BatchClustering::to_repr(Self) -> @debug.Repr
+
 pub struct BatchDistanceMatrix {
   names : Array[String]
   kinds : Array[String]
   cutoffs : Array[Double]
   h0 : Array[Array[Double?]]
   h1 : Array[Array[Double?]]
+  h2 : Array[Array[Double?]]
+  h2_analyzed : Array[Bool]
   conditions_aligned : Array[Array[Bool]]
 } derive(@debug.Debug)
 pub fn BatchDistanceMatrix::to_repr(Self) -> @debug.Repr
@@ -159,6 +204,7 @@ pub struct BettiEvent {
   scale : Double
   h0 : Int
   h1 : Int
+  h2 : Int
 } derive(@debug.Debug)
 pub fn BettiEvent::to_repr(Self) -> @debug.Repr
 
