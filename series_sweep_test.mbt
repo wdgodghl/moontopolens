@@ -6,6 +6,8 @@ test "series sweep returns aligned vectors and matching CSV rows" {
   let data = report.stringify()
   assert_true(data.contains("\"case_count\":4"))
   assert_true(data.contains("\"h1_landscape_vector\""))
+  assert_true(data.contains("\"recommended_parameters\""))
+  assert_true(data.contains("\"longest_finite_h1_lifetime\""))
   assert_true(summary.contains("2,1,1,"))
   assert_true(summary.contains("3,2,1,"))
   assert_true(vectors.contains("lambda_3_sample_100"))

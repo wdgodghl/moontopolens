@@ -1,4 +1,14 @@
 ///|
+priv struct SweepCandidate {
+  dimension : Int
+  lag : Int
+  stride : Int
+  point_count : Int
+  finite_h1_count : Int
+  longest_finite_h1_lifetime : Double
+}
+
+///|
 fn sweep_integer_list(
   object : Map[String, Json],
   name : String,
@@ -80,6 +90,7 @@ pub fn series_sweep(
   let budget = integer_field(object, "max_cells", 4000)
   let grid = landscape_grid(0.0, threshold, 101)
   let cases : Array[Json] = []
+  let candidates : Array[SweepCandidate] = []
   let mut summary_csv = "dimension,lag,stride,point_count,cell_count,h1_finite_count,h1_alive_at_cutoff,longest_h1_observed_lifetime,h1_at_cutoff\n"
   let mut vector_csv = "dimension,lag,stride"
   for layer = 1; layer <= 3; layer = layer + 1 {
@@ -101,6 +112,7 @@ pub fn series_sweep(
       let mut finite_count = 0
       let mut alive_count = 0
       let mut longest_observed = 0.0
+      let mut longest_finite = 0.0
       for interval in analysis.intervals {
         if interval.dimension != 1 {
           continue
@@ -109,6 +121,10 @@ pub fn series_sweep(
           alive_count += 1
         } else {
           finite_count += 1
+          longest_finite = maximum(
+            longest_finite,
+            observed_lifetime(analysis, interval),
+          )
         }
         longest_observed = maximum(
           longest_observed,
@@ -137,9 +153,20 @@ pub fn series_sweep(
         "h1_finite_count": finite_count,
         "h1_alive_at_cutoff": alive_count,
         "longest_h1_observed_lifetime": longest_observed,
+        "longest_finite_h1_lifetime": longest_finite,
         "h1_at_cutoff": h1_at_cutoff,
         "h1_landscape_vector": vector,
       })
+      if finite_count > 0 {
+        candidates.push({
+          dimension,
+          lag,
+          stride,
+          point_count: points.length(),
+          finite_h1_count: finite_count,
+          longest_finite_h1_lifetime: longest_finite,
+        })
+      }
       summary_csv += "\{dimension},\{lag},\{stride},\{points.length()},\{cell_count},\{finite_count},\{alive_count},\{longest_observed},\{h1_at_cutoff}\n"
       vector_csv += "\{dimension},\{lag},\{stride}"
       for sample in vector {
@@ -147,6 +174,33 @@ pub fn series_sweep(
       }
       vector_csv += "\n"
     }
+  }
+  candidates.sort_by(fn(a, b) {
+    if a.longest_finite_h1_lifetime > b.longest_finite_h1_lifetime {
+      -1
+    } else if a.longest_finite_h1_lifetime < b.longest_finite_h1_lifetime {
+      1
+    } else if a.finite_h1_count != b.finite_h1_count {
+      b.finite_h1_count - a.finite_h1_count
+    } else if a.dimension != b.dimension {
+      a.dimension - b.dimension
+    } else {
+      a.lag - b.lag
+    }
+  })
+  let recommendations : Array[Json] = []
+  for i = 0; i < candidates.length() && i < 3; i = i + 1 {
+    let candidate = candidates[i]
+    recommendations.push({
+      "rank": i + 1,
+      "dimension": candidate.dimension,
+      "lag": candidate.lag,
+      "stride": candidate.stride,
+      "point_count": candidate.point_count,
+      "finite_h1_count": candidate.finite_h1_count,
+      "longest_finite_h1_lifetime": candidate.longest_finite_h1_lifetime,
+      "reason": "ranked by longest finite H1 lifetime, then finite H1 count; only among the supplied combinations",
+    })
   }
   (
     {
@@ -168,6 +222,8 @@ pub fn series_sweep(
         "censoring": "alive-at-cutoff intervals are excluded from landscape vectors",
       },
       "cases": cases,
+      "recommended_parameters": recommendations,
+      "recommendation_note": "exploratory ordering of supplied combinations only; no automatic period estimate, lag optimum or embedding-dimension guarantee; different combinations may contain different point counts",
       "interpretation": "parameter sensitivity only; dimensions and lags change the embedded point cloud and may change its point count",
     },
     summary_csv,

@@ -190,7 +190,7 @@ pub fn batch_matrix_html(matrix : BatchDistanceMatrix) -> String {
   for i, name in matrix.names {
     html += "<tr><th><a href=\"cases/\{name}/report.html\">\{name}</a></th><td>\{matrix_html_escape(matrix.kinds[i])}</td><td>\{matrix.cutoffs[i]}</td></tr>"
   }
-  html += "</tbody></table></div><p class=legend>橙框表示两侧复形类型或截止值不同。相同类型和截止值也不保证尺度单位、灰度变换和数据含义可比。</p><p class=muted>破折号表示截止时存活类数量不同，因而没有有限匹配；它不是距离 0。颜色只按本维度的有限距离归一化，用于浏览，数值以 CSV/JSON 为准。</p></section>"
+  html += "</tbody></table></div><p class=legend>橙框表示两侧复形类型或截止值不同。相同类型和截止值也不保证尺度单位、灰度变换和数据含义可比。</p><p class=muted>破折号表示截止时存活类数量不同，因而没有有限匹配；它不是距离 0。颜色只按本维度的有限距离归一化，用于浏览，数值以 CSV/JSON 为准。</p><p><a href=\"cluster-h0.svg\">查看 H0 分组树</a> · <a href=\"cluster-h1.svg\">查看 H1 分组树</a>（仅用有限且输入条件一致的距离）</p></section>"
   html += matrix_table(matrix, matrix.h0, 0)
   html += matrix_table(matrix, matrix.h1, 1)
   html +

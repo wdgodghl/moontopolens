@@ -4,6 +4,7 @@ pub struct BettiEvent {
   scale : Double
   h0 : Int
   h1 : Int
+  h2 : Int
 } derive(@debug.Debug)
 
 ///|
@@ -19,16 +20,21 @@ pub fn betti_events(analysis : Analysis) -> Array[BettiEvent] {
   } else {
     analysis.filtration.cells[0].value
   }
-  let deltas : Array[(Double, Int, Int)] = [(start, 0, 0), (cutoff, 0, 0)]
+  let deltas : Array[(Double, Int, Int, Int)] = [
+    (start, 0, 0, 0),
+    (cutoff, 0, 0, 0),
+  ]
   for interval in analysis.intervals {
-    if interval.dimension > 1 || interval.dimension < 0 {
+    if interval.dimension > analysis.homology_dimension ||
+      interval.dimension < 0 {
       continue
     }
     let h0 = if interval.dimension == 0 { 1 } else { 0 }
     let h1 = if interval.dimension == 1 { 1 } else { 0 }
-    deltas.push((interval.birth, h0, h1))
+    let h2 = if interval.dimension == 2 { 1 } else { 0 }
+    deltas.push((interval.birth, h0, h1, h2))
     if interval.death is Some(death) {
-      deltas.push((death, -h0, -h1))
+      deltas.push((death, -h0, -h1, -h2))
     }
   }
   deltas.sort_by(fn(a, b) {
@@ -43,15 +49,17 @@ pub fn betti_events(analysis : Analysis) -> Array[BettiEvent] {
   let result : Array[BettiEvent] = []
   let mut h0 = 0
   let mut h1 = 0
+  let mut h2 = 0
   let mut i = 0
   while i < deltas.length() {
     let scale = deltas[i].0
     while i < deltas.length() && deltas[i].0 == scale {
       h0 += deltas[i].1
       h1 += deltas[i].2
+      h2 += deltas[i].3
       i += 1
     }
-    result.push({ scale, h0, h1, })
+    result.push({ scale, h0, h1, h2, })
   }
   result
 }
@@ -60,7 +68,11 @@ pub fn betti_events(analysis : Analysis) -> Array[BettiEvent] {
 pub fn betti_events_json(analysis : Analysis) -> Json {
   Json::array(
     betti_events(analysis).map(fn(event) {
-      { "scale": event.scale, "h0": event.h0, "h1": event.h1 }
+      if analysis.homology_dimension == 2 {
+        { "scale": event.scale, "h0": event.h0, "h1": event.h1, "h2": event.h2 }
+      } else {
+        { "scale": event.scale, "h0": event.h0, "h1": event.h1 }
+      }
     }),
   )
 }
@@ -68,9 +80,17 @@ pub fn betti_events_json(analysis : Analysis) -> Json {
 ///|
 /// Event rows, unlike uniform samples, retain arbitrarily short intervals.
 pub fn betti_events_csv(analysis : Analysis) -> String {
-  let mut text = "scale,H0,H1\n"
+  let mut text = if analysis.homology_dimension == 2 {
+    "scale,H0,H1,H2\n"
+  } else {
+    "scale,H0,H1\n"
+  }
   for event in betti_events(analysis) {
-    text += "\{event.scale},\{event.h0},\{event.h1}\n"
+    text += "\{event.scale},\{event.h0},\{event.h1}"
+    if analysis.homology_dimension == 2 {
+      text += ",\{event.h2}"
+    }
+    text += "\n"
   }
   text
 }

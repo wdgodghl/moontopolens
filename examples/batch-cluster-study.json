@@ -1,0 +1,9 @@
+{
+  "all_pairs": true,
+  "cases": [
+    {"name":"square-a","input":"cluster-square-a.json"},
+    {"name":"square-b","input":"cluster-square-b.json"},
+    {"name":"rectangle-a","input":"cluster-rectangle-a.json"},
+    {"name":"rectangle-b","input":"cluster-rectangle-b.json"}
+  ]
+}

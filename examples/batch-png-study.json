@@ -1,0 +1,10 @@
+{
+  "all_pairs": true,
+  "cases": [
+    {"name":"png-ring","input":"ring-image.png","format":"png","threshold":"auto"},
+    {"name":"grid-ring","input":"ring-grid.json","format":"json"}
+  ],
+  "comparisons": [
+    {"name":"png-vs-grid","left":"png-ring","right":"grid-ring"}
+  ]
+}

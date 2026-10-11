@@ -20,8 +20,10 @@ fn chart_bounds(analysis : Analysis) -> (Double, Double) {
 fn color(dimension : Int) -> String {
   if dimension == 0 {
     "#38bdf8"
-  } else {
+  } else if dimension == 1 {
     "#fb923c"
+  } else {
+    "#a78bfa"
   }
 }
 
@@ -36,7 +38,7 @@ pub fn barcode_svg(analysis : Analysis) -> String {
     analysis.intervals.length()
   }
   let height = 120 + count * 22
-  let mut svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 900 \{height}\" role=\"img\" aria-label=\"MoonTopoLens persistence barcode\"><rect width=\"900\" height=\"\{height}\" fill=\"#0f172a\"/><g font-family=\"sans-serif\" fill=\"#e2e8f0\"><text x=\"30\" y=\"30\" font-size=\"20\">MoonTopoLens | Persistence barcode</text><text x=\"30\" y=\"55\" font-size=\"12\">H0: components (blue) / H1: loops (orange) / dashed: alive at cutoff</text>"
+  let mut svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 900 \{height}\" role=\"img\" aria-label=\"MoonTopoLens persistence barcode\"><rect width=\"900\" height=\"\{height}\" fill=\"#0f172a\"/><g font-family=\"sans-serif\" fill=\"#e2e8f0\"><text x=\"30\" y=\"30\" font-size=\"20\">MoonTopoLens | Persistence barcode</text><text x=\"30\" y=\"55\" font-size=\"12\">H0 blue / H1 orange / H2 purple / dashed: alive at cutoff</text>"
   for tick = 0; tick <= 4; tick = tick + 1 {
     let x = 100 + tick * 185
     let value = low + (high - low) * tick.to_double() / 4.0
@@ -68,7 +70,7 @@ pub fn barcode_svg(analysis : Analysis) -> String {
 /// Standalone birth/death scatter plot with essential classes shown at the top.
 pub fn diagram_svg(analysis : Analysis) -> String {
   let (low, high) = chart_bounds(analysis)
-  let mut svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 650 650\" role=\"img\" aria-label=\"MoonTopoLens persistence diagram\"><rect width=\"650\" height=\"650\" fill=\"#0f172a\"/><g font-family=\"sans-serif\" fill=\"#e2e8f0\"><text x=\"45\" y=\"30\" font-size=\"20\">MoonTopoLens | Persistence diagram</text><text x=\"45\" y=\"52\" font-size=\"12\">H0 blue / H1 orange / top row: alive at cutoff</text><path d=\"M 80 80 V 570 H 570 M 80 570 L 570 80\" fill=\"none\" stroke=\"#64748b\"/><text x=\"290\" y=\"625\">Birth</text><text x=\"10\" y=\"315\">Death</text>"
+  let mut svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 650 650\" role=\"img\" aria-label=\"MoonTopoLens persistence diagram\"><rect width=\"650\" height=\"650\" fill=\"#0f172a\"/><g font-family=\"sans-serif\" fill=\"#e2e8f0\"><text x=\"45\" y=\"30\" font-size=\"20\">MoonTopoLens | Persistence diagram</text><text x=\"45\" y=\"52\" font-size=\"12\">H0 blue / H1 orange / H2 purple / top row: alive at cutoff</text><path d=\"M 80 80 V 570 H 570 M 80 570 L 570 80\" fill=\"none\" stroke=\"#64748b\"/><text x=\"290\" y=\"625\">Birth</text><text x=\"10\" y=\"315\">Death</text>"
   for tick = 0; tick <= 4; tick = tick + 1 {
     let offset = tick.to_double() * 122.5
     let value = low + (high - low) * tick.to_double() / 4.0

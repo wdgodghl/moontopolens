@@ -3,19 +3,34 @@
 ///|
 fn main {
   let n = benchmark_size()
-  if n < 4 || n > 28 {
-    println("benchmark size must be 4..28")
+  let sparse = benchmark_sparse()
+  if n < 4 || n > (if sparse { 128 } else { 28 }) {
+    println("benchmark size out of supported range")
     return
   }
-  let points = Array::makei(n, fn(i) {
-    [(i * 7 % 31).to_double() / 31.0, (i * i * 11 % 37).to_double() / 37.0]
-  })
+  let points = if sparse {
+    Array::makei(n, fn(i) {
+      let group = (i / 4).to_double() * 10.0
+      [group + (i % 2).to_double() * 0.2, (i % 4 / 2).to_double() * 0.2]
+    })
+  } else {
+    Array::makei(n, fn(i) {
+      [(i * 7 % 31).to_double() / 31.0, (i * i * 11 % 37).to_double() / 37.0]
+    })
+  }
   let start = clock_ms()
   try {
-    let result = @topo.analyze(@topo.rips(points, threshold=2.0))
+    let result = @topo.analyze(
+      @topo.rips(points, threshold=if sparse { 0.21 } else { 2.0 }),
+    )
     let elapsed = clock_ms() - start
     let report : Json = {
       "point_count": n,
+      "distribution": if sparse {
+        "sparse_groups"
+      } else {
+        "dense"
+      },
       "cell_count": result.filtration.cells.length(),
       "interval_count": result.intervals.length(),
       "elapsed_ms": elapsed,

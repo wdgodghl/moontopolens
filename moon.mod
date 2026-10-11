@@ -1,6 +1,6 @@
 name = "wdgodghl/moontopolens"
 
-version = "0.11.0"
+version = "0.12.0"
 
 license = "MIT"
 
@@ -8,7 +8,7 @@ readme = "README.md"
 
 repository = "https://github.com/wdgodghl/moontopolens"
 
-description = "Persistent H0/H1 homology, representative cycles and diagram comparison in pure MoonBit"
+description = "Persistent H0/H1/H2 homology, image topology, batch clustering and stability in MoonBit"
 
 keywords = [
   "topology",

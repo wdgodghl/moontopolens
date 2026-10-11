@@ -18,11 +18,11 @@ pub fn ranked_intervals(
   include_alive? : Bool = true,
 ) -> Array[Interval] raise TopologyError {
   if dimension < 0 ||
-    dimension > 1 ||
+    dimension > analysis.homology_dimension ||
     !finite(min_lifetime) ||
     min_lifetime < 0.0 {
     raise TopologyError(
-      "interval selection requires dimension 0/1 and nonnegative finite minimum lifetime",
+      "interval selection requires an analyzed dimension and nonnegative finite minimum lifetime",
     )
   }
   let result = analysis.intervals.filter(fn(interval) {
@@ -49,7 +49,9 @@ pub fn ranked_intervals(
 /// Betti numbers at cutoff. Censored intervals never enter finite entropy.
 pub fn summary_json(analysis : Analysis) -> Json {
   let summaries : Array[Json] = []
-  for dimension = 0; dimension < 2; dimension = dimension + 1 {
+  for dimension = 0
+      dimension <= analysis.homology_dimension
+      dimension = dimension + 1 {
     let mut finite_count = 0
     let mut alive_count = 0
     let mut finite_total = 0.0
@@ -137,7 +139,11 @@ pub fn betti_csv(
       start = cell.value
     }
   }
-  let mut text = "scale,H0,H1\n"
+  let mut text = if analysis.homology_dimension == 2 {
+    "scale,H0,H1,H2\n"
+  } else {
+    "scale,H0,H1\n"
+  }
   for i = 0; i < samples; i = i + 1 {
     let scale = if i == samples - 1 {
       analysis.filtration.cutoff
@@ -147,7 +153,11 @@ pub fn betti_csv(
       i.to_double() /
       (samples - 1).to_double()
     }
-    text += "\{scale},\{betti(analysis, 0, scale)},\{betti(analysis, 1, scale)}\n"
+    text += "\{scale},\{betti(analysis, 0, scale)},\{betti(analysis, 1, scale)}"
+    if analysis.homology_dimension == 2 {
+      text += ",\{betti(analysis, 2, scale)}"
+    }
+    text += "\n"
   }
   text
 }

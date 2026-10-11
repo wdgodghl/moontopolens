@@ -164,8 +164,8 @@ pub fn parse_batch_manifest(text : String) -> BatchPlan raise TopologyError {
       None => "json"
       Some(_) => batch_string(fields, "format")
     }
-    if format != "json" && format != "pgm" {
-      raise TopologyError("batch format must be json or pgm")
+    if format != "json" && format != "pgm" && format != "png" {
+      raise TopologyError("batch format must be json, pgm or png")
     }
     let auto_threshold = match fields.get("threshold") {
       Some(String("auto")) => true
@@ -177,15 +177,15 @@ pub fn parse_batch_manifest(text : String) -> BatchPlan raise TopologyError {
       Some(_) => raise TopologyError("batch threshold must be numeric or auto")
       None => None
     }
-    if (format == "pgm" && threshold is None && !auto_threshold) ||
+    if (format != "json" && threshold is None && !auto_threshold) ||
       (format == "json" && fields.contains("threshold")) {
       raise TopologyError(
-        "threshold is required for pgm and forbidden for json cases",
+        "threshold is required for image cases and forbidden for json cases",
       )
     }
     let invert = batch_bool(fields, "invert", false)
     if format == "json" && fields.contains("invert") {
-      raise TopologyError("invert is only supported for pgm cases")
+      raise TopologyError("invert is only supported for image cases")
     }
     if threshold is Some(n) {
       if !finite(n) || n.abs() > 1.0e100 {

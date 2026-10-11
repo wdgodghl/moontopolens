@@ -69,12 +69,27 @@ pub fn analyze_json(text : String) -> Analysis raise TopologyError {
   }
   let threshold = number_field(object, "threshold")
   let budget = integer_field(object, "max_cells", 4000)
+  let homology_dimension = integer_field(object, "homology_dimension", 1)
+  if homology_dimension != 1 && homology_dimension != 2 {
+    raise TopologyError("homology_dimension must be 1 or 2")
+  }
+  if homology_dimension == 2 &&
+    kind != "points" &&
+    kind != "matrix" &&
+    kind != "series" {
+    raise TopologyError("H2 currently requires points, matrix or series")
+  }
   let allowed = match kind {
-    "points" => ["kind", "threshold", "max_cells", "points"]
-    "matrix" => ["kind", "threshold", "max_cells", "matrix"]
+    "points" =>
+      ["kind", "threshold", "max_cells", "points", "homology_dimension"]
+    "matrix" =>
+      ["kind", "threshold", "max_cells", "matrix", "homology_dimension"]
     "grid" => ["kind", "threshold", "max_cells", "grid"]
     "series" =>
-      ["kind", "threshold", "max_cells", "series", "dimension", "lag", "stride"]
+      [
+        "kind", "threshold", "max_cells", "series", "dimension", "lag", "stride",
+        "homology_dimension",
+      ]
     _ =>
       raise TopologyError(
         "unknown kind; expected points, matrix, grid or series",
@@ -86,9 +101,20 @@ pub fn analyze_json(text : String) -> Analysis raise TopologyError {
     }
   }
   let filtration = match kind {
-    "points" => rips(rows_field(object, "points"), threshold~, max_cells=budget)
+    "points" =>
+      rips(
+        rows_field(object, "points"),
+        threshold~,
+        max_cells=budget,
+        max_dimension=homology_dimension + 1,
+      )
     "matrix" =>
-      rips_matrix(rows_field(object, "matrix"), threshold~, max_cells=budget)
+      rips_matrix(
+        rows_field(object, "matrix"),
+        threshold~,
+        max_cells=budget,
+        max_dimension=homology_dimension + 1,
+      )
     "grid" =>
       cubical_grid(rows_field(object, "grid"), threshold~, max_cells=budget)
     "series" => {
@@ -103,11 +129,16 @@ pub fn analyze_json(text : String) -> Analysis raise TopologyError {
         lag=integer_field(object, "lag", 1),
         stride=integer_field(object, "stride", 1),
       )
-      rips(points, threshold~, max_cells=budget)
+      rips(
+        points,
+        threshold~,
+        max_cells=budget,
+        max_dimension=homology_dimension + 1,
+      )
     }
     _ => raise TopologyError("unreachable kind")
   }
-  analyze(filtration)
+  analyze(filtration, max_homology_dimension=homology_dimension)
 }
 
 ///|
@@ -152,6 +183,7 @@ pub fn report_json(analysis : Analysis) -> Json {
     "vertex_count": analysis.filtration.vertex_count,
     "cell_count": cells.length(),
     "column_additions": analysis.column_additions,
+    "homology_dimension": analysis.homology_dimension,
     "positions": analysis.filtration.positions,
     "position_meaning": "display projection: first two point coordinates; grid x and negative row; matrix has none",
     "summary": summary_json(analysis),

@@ -23,11 +23,11 @@ pub fn html_report(analysis : Analysis) -> String {
     #|@media(max-width:850px){.layout{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}
     #|</style></head><body><main>
     #|<header><span class="tag">OFFLINE REPORT / GF(2)</span><h1>MoonTopoLens <span class="muted">月拓镜</span></h1><p>观察尺度变化中的连接分量与闭合环路。此报告可离线打开，不会上传数据。</p><small id="meta"></small></header>
-    #|<section class="cards" aria-label="拓扑摘要"><div class="card"><small>当前连接分量 H0</small><div class="value blue" id="h0"></div></div><div class="card"><small>当前环路 H1</small><div class="value orange" id="h1"></div></div><div class="card"><small>细胞总数</small><div class="value" id="cells"></div></div><div class="card"><small>H1 最长有限寿命</small><div class="value" id="longest"></div></div></section>
+    #|<section class="cards" aria-label="拓扑摘要"><div class="card"><small>当前连接分量 H0</small><div class="value blue" id="h0"></div></div><div class="card"><small>当前环路 H1</small><div class="value orange" id="h1"></div></div><div class="card" id="h2-card" hidden><small>当前空腔 H2</small><div class="value" id="h2" style="color:#a78bfa"></div></div><div class="card"><small>细胞总数</small><div class="value" id="cells"></div></div><div class="card"><small>H1 最长有限寿命</small><div class="value" id="longest"></div></div></section>
     #|<section class="panel"><h2>选择观察尺度</h2><label for="scale">尺度 <output id="scale-value"></output></label><input id="scale" type="range" min="0" max="1000" value="1000"><small>统计采用 [出生,死亡) 区间；截止处仍存在的类不代表无限寿命。</small></section>
     #|<div class="layout" style="margin-top:18px"><section class="panel"><h2>几何投影与代表环路</h2><p class="muted" id="projection-note"></p><svg id="geometry" viewBox="0 0 640 430" role="img" aria-label="过滤复形的二维投影"></svg><small>灰线为当前进入的边，橙线为选中环路在出生时的代表；青绿色方格表示已进入的网格二维面。Rips 三角形未绘制。</small></section>
     #|<section class="panel"><h2>区间筛选与排名</h2><div class="controls"><label>维度 <select id="dimension"><option value="1">H1 环路</option><option value="0">H0 分量</option><option value="all">全部</option></select></label><label>最小观察寿命 <input id="minimum" type="number" min="0" value="0" step="any"></label><label><input id="alive-only" type="checkbox">仅当前存活</label></div><small id="table-count"></small><div class="table-wrap"><table><thead><tr><th>选择</th><th>维度</th><th>出生</th><th>死亡</th><th>观察寿命</th></tr></thead><tbody id="interval-table"></tbody></table></div><div class="page-controls"><button id="previous-page" type="button" aria-label="上一页">上一页</button><output id="page-status" aria-live="polite"></output><button id="next-page" type="button" aria-label="下一页">下一页</button></div><small>未死亡区间以截止尺度减出生尺度作为寿命下界。筛选结果可逐页查看，CSV 和 JSON 保留全部数据。</small></section></div>
-    #|<section class="panel" style="margin-top:18px"><h2>Betti 曲线</h2><svg id="curve" viewBox="0 0 1000 250" role="img" aria-label="H0 和 H1 随尺度变化的曲线"></svg><small>蓝色 H0 / 橙色 H1；按全部出生和死亡事件绘制精确阶梯曲线；同尺度事件合并，区间使用左闭右开约定。</small></section>
+    #|<section class="panel" style="margin-top:18px"><h2>Betti 曲线</h2><svg id="curve" viewBox="0 0 1000 250" role="img" aria-label="Betti 数随尺度变化的曲线"></svg><small>蓝色 H0 / 橙色 H1 / 紫色 H2（如已分析）；按全部出生和死亡事件绘制精确阶梯曲线。</small></section>
     #|<div class="notice">代表环路用于解释计算结果，不保证最短。高维点云仅投影前两个坐标，投影交叉不代表原空间相交。距离矩阵没有几何坐标时仍可查看全部拓扑结果。</div>
     #|<footer>由 MoonBit 核心计算生成。配套文件：report.json、intervals.csv、betti.csv、betti-events.csv、barcode.svg、diagram.svg。</footer>
     #|</main><script id="topology-data" type="application/json">
@@ -41,11 +41,12 @@ pub fn html_report(analysis : Analysis) -> String {
     #|const live=(i,s)=>i.birth<=s&&(i.death===null||s<i.death);
     #|const fmt=x=>x===null?'截止仍存在':String(Number(Number(x).toPrecision(4)));
     #|let low=DATA.cells.reduce((v,c)=>Math.min(v,c.value),DATA.cutoff),selected=-1,current=DATA.cutoff,page=0;
+    #|if(DATA.homology_dimension===2){el('h2-card').hidden=false;const option=document.createElement('option');option.value='2';option.textContent='H2 空腔';el('dimension').append(option);}
     #|el('meta').textContent=`复形类型 ${DATA.kind} · ${DATA.vertex_count} 个顶点 · 截止尺度 ${fmt(DATA.cutoff)} · ${DATA.column_additions} 次列加法`;
     #|el('cells').textContent=String(DATA.cell_count);el('longest').textContent=DATA.summary[1].longest_finite_lifetime===null?'—':fmt(DATA.summary[1].longest_finite_lifetime);
     #|el('projection-note').textContent=DATA.positions.length?'按输入坐标投影；网格使用列坐标与负行坐标。':'此输入不含几何坐标，可通过区间表与曲线观察拓扑。';
-    #|function counts(scale){return[0,1].map(d=>DATA.intervals.filter(i=>i.dimension===d&&live(i,scale)).length);}
-    #|const curveSamples=DATA.betti_events.map(p=>({s:p.scale,b:[p.h0,p.h1]})),curveTop=curveSamples.reduce((top,p)=>Math.max(top,...p.b),1);
+    #|function counts(scale){return Array.from({length:DATA.homology_dimension+1},(_,d)=>DATA.intervals.filter(i=>i.dimension===d&&live(i,scale)).length);}
+    #|const curveSamples=DATA.betti_events.map(p=>({s:p.scale,b:DATA.homology_dimension===2?[p.h0,p.h1,p.h2]:[p.h0,p.h1]})),curveTop=curveSamples.reduce((top,p)=>Math.max(top,...p.b),1);
     #|function renderGeometry(){
     #| const svg=el('geometry');svg.replaceChildren();if(!DATA.positions.length){svg.append(node('text',{x:35,y:180,fill:'#94a3b8'},'距离矩阵无几何坐标'));return;}
     #| let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
@@ -67,11 +68,11 @@ pub fn html_report(analysis : Analysis) -> String {
     #|function renderCurve(){
     #| const svg=el('curve');svg.replaceChildren();const samples=curveSamples,top=curveTop,xAt=s=>DATA.cutoff===low?970:50+(s-low)/(DATA.cutoff-low)*920;
     #| svg.append(node('path',{d:'M 50 20 V 210 H 970',fill:'none',stroke:'#64748b'}));
-    #| for(const d of [0,1])svg.append(node('polyline',{points:samples.flatMap((p,i)=>i?[`${xAt(p.s)},${210-samples[i-1].b[d]/top*180}`,`${xAt(p.s)},${210-p.b[d]/top*180}`]:[`${xAt(p.s)},${210-p.b[d]/top*180}`]).join(' '),fill:'none',stroke:d?'#fb923c':'#38bdf8','stroke-width':2}));
+    #| for(const d of Array.from({length:DATA.homology_dimension+1},(_,i)=>i))svg.append(node('polyline',{points:samples.flatMap((p,i)=>i?[`${xAt(p.s)},${210-samples[i-1].b[d]/top*180}`,`${xAt(p.s)},${210-p.b[d]/top*180}`]:[`${xAt(p.s)},${210-p.b[d]/top*180}`]).join(' '),fill:'none',stroke:['#38bdf8','#fb923c','#a78bfa'][d],'stroke-width':2}));
     #| svg.append(node('text',{x:50,y:238,fill:'#94a3b8'},fmt(low)));svg.append(node('text',{x:900,y:238,fill:'#94a3b8'},fmt(DATA.cutoff)));svg.append(node('text',{x:8,y:25,fill:'#94a3b8'},String(top)));
     #| const x=DATA.cutoff===low?970:50+(current-low)/(DATA.cutoff-low)*920;svg.append(node('line',{x1:x,x2:x,y1:20,y2:210,stroke:'#e2e8f0','stroke-dasharray':'4 4'}));
     #|}
-    #|function refresh(){current=low+(DATA.cutoff-low)*Number(el('scale').value)/1000;if(Number(el('scale').value)===1000)current=DATA.cutoff;el('scale-value').textContent=fmt(current);const b=counts(current);el('h0').textContent=String(b[0]);el('h1').textContent=String(b[1]);renderTable();renderGeometry();renderCurve();}
+    #|function refresh(){current=low+(DATA.cutoff-low)*Number(el('scale').value)/1000;if(Number(el('scale').value)===1000)current=DATA.cutoff;el('scale-value').textContent=fmt(current);const b=counts(current);el('h0').textContent=String(b[0]);el('h1').textContent=String(b[1]);if(DATA.homology_dimension===2)el('h2').textContent=String(b[2]);renderTable();renderGeometry();renderCurve();}
     #|el('scale').addEventListener('input',refresh);for(const id of ['dimension','minimum','alive-only'])el(id).addEventListener('input',()=>{page=0;renderTable();});
     #|el('previous-page').addEventListener('click',()=>{if(page>0){page--;renderTable();}});el('next-page').addEventListener('click',()=>{page++;renderTable();});refresh();
     #|</script></body></html>

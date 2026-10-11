@@ -1,19 +1,23 @@
 ///|
-/// Build the 2-skeleton of a Vietoris–Rips filtration using diameter convention.
-/// Edges appear at distance d; triangles at their maximum edge distance.
-/// Two-dimensional cells suffice to compute H0 and H1, but not complete H2.
+/// Build the 2- or 3-skeleton of a Vietoris–Rips filtration using diameter
+/// convention. Upper-neighbor lists avoid full cubic scans on sparse input.
 pub fn rips_matrix(
   matrix : Array[Array[Double]],
   threshold~ : Double,
   max_cells? : Int = 4000,
+  max_dimension? : Int = 2,
 ) -> Filtration raise TopologyError {
   validate_matrix(matrix)
+  if max_dimension != 2 && max_dimension != 3 {
+    raise TopologyError("Rips max_dimension must be 2 or 3")
+  }
   if !finite(threshold) || threshold < 0.0 || threshold > 1.0e100 {
     raise TopologyError("threshold must be finite, nonnegative and <= 1.0e100")
   }
   check_budget(matrix.length(), max_cells)
   let raw : Array[RawCell] = []
   let n = matrix.length()
+  let neighbors : Array[Array[Int]] = Array::makei(n, fn(_) { [] })
   for i = 0; i < n; i = i + 1 {
     raw.push({
       key: vertex_key(i),
@@ -27,6 +31,7 @@ pub fn rips_matrix(
     for j = i + 1; j < n; j = j + 1 {
       let d = matrix[i][j]
       if d <= threshold {
+        neighbors[i].push(j)
         check_budget(raw.length() + 1, max_cells)
         raw.push({
           key: edge_key(i, j),
@@ -39,11 +44,11 @@ pub fn rips_matrix(
     }
   }
   for i = 0; i < n; i = i + 1 {
-    for j = i + 1; j < n; j = j + 1 {
-      if matrix[i][j] > threshold {
-        continue
-      }
-      for k = j + 1; k < n; k = k + 1 {
+    for j in neighbors[i] {
+      for k in neighbors[j] {
+        if matrix[i][k] > threshold {
+          continue
+        }
         let d = maximum(matrix[i][j], maximum(matrix[i][k], matrix[j][k]))
         if d <= threshold {
           check_budget(raw.length() + 1, max_cells)
@@ -58,7 +63,54 @@ pub fn rips_matrix(
       }
     }
   }
-  finalize(raw, n, "rips", threshold)
+  if max_dimension == 3 {
+    for i = 0; i < n; i = i + 1 {
+      for j in neighbors[i] {
+        for k in neighbors[j] {
+          if matrix[i][k] > threshold {
+            continue
+          }
+          for l in neighbors[k] {
+            if matrix[i][l] > threshold || matrix[j][l] > threshold {
+              continue
+            }
+            let d = maximum(
+              maximum(matrix[i][j], matrix[i][k]),
+              maximum(
+                maximum(matrix[i][l], matrix[j][k]),
+                maximum(matrix[j][l], matrix[k][l]),
+              ),
+            )
+            if d <= threshold {
+              check_budget(raw.length() + 1, max_cells)
+              raw.push({
+                key: tetrahedron_key(i, j, k, l),
+                dimension: 3,
+                value: d,
+                faces: [
+                  triangle_key(i, j, k),
+                  triangle_key(i, j, l),
+                  triangle_key(i, k, l),
+                  triangle_key(j, k, l),
+                ],
+                vertices: [i, j, k, l],
+              })
+            }
+          }
+        }
+      }
+    }
+  }
+  finalize(
+    raw,
+    n,
+    if max_dimension == 3 {
+      "rips_h2"
+    } else {
+      "rips"
+    },
+    threshold,
+  )
 }
 
 ///|
@@ -67,8 +119,14 @@ pub fn rips(
   points : Array[Array[Double]],
   threshold~ : Double,
   max_cells? : Int = 4000,
+  max_dimension? : Int = 2,
 ) -> Filtration raise TopologyError {
-  let f = rips_matrix(distance_matrix(points), threshold~, max_cells~)
+  let f = rips_matrix(
+    distance_matrix(points),
+    threshold~,
+    max_cells~,
+    max_dimension~,
+  )
   let positions = points.map(fn(point) {
     [point[0], if point.length() > 1 { point[1] } else { 0.0 }]
   })

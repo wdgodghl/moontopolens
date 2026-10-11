@@ -22,7 +22,7 @@ pub fn persistence_landscape(
   layers? : Int = 3,
 ) -> Array[Array[Double]] raise TopologyError {
   if dimension < 0 ||
-    dimension > 1 ||
+    dimension > analysis.homology_dimension ||
     !finite(start) ||
     !finite(end) ||
     start.abs() > 1.0e100 ||
@@ -33,7 +33,7 @@ pub fn persistence_landscape(
     layers < 1 ||
     layers > 16 {
     raise TopologyError(
-      "landscape requires dimension 0/1, finite start < end, 2..1001 samples and 1..16 layers",
+      "landscape requires an analyzed dimension, finite start < end, 2..1001 samples and 1..16 layers",
     )
   }
   let points = diagram(analysis, dimension)

@@ -65,7 +65,7 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
       cell.value.abs() > 1.0e100 ||
       cell.value > filtration.cutoff ||
       cell.dimension < 0 ||
-      cell.dimension > 2 {
+      cell.dimension > 3 {
       raise TopologyError("invalid cell value or dimension")
     }
     if keys.contains(cell.key) {
@@ -101,13 +101,17 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
 ///|
 /// Standard left-to-right sparse boundary matrix reduction over GF(2).
 /// Tracks change-of-basis chains to return representatives at birth.
-/// Emits only H0 and H1. Zero-length intervals are omitted by default.
+/// Emits H0/H1 by default and optionally H2 for a complete 3-skeleton.
 pub fn analyze(
   filtration : Filtration,
   include_zero? : Bool = false,
   max_additions? : Int = 2000000,
+  max_homology_dimension? : Int = 1,
 ) -> Analysis raise TopologyError {
   validate_filtration(filtration)
+  if max_homology_dimension < 1 || max_homology_dimension > 2 {
+    raise TopologyError("max_homology_dimension must be 1 or 2")
+  }
   if max_additions < 1 || max_additions > 10000000 {
     raise TopologyError("max_additions must be between 1 and 10000000")
   }
@@ -121,8 +125,12 @@ pub fn analyze(
   let mut stored_entries = 0
   for j = 0; j < cells.length(); j = j + 1 {
     let mut column = cells[j].boundary.copy()
-    // Triangle basis chains are not needed for H0/H1 representatives.
-    let mut chain = if cells[j].dimension < 2 { [j] } else { [] }
+    // Keep basis chains only for dimensions returned to the caller.
+    let mut chain = if cells[j].dimension <= max_homology_dimension {
+      [j]
+    } else {
+      []
+    }
     while !column.is_empty() {
       let low = column[column.length() - 1]
       let k = owner[low]
@@ -136,7 +144,7 @@ pub fn analyze(
         )
       }
       column = xor_columns(column, reduced[k])
-      if cells[j].dimension < 2 {
+      if cells[j].dimension <= max_homology_dimension {
         chain = xor_columns(chain, chains[k])
       }
     }
@@ -158,7 +166,7 @@ pub fn analyze(
   }
   let intervals : Array[Interval] = []
   for i = 0; i < cells.length(); i = i + 1 {
-    if !positive[i] || cells[i].dimension > 1 {
+    if !positive[i] || cells[i].dimension > max_homology_dimension {
       continue
     }
     let d = deaths[i]
@@ -182,7 +190,12 @@ pub fn analyze(
       representative: chains[i].copy(),
     })
   }
-  { filtration, intervals, column_additions: additions, }
+  {
+    filtration,
+    intervals,
+    column_additions: additions,
+    homology_dimension: max_homology_dimension,
+  }
 }
 
 ///|
@@ -192,8 +205,10 @@ pub fn betti(
   dimension : Int,
   scale : Double,
 ) -> Int raise TopologyError {
-  if dimension < 0 || dimension > 1 || !finite(scale) {
-    raise TopologyError("Betti query requires dimension 0/1 and finite scale")
+  if dimension < 0 || dimension > analysis.homology_dimension || !finite(scale) {
+    raise TopologyError(
+      "Betti query requires an analyzed dimension and finite scale",
+    )
   }
   let mut count = 0
   for interval in analysis.intervals {

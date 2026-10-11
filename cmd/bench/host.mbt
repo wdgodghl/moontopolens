@@ -5,6 +5,10 @@ extern "js" fn benchmark_size() -> Int =
   #|() => Number(process.argv[2]) || 0
 
 ///|
+extern "js" fn benchmark_sparse() -> Bool =
+  #|() => process.argv[3] === "sparse"
+
+///|
 extern "js" fn clock_ms() -> Double =
   #|() => performance.now()
 

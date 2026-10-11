@@ -1,4 +1,4 @@
-"""Optional external differential check for MoonTopoLens Rips H0/H1.
+"""Optional external differential check for MoonTopoLens Rips H0/H1/H2.
 
 Requires NumPy 2.3.5, GUDHI 3.13.0 and a prior `moon build --target js`. The reference
 package is used only by this validation script, never by the MoonBit core.
@@ -61,7 +61,7 @@ def moon_diagrams(request, input_path):
             ],
             key=lambda bar: (bar[0], math.inf if bar[1] is None else bar[1]),
         )
-        for dimension in (0, 1)
+        for dimension in range(request.get("homology_dimension", 1) + 1)
     ]
 
 
@@ -72,7 +72,9 @@ def gudhi_diagrams(request):
         options["points"] = points
     else:
         options["distance_matrix"] = matrix
-    tree = gudhi.RipsComplex(**options).create_simplex_tree(max_dimension=2)
+    tree = gudhi.RipsComplex(**options).create_simplex_tree(
+        max_dimension=request.get("homology_dimension", 1) + 1
+    )
     bars = tree.persistence(
         homology_coeff_field=2,
         min_persistence=0.0,
@@ -87,7 +89,7 @@ def gudhi_diagrams(request):
             ],
             key=lambda bar: (bar[0], math.inf if bar[1] is None else bar[1]),
         )
-        for dimension in (0, 1)
+        for dimension in range(request.get("homology_dimension", 1) + 1)
     ]
 
 
@@ -109,6 +111,7 @@ def same_bars(left, right):
 def cases():
     for name in ("square", "rectangle", "clusters", "matrix", "periodic-series"):
         yield name, json.loads((ROOT / "examples" / f"{name}.json").read_text(encoding="utf-8"))
+    yield "octahedron-h2", json.loads((ROOT / "examples" / "octahedron-h2.json").read_text(encoding="utf-8"))
     for cutoff in (0.5, 1.0, 1.25, math.sqrt(2), 2.0):
         yield f"square-cutoff-{cutoff:.6g}", {
             "kind": "points",
@@ -134,13 +137,13 @@ def main():
         for name, request in cases():
             moon = moon_diagrams(request, input_path)
             reference = gudhi_diagrams(request)
-            for degree in (0, 1):
+            for degree in range(request.get("homology_dimension", 1) + 1):
                 if not same_bars(moon[degree], reference[degree]):
                     raise AssertionError(
                         f"{name} H{degree} mismatch:\nMoonBit {moon[degree]}\nGUDHI  {reference[degree]}"
                     )
             checked += 1
-    print(f"GUDHI {gudhi.__version__}: {checked} Rips cases agree in H0/H1")
+    print(f"GUDHI {gudhi.__version__}: {checked} Rips cases agree in requested H0/H1/H2 dimensions")
 
 
 if __name__ == "__main__":

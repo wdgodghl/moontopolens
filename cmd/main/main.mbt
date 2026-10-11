@@ -5,13 +5,16 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- analyze INPUT.json [--out NEW_DIRECTORY]",
   )
   println(
-    "moon run --target js cmd/main -- image INPUT.pgm CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
+    "moon run --target js cmd/main -- image INPUT.pgm|INPUT.png CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
   )
   println(
     "moon run --target js cmd/main -- batch MANIFEST.json --out NEW_DIRECTORY",
   )
   println(
     "moon run --target js cmd/main -- sweep SERIES_SWEEP.json [--out NEW_DIRECTORY]",
+  )
+  println(
+    "moon run --target js cmd/main -- stability POINTS.json EPSILON [--out NEW_DIRECTORY]",
   )
   println(
     "moon run --target js cmd/main -- compare LEFT.json RIGHT.json [--out NEW_DIRECTORY]",
@@ -80,10 +83,15 @@ fn image_info(
   cutoff : Double,
   automatic : Bool,
   inverted : Bool,
+  source_format? : String = "PGM",
 ) -> Json {
   {
-    "source_format": "PGM",
-    "encoding": image.encoding,
+    "source_format": source_format,
+    "encoding": if source_format == "PNG" {
+      "decoded_grayscale_8bit"
+    } else {
+      image.encoding
+    },
     "width": image.grid[0].length(),
     "height": image.grid.length(),
     "max_value": image.max_value,
@@ -111,6 +119,37 @@ fn main {
   }
   try {
     match argument(0) {
+      "stability" => {
+        if (count != 3 && count != 5) ||
+          (count == 5 && (argument(3) != "--out" || argument(4) == "")) {
+          print_error(
+            "stability requires POINTS.json EPSILON and optional --out NEW_DIRECTORY",
+          )
+          return
+        }
+        let source = read_input(argument(1))
+        if source == "" {
+          raise @topo.TopologyError(
+            "stability input missing, unreadable or exceeds 1MB",
+          )
+        }
+        let report = @topo.point_stability_json(source, numeric_argument(2))
+        let report_text = report.stringify()
+        if count == 5 {
+          let output = argument(4)
+          if !new_output(output) ||
+            !save_output(output, "stability.json", report_text) ||
+            !save_output(
+              output,
+              "stability.html",
+              @topo.point_stability_html(report),
+            ) {
+            print_error("could not save stability report")
+            return
+          }
+        }
+        println(report_text)
+      }
       "sweep" => {
         if count != 2 && count != 4 {
           print_error(
@@ -141,7 +180,8 @@ fn main {
           }
           if !save_output(output, "sweep.json", report_text) ||
             !save_output(output, "sweep-summary.csv", summary_csv) ||
-            !save_output(output, "sweep-landscape.csv", vector_csv) {
+            !save_output(output, "sweep-landscape.csv", vector_csv) ||
+            !save_output(output, "sweep.html", @topo.series_sweep_html(report)) {
             print_error("could not save complete parameter sweep")
             return
           }
@@ -185,8 +225,18 @@ fn main {
                 case.input,
               )
             }
+            let raster = if case.format == "png" {
+              png_as_pgm(bytes)
+            } else {
+              bytes
+            }
+            if raster.length() == 0 {
+              raise @topo.TopologyError(
+                "invalid or unsupported PNG image: " + case.input,
+              )
+            }
             let original = @topo.parse_pgm(
-              Array::makei(bytes.length(), fn(i) { bytes[i] }),
+              Array::makei(raster.length(), fn(i) { raster[i] }),
             )
             let image = if case.invert {
               @topo.invert_pgm(original)
@@ -203,6 +253,7 @@ fn main {
               cutoff,
               case.auto_threshold,
               case.invert,
+              source_format=if case.format == "png" { "PNG" } else { "PGM" },
             )
             image_infos.push(info.stringify())
             @topo.analyze(@topo.cubical_grid(image.grid, threshold=cutoff))
@@ -250,6 +301,14 @@ fn main {
           Some(value) => @topo.batch_matrix_html(value)
           None => ""
         }
+        let cluster_h0 = match matrix {
+          Some(value) => Some(@topo.batch_clustering(value, 0))
+          None => None
+        }
+        let cluster_h1 = match matrix {
+          Some(value) => Some(@topo.batch_clustering(value, 1))
+          None => None
+        }
         let output = argument(3)
         if !new_output(output) {
           print_error(
@@ -270,7 +329,7 @@ fn main {
           if !new_output(case_dir) ||
             !save_analysis(case_dir, analyses[index], reports[index]) ||
             (
-              case.format == "pgm" &&
+              case.format != "json" &&
               !save_output(case_dir, "image-info.json", image_infos[index])
             ) {
             print_error("could not save complete batch case: " + case.name)
@@ -316,7 +375,37 @@ fn main {
             !save_output(output, "distance-matrix.json", matrix_json) ||
             !save_output(output, "distance-h0.csv", matrix_h0_csv) ||
             !save_output(output, "distance-h1.csv", matrix_h1_csv) ||
-            !save_output(output, "distance-heatmap.html", matrix_html)
+            !save_output(output, "distance-heatmap.html", matrix_html) ||
+            !save_output(
+              output,
+              "cluster-h0.json",
+              @topo.batch_clustering_json(cluster_h0.unwrap()).stringify(),
+            ) ||
+            !save_output(
+              output,
+              "cluster-h1.json",
+              @topo.batch_clustering_json(cluster_h1.unwrap()).stringify(),
+            ) ||
+            !save_output(
+              output,
+              "cluster-h0.csv",
+              @topo.batch_clustering_csv(cluster_h0.unwrap()),
+            ) ||
+            !save_output(
+              output,
+              "cluster-h1.csv",
+              @topo.batch_clustering_csv(cluster_h1.unwrap()),
+            ) ||
+            !save_output(
+              output,
+              "cluster-h0.svg",
+              @topo.batch_clustering_svg(cluster_h0.unwrap()),
+            ) ||
+            !save_output(
+              output,
+              "cluster-h1.svg",
+              @topo.batch_clustering_svg(cluster_h1.unwrap()),
+            )
           ) {
           print_error("could not save complete batch distance matrix")
           return
@@ -333,6 +422,16 @@ fn main {
           } else {
             Json::null()
           },
+          "clustering_h0": if plan.all_pairs {
+            "cluster-h0.json".to_json()
+          } else {
+            Json::null()
+          },
+          "clustering_h1": if plan.all_pairs {
+            "cluster-h1.json".to_json()
+          } else {
+            Json::null()
+          },
         }
         let output_text = summary.stringify()
         if !save_output(output, "batch.json", output_text) {
@@ -344,7 +443,7 @@ fn main {
       "image" => {
         if count < 3 || count > 6 {
           print_error(
-            "image requires INPUT.pgm CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
+            "image requires INPUT.pgm|INPUT.png CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
           )
           return
         }
@@ -364,11 +463,16 @@ fn main {
         let bytes = read_binary_input(argument(1))
         if bytes.length() == 0 {
           raise @topo.TopologyError(
-            "PGM input missing, unreadable, empty or exceeds 1MB",
+            "image input missing, unreadable, empty or exceeds 1MB",
           )
         }
+        let png = argument(1).to_lower().has_suffix(".png")
+        let raster = if png { png_as_pgm(bytes) } else { bytes }
+        if raster.length() == 0 {
+          raise @topo.TopologyError("invalid or unsupported PNG image")
+        }
         let original = @topo.parse_pgm(
-          Array::makei(bytes.length(), fn(i) { bytes[i] }),
+          Array::makei(raster.length(), fn(i) { raster[i] }),
         )
         let image = if inverted { @topo.invert_pgm(original) } else { original }
         let automatic = argument(2) == "auto"
@@ -383,7 +487,13 @@ fn main {
         let report = @topo.report_json(result).stringify()
         if has_output {
           let output = argument(out_index + 1)
-          let info = image_info(image, cutoff, automatic, inverted)
+          let info = image_info(
+            image,
+            cutoff,
+            automatic,
+            inverted,
+            source_format=if png { "PNG" } else { "PGM" },
+          )
           if !new_output(output) {
             print_error(
               "output directory must be new and have an existing parent: " +
@@ -471,7 +581,9 @@ fn main {
         let dimension = match argument(2) {
           "0" => 0
           "1" => 1
-          _ => raise @topo.TopologyError("landscape dimension must be 0 or 1")
+          "2" => 2
+          _ =>
+            raise @topo.TopologyError("landscape dimension must be 0, 1 or 2")
         }
         let result = load(argument(1))
         let start = numeric_argument(3)

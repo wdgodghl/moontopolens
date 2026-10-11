@@ -1,42 +1,26 @@
 # 选题功能落实情况
 
-MoonTopoLens 的主线是将小规模数据的多尺度连接分量与环路变得可计算、可比较、可解释。
-截至 0.11.0，以下功能均有代码、示例和验证路径。
+MoonTopoLens 0.12.0 的主线是把小规模数据的多尺度连接分量、环路与空腔转成可复现的分析结果，并支持批量比较、解释和离线查看。
 
 | 功能主线 | 当前实现 | 可复现入口 |
 | --- | --- | --- |
-| 点云/距离分析 | 欧氏距离、严格矩阵校验、Rips 二维骨架 | square、rectangle、matrix |
-| 时间序列场景 | 指定维数、滞后、步长的延迟嵌入 | periodic-series |
-| 时间序列敏感性 | 扫描至多 12 组维数/滞后值，导出 H1 摘要及同尺度景观向量 | periodic-sweep、sweep --out |
-| 网格场景 | 顶点 lower-star 方格复形与洞填充 | ring-grid、two-holes-grid |
-| 灰度图场景 | P2/P5 PGM 直接解析为网格，保留原灰度与阈值 | ring-image.pgm、image |
-| 图像亮暗与截止 | 灰度反转、Otsu 自动截止值及处理元数据 | bright-ring.pgm、image auto --invert |
-| 多案例流程 | 清单驱动的 JSON/PGM 批量分析、指定配对比较与总索引 | batch-study.json、batch --out |
-| 全对距离浏览 | H0/H1 对称瓶颈矩阵、CSV、离线热图与条件提示 | batch-study.json、distance-heatmap.html |
-| 多尺度同调 | GF(2) 稀疏约化、H0/H1 区间、精确 Betti 事件 | analyze、betti-events.csv |
-| 代表环路解释 | 出生代表链、离线选择、高亮与独立 SVG | report.html、slice --out --interval |
-| 网格填充展示 | 在尺度图和离线报告中按实际进入尺度绘制二维方格面 | ring-grid、slice --out、report.html |
-| 大量区间浏览 | 离线报告按筛选结果每页展示 50 条，支持翻页 | report.html |
-| 连通分组 | 原始顶点 ID、尺度快照、分组着色 | clusters、slice |
-| 观察尺度推荐 | H1 区间内尺度、无环路时的 H0 合并前事件、截断语义 | recommend、recommendations.json |
-| 拓扑比较 | 精确瓶颈距离、最优匹配见证、存活类计数差异 | compare --out |
-| 特征提取 | 观察寿命、有限持续熵、持久景观采样向量 | summary、landscape |
-| 可分享成果 | JSON/CSV、条形码与持续图 SVG、两类离线 HTML | analyze --out、compare --out |
-| 参赛工程要求 | 公开提交、MIT、README、双后端测试、CI、可运行样例 | README、Actions、acceptance.md |
-| 外部核验与基准 | GUDHI Rips H0/H1 区间差分、定规模耗时和分析后 RSS | reference_gudhi.py、benchmark.mjs、CI |
+| 点云和距离数据 | 欧氏距离、严格矩阵校验、Rips 二维骨架；可选 H2 所需三维骨架 | `square.json`、`octahedron-h2.json` |
+| 时间序列 | 延迟嵌入、最多 12 组维数/滞后参数扫描、有限 H1 候选排序 | `periodic-series.json`、`periodic-sweep.json` |
+| 网格和灰度图 | lower-star 方格复形、P2/P5 PGM、8 位非交错 PNG、Otsu 与亮暗反转 | `ring-grid.json`、`ring-image.png` |
+| 批量项目 | 最多 8 案例、12 个具名比较，全对 H0/H1 距离矩阵与单链接层次分组 | `batch-study.json`、`batch-cluster-study.json` |
+| 稳定性试验 | 不超过 24 点的确定性有界坐标扰动、H0/H1 距离、H1 匹配保留次数 | `stability examples/square.json 0.02` |
+| 同调与解释 | GF(2) 稀疏约化、H0/H1 与可选 H2 区间、代表链、精确 Betti 事件和尺度快照 | `analyze`、`slice` |
+| 特征和比较 | 有限持续熵、持久景观、精确瓶颈距离、匹配见证、观察尺度推荐 | `landscape`、`compare`、`recommend` |
+| 可分享结果 | JSON/CSV、条形码/持续图/树图 SVG、分析/比较/扫描/稳定性离线 HTML | 各命令的 `--out` 目录 |
+| 性能与验证 | 邻接枚举稀疏单纯形、硬资源预算、稠密/稀疏基准、GUDHI 外部区间对照 | `benchmark.mjs`、`reference_gudhi.py`、CI |
 
-## 当前边界
+## 实际边界
 
-- 已实现 H0/H1；完整 H2、整数系数、最短代表环路未实现。
-- 面向小规模数据；已有 8–28 点的定规模基准，大规模 Rips 优化、流式分析和峰值内存测量未实现。
-- 时间序列的嵌入参数由用户指定；扫描仅比较给定组合，不自动估计周期、选择滞后或做分类。不同参数可能产生不同数量的嵌入点。
-- 图像输入当前限单幅 P2/P5 PGM、64×64；PNG/JPEG 解码、降噪和更多图像预处理尚未实现。
-- Otsu 根据灰度直方图选值，不保证拓扑上最合适的尺度；跨图比较需保持灰度尺度与截止条件可比。
-- 推荐尺度是便于观察的启发式；H1 存活类的寿命仅有下界，推荐不代表最优阈值。
-- 批量清单最多 8 个案例、12 个具名详细比较；可选全对距离矩阵，不提供跨案例聚类或统计显著性。
-- 比较解释的是区间集合，不建立真实对象身份对应；匹配可能不唯一。
-- 有坐标数据使用二维投影；不从距离矩阵重建几何位置。网格方格面可绘制，Rips 点云的三角形仍不绘制，以免误读投影。
-- 两类 HTML 可离线运行；在线上传服务和真实浏览器视觉 QA 仍待后续。GUDHI 外部差分已覆盖 Rips，尚未覆盖 cubical 网格；Ripser 独立交叉检查未做。
-- Mooncakes 已发布 `wdgodghl/moontopolens@0.11.0`；验收仍以赛事最终评审为准。
-
-本轮增加了外部 Rips 区间对照和明确规模的性能基准；上述工作量较大的扩展不作为 0.11.0 已完成成果。
+- H2 只用于显式请求的点云、距离矩阵和延迟嵌入；批量全对距离、树图和详细比较仍分析 H0/H1。网格为二维方格复形，不提供三维体数据 H2。
+- PNG 支持单幅、8 位、非交错灰度/灰度透明/RGB/RGBA。调色板、16 位、交错 PNG 和 JPEG 尚不支持。图片最大 64×64，输入最大 1 MB；透明像素以白底合成。PNG 字节解码是 Node 适配层，拓扑分析由 MoonBit 核心完成。
+- 时间序列候选排序只比较提交的组合，不推断周期或证明最佳参数；各组合可能有不同点数。
+- 稳定性分析使用固定的有界扰动和一次最优区间匹配，不提供概率、置信区间或真实特征证明。
+- 分组使用单链接与最大合并间隙启发式；条件不一致或没有有限瓶颈距离的案例保持分离，不生成统计显著性结论。
+- `max_cells` 默认 4000、上限 10000，点云或矩阵最多 128 点/行。邻接枚举降低稀疏输入的构建工作，但不是无限规模或流式计算保证；基准记录的是分析后 RSS，不是峰值内存。
+- 高维点云图像只投影前两个坐标；不绘制 Rips 三角形和四面体的投影填充。代表链未保证最短。
+- 当前 Mooncakes 发布版本与仓库版本应查看模块页和 `moon.mod`；最终比赛验收由组织方决定。

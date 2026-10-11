@@ -5,11 +5,11 @@
 
 **基于 MoonBit 的持续同调与数据拓扑分析工具箱。**
 
-让点云、距离数据、时间序列和二维网格中的连接分量与环路变得可计算、可比较、可解释。
+让点云、距离数据、时间序列和二维网格中的连接分量、环路与空腔变得可计算、可比较、可解释。
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.11.0 外部对照与性能基准版**。
+当前版本：**0.12.0 扩展分析版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -18,22 +18,23 @@ Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/mo
 
 | 输入/功能 | 实现 |
 | --- | --- |
-| 点云 | 1–32 维欧氏距离、Vietoris–Rips 过滤复形 |
-| 距离/不相似度矩阵 | 校验对称非负矩阵，构建 Rips 2-骨架 |
+| 点云 | 1–32 维欧氏距离、Vietoris–Rips 过滤复形；可选完整 H2 分析 |
+| 距离/不相似度矩阵 | 校验对称非负矩阵，构建 Rips 2-骨架或 H2 所需的 3-骨架 |
 | 二维网格 | 顶点值的 lower-star 方格复形，检测连接区域和洞 |
-| 灰度图像 | 直接解析 PGM P2/P5，保留原始灰度并进入网格过滤复形 |
+| 灰度图像 | PGM P2/P5 或 8 位 PNG 灰度/RGB/RGBA，经灰度转换后进入网格过滤复形 |
 | 图像预处理 | 可选 Otsu 自动截止值与亮暗反转，记录可复现的实际参数 |
 | 批量项目 | 从一个 JSON 清单分析多份输入并生成指定两两比较和总索引 |
-| 全对比较 | 可选 H0/H1 距离方阵、CSV 与离线热图，提示比较条件不一致 |
+| 全对比较 | 可选 H0/H1 距离方阵、CSV、离线热图和单链接层次分组，提示比较条件不一致 |
 | 时间序列 | 指定维数、滞后、步长的延迟嵌入，随后进行 Rips 分析 |
-| 参数敏感性 | 同一时间序列扫描多组维数/滞后值，导出环路摘要和对齐的景观向量 |
-| 持续同调 | GF(2) 稀疏边界矩阵约化、H0/H1 区间、出生时的代表链 |
+| 参数敏感性 | 同一时间序列扫描多组维数/滞后值，导出环路摘要、对齐的景观向量和候选排序 |
+| 稳定性分析 | 对点云做确定性有界扰动，比较 H0/H1 距离和 H1 匹配保留情况 |
+| 持续同调 | GF(2) 稀疏边界矩阵约化、H0/H1 区间与可选 H2 区间、出生时的代表链 |
 | 比较与特征 | 精确瓶颈距离、Betti 数与曲线、寿命排名/筛选、有限区间持续熵 |
 | 尺度与向量 | 精确 Betti 事件、指定尺度的连通分组、持久景观采样与特征向量 |
 | 观察尺度推荐 | 按 H1 已观察寿命挑选区间内尺度；无环路时可提示合并前分组尺度 |
 | 解释与演示 | 区间最优匹配明细、离线双图对比、分组着色的尺度 SVG、网格填充、存活代表链高亮 |
-| 输出 | 完整 JSON、区间/曲线 CSV、SVG 条形码/持续图、离线 HTML 报告 |
-| 可复现验证 | GUDHI Rips 外部区间对照、不同点数的耗时和进程内存基准 |
+| 输出 | 完整 JSON、区间/曲线 CSV、SVG 条形码/持续图、分析与研究用离线 HTML 报告 |
+| 可复现验证 | GUDHI Rips 外部区间对照、稠密与稀疏输入的耗时和进程内存基准 |
 
 H0 对应连接分量，H1 对应闭合环路。长寿命特征在较多尺度存在，
 可以作为进一步分析的线索；其物理意义需要结合输入数据判断。
@@ -214,7 +215,7 @@ moon run --target js cmd/main -- image examples/ring-image.pgm 1 --out out-ring-
 在尺度 0 有一个 H1 洞，在尺度 1 消失。输出与网格分析相同的报告文件，
 另有 `image-info.json` 记录 PGM 编码、尺寸、最大灰度和截止值。
 支持 P2/P5、8 位及 16 位 P5；16 位样本按大端读取。
-当前只读取单幅、最大 64×64 且不超过 1 MB 的 PGM；PNG/JPEG 尚未支持。
+PGM 和 PNG 均限定单幅、最大 64×64 且不超过 1 MB；JPEG 尚未支持。
 格式遵循 [Netpbm PGM 规范](https://netpbm.sourceforge.net/doc/pgm.html) 的单图像子集。
 
 一次运行多份输入与指定比较：
@@ -308,6 +309,40 @@ moon run --target js cmd/main -- sweep examples/periodic-sweep.json --out out-pe
 所有向量都在 `[0,threshold]` 上以相同的 101 个采样点和 3 层计算，
 按层和尺度顺序排列；存活至截止的环路不进入向量，因此应同时查看其数量。
 维数和滞后值可能改变嵌入点数，扫描结果只能说明敏感性，不能自动选出最佳参数或证明周期。
+
+### 0.12.0：批量分组、稳定性、PNG 与 H2
+
+```sh
+moon run --target js cmd/main -- batch examples/batch-cluster-study.json --out out-clusters-study
+moon run --target js cmd/main -- stability examples/square.json 0.02 --out out-stability
+moon run --target js cmd/main -- sweep examples/periodic-sweep.json --out out-sweep-study
+moon run --target js cmd/main -- image examples/ring-image.png auto --out out-png
+moon run --target js cmd/main -- analyze examples/octahedron-h2.json --out out-h2
+```
+
+批量全对比较现在还生成 `cluster-h0/h1.json`、CSV 和 SVG 树图。
+分组采用确定性的单链接算法，只连接同复形类型、同截止值且距离有限的案例；
+无法比较的案例留在独立分组。`suggested_cut` 是最大相邻合并距离间隙的中点，
+只提供探索用分组，并不代表统计显著性。`examples/batch-cluster-study.json` 演示两组相近形状。
+
+`stability` 在每个坐标上加入不超过 ε 的可复现扰动，运行 8 次，输出各次 H0/H1
+瓶颈距离及原 H1 区间在指定匹配容差下保留的次数。输入目前限不超过 24 个点；
+`stability.html` 可离线查看，`stability.json` 保留完整数值。该次数不是概率或显著性结论。
+
+`sweep.json` 现在给出最多三个 `recommended_parameters`，按有限 H1 最长寿命、
+有限 H1 数量排序，只在用户提交的组合之间比较。`sweep.html` 将参数与候选理由集中展示；
+它不会推断真实周期或保证最优嵌入维数。
+
+PNG 输入支持非交错的 8 位灰度、灰度加透明度、RGB 和 RGBA；透明像素合成在白底，
+RGB 使用亮度权重转换到 0–255 灰度。PNG 解码使用 Node 的 zlib 与有界输入适配，
+拓扑及图像过滤复形仍由 MoonBit 计算。批量清单也可设 `"format":"png"`；
+示例见 `examples/batch-png-study.json`。调色板、16 位和交错 PNG 会明确拒绝。
+
+输入 JSON 对 `points`、`matrix` 或 `series` 设置 `"homology_dimension":2`，
+即可建立 Rips 三维骨架并计算 H2 空腔；默认保持 H0/H1 的二维骨架以控制开销。
+H2 在完整报告、区间、Betti CSV、SVG 和离线分析页中可见；
+批量距离、分组和详细比较目前仍以 H0/H1 为口径。八面体样例的 H2 为 `[1,2)`。
+稀疏 Rips 构建使用邻接点枚举三角形和四面体，仍受 128 点与 10000 细胞的硬预算保护。
 
 ## 自定义输入
 

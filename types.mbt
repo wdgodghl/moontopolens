@@ -48,6 +48,7 @@ pub struct Analysis {
   filtration : Filtration
   intervals : Array[Interval]
   column_additions : Int
+  homology_dimension : Int
 } derive(@debug.Debug)
 
 ///|
@@ -113,6 +114,11 @@ fn edge_key(a : Int, b : Int) -> String {
 ///|
 fn triangle_key(a : Int, b : Int, c : Int) -> String {
   "t:\{a}:\{b}:\{c}"
+}
+
+///|
+fn tetrahedron_key(a : Int, b : Int, c : Int, d : Int) -> String {
+  "q:\{a}:\{b}:\{c}:\{d}"
 }
 
 ///|

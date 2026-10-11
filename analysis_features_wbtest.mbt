@@ -31,7 +31,12 @@ test "landscape insertion budget is enforced before allocating output" {
     death_cell: Some(0),
     representative: [],
   })
-  let result : Analysis = { filtration: f, intervals, column_additions: 0, }
+  let result : Analysis = {
+    filtration: f,
+    intervals,
+    column_additions: 0,
+    homology_dimension: 1,
+  }
   let invalid = try {
     ignore(
       persistence_landscape(

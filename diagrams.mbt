@@ -4,8 +4,8 @@ pub fn diagram(
   analysis : Analysis,
   dimension : Int,
 ) -> Array[(Double, Double)] raise TopologyError {
-  if dimension < 0 || dimension > 1 {
-    raise TopologyError("diagram dimension must be 0 or 1")
+  if dimension < 0 || dimension > analysis.homology_dimension {
+    raise TopologyError("diagram dimension must have been analyzed")
   }
   let result : Array[(Double, Double)] = []
   for interval in analysis.intervals {

@@ -36,12 +36,30 @@ for (const size of sizes) {
     repeats,
   });
 }
+const sparseResults = [];
+for (const size of [32, 64, 96, 128]) {
+  const runs = [];
+  for (let i = 0; i < repeats; i++) {
+    const run = spawnSync('node', [cli, String(size), 'sparse'], {
+      encoding: 'utf8', timeout: 120000, windowsHide: true,
+    });
+    assert.equal(run.error, undefined);
+    assert.equal(run.status, 0, run.stderr);
+    const result = JSON.parse(run.stdout);
+    assert.equal(result.point_count, size);
+    assert.ok(result.cell_count > size && Number.isFinite(result.elapsed_ms));
+    runs.push(result);
+  }
+  const median = [...runs].sort((a,b) => a.elapsed_ms - b.elapsed_ms)[1];
+  sparseResults.push({point_count:size,cell_count:median.cell_count,interval_count:median.interval_count,median_elapsed_ms:median.elapsed_ms,median_process_rss_mib_after:[...runs].sort((a,b)=>a.rss_mib_after-b.rss_mib_after)[1].rss_mib_after,repeats});
+}
 console.log(JSON.stringify({
   schema_version: 1,
-  benchmark: 'dense Rips H0/H1, deterministic 2D points, threshold=2, JS target',
+  benchmark: 'dense and sparse Rips H0/H1, deterministic 2D points, JS target',
   timing: 'MoonBit filtration construction and reduction only; Node startup excluded',
   memory: 'process RSS after analysis, not peak RSS; includes Node runtime',
   node: process.version,
   platform: `${process.platform}-${process.arch}`,
   results,
+  sparse_results: sparseResults,
 }, null, 2));
