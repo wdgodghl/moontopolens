@@ -13,10 +13,10 @@
 | 公开仓库、清晰提交 | https://github.com/wdgodghl/moontopolens ；按功能逐步提交 |
 | 结构清晰且核心功能可运行 | H0/H1 与可选 H2、点云/矩阵/序列/二维网格/三维体数据 JSON 输入、有界 NIfTI-1/4D 导入、参数扫描、多帧点云与体数据轨迹、PGM/PNG 图像、批量距离与分组、点云/强度扰动稳定性、H2 代表面及三维投影、粗网格近似分析、瓶颈距离、尺度快照、景观向量和离线 HTML 等已实现 |
 | README 可复现 | 安装、命令、预期结果、算法限制、三种完整场景 |
-| CI 检查/构建/测试 | .github/workflows/ci.yml；含 GUDHI 外部 Rips/cubical 区间对照；0.17.0 对应运行全部通过 |
+| CI 检查/构建/测试 | .github/workflows/ci.yml；含 GUDHI 外部 Rips/cubical 区间对照；0.18.0 对应运行全部通过 |
 | 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、三维体素、多帧体数据、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
 | 核心测试 | JS 和 Wasm GC 各 95 个测试；另有 CLI 全流程覆盖 NIfTI 4D/仿射、粗网格、图像/体数据稳定性、多帧 H2 追踪及既有核心功能 |
-| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.17.0 注册表显示 MIT、构建成功，独立项目安装与新增 API 测试通过 |
+| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.18.0 注册表显示 MIT、构建成功，独立项目安装与新增 API 测试通过 |
 | OSI 许可证与来源 | MIT；独立实现，公开算法背景见查重记录 |
 
 ## 本地验证
@@ -43,7 +43,7 @@
 - 多帧追踪：正方形扩张后变为三角形的轨迹延续/终止、无环路、环路出现、截断类不匹配与非法输入路径均已核对；离线时间线和变化图的 DOM 场景测试通过。
 - 新增体数据：20³ 稀疏网格、H2 代表面导出和切片高亮、三帧空腔消失/重现、PGM/PNG 与体数据零扰动、NIfTI-1 小端 uint8 与大端 float32 缩放均已测试；`.nii.gz` CLI、离线逐帧表格和异常路径通过端到端验证。
 - 0.18 扩展：NIfTI-1 4D 帧序列及 sform/qform 仿射、单位和时间元数据；32³ 稠密体数据粗网格预算；代表面旋转、点击/键盘切片联动的 DOM 测试通过。真实浏览器本地文件检查受浏览器安全策略阻止，未宣称视觉布局已验证。
-- GitHub 提交 `939a4a8` 的 [CI 运行](https://github.com/wdgodghl/moontopolens/actions/runs/38139045957) 显示全部通过；Mooncakes 注册表 `wdgodghl/moontopolens` 返回最新 0.17.0、MIT、`build_status=success`；独立项目安装 `wdgodghl/moontopolens@0.17.0` 后，新 API 的 JS/Wasm GC 样例均通过。
+- GitHub 提交 `75672ab` 的 [CI 运行](https://github.com/wdgodghl/moontopolens/actions/runs/38141723895) 显示全部通过；Mooncakes 注册表 `wdgodghl/moontopolens` 返回最新 0.18.0、MIT、`build_status=success`；独立项目安装 `wdgodghl/moontopolens@0.18.0` 后，粗网格和世界坐标 API 的 JS/Wasm GC 样例均通过。
 
 源码量由 `node scripts/check-source.mjs` 复算。
 统计排除测试和 host.mbt FFI，并另报告去除纯括号行后的代码行数。
