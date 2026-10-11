@@ -145,7 +145,13 @@ fn matching_interval_json(analysis : Analysis, index : Int?) -> Json {
 /// Existing comparison metadata plus a witness explaining every interval.
 pub fn comparison_json(a : Analysis, b : Analysis) -> Json raise TopologyError {
   let distances : Array[Json] = []
-  for dimension = 0; dimension < 2; dimension = dimension + 1 {
+  let compared_dimensions = if a.homology_dimension == 2 &&
+    b.homology_dimension == 2 {
+    3
+  } else {
+    2
+  }
+  for dimension = 0; dimension < compared_dimensions; dimension = dimension + 1 {
     let matches : Array[Json] = []
     for pair in interval_matching(a, b, dimension~) {
       matches.push({
@@ -171,16 +177,23 @@ pub fn comparison_json(a : Analysis, b : Analysis) -> Json raise TopologyError {
     "right_cutoff": b.filtration.cutoff,
     "cutoffs_equal": a.filtration.cutoff == b.filtration.cutoff,
     "complex_kinds_equal": a.filtration.kind == b.filtration.kind,
+    "h2_analyzed_on_both": compared_dimensions == 3,
     "left_summary": summary_json(a),
     "right_summary": summary_json(b),
-    "note": "one optimal matching, not unique; diagonal matches do not prove physical creation or deletion; censored counts differing imply null distance; use comparable cutoffs and units",
+    "note": "one optimal matching, not unique; H2 is compared only when both inputs analyzed H2; diagonal matches do not prove physical creation or deletion; censored counts differing imply null distance; use comparable cutoffs and units",
   }
 }
 
 ///|
 pub fn matching_csv(a : Analysis, b : Analysis) -> String raise TopologyError {
   let mut text = "dimension,left_interval,right_interval,kind,cost\n"
-  for dimension = 0; dimension < 2; dimension = dimension + 1 {
+  let compared_dimensions = if a.homology_dimension == 2 &&
+    b.homology_dimension == 2 {
+    3
+  } else {
+    2
+  }
+  for dimension = 0; dimension < compared_dimensions; dimension = dimension + 1 {
     for pair in interval_matching(a, b, dimension~) {
       let left = match pair.left {
         Some(i) => i.to_string()

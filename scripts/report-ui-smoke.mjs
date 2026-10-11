@@ -6,7 +6,7 @@ import vm from 'node:vm';
 class Element {
   constructor(tag) {
     this.tag = tag; this.children = []; this.attributes = {};
-    this.listeners = {}; this.style = {}; this.textContent = ''; this.value = ''; this.checked = false;
+    this.listeners = {}; this.style = { setProperty(name, value) { this[name] = value; } }; this.textContent = ''; this.value = ''; this.checked = false;
   }
   setAttribute(name, value) { this.attributes[name] = value; }
   append(...nodes) { this.children.push(...nodes); }
@@ -30,6 +30,11 @@ export function verifyStudyUI(html, report) {
   vm.runInNewContext(source[1], { document }, { timeout: 10000 });
   assert.equal(elements.get('rows').children.length, report.frames.length);
   assert.equal(elements.get('recommendations').children.length, report.transitions.length + report.tracks.length);
+  if (report.kind === 'topology_sequence') {
+    assert.equal(elements.get('track-timeline').children.length, report.tracks.length + 1);
+    assert.equal(elements.get('change-chart').children.length, report.transitions.length);
+    assert.equal(elements.get('sequence-visuals').hidden, false);
+  }
   assert.ok(elements.get('interpretation').textContent.includes('diagram'));
 }
 
@@ -124,7 +129,7 @@ export function verifyComparisonUI(html, report) {
   };
   vm.runInNewContext(source[1], { document }, { timeout: 10000 });
   assert.equal(elements.get('matches').children.length, Math.min(200, report.distances.reduce((n,d)=>n+d.matches.length,0)));
-  for (const dimension of ['0','1']) {
+  for (const dimension of report.distances.map(d => String(d.dimension))) {
     elements.get('dimension').value = dimension;
     elements.get('dimension').fire('input');
     assert.equal(elements.get('matches').children.length, Math.min(200, report.distances[Number(dimension)].matches.length));

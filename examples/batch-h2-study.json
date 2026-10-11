@@ -1,0 +1,14 @@
+{
+  "all_pairs": true,
+  "cases": [
+    { "name": "octahedron", "input": "octahedron-h2.json" },
+    { "name": "copy", "input": "octahedron-h2.json" },
+    { "name": "tight", "input": "octahedron-h2-tight.json" },
+    { "name": "square", "input": "square.json" }
+  ],
+  "comparisons": [
+    { "name": "same-h2", "left": "octahedron", "right": "copy" },
+    { "name": "different-cutoff", "left": "octahedron", "right": "tight" },
+    { "name": "mixed-dimension", "left": "octahedron", "right": "square" }
+  ]
+}

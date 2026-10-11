@@ -12,6 +12,8 @@ test "single linkage retains a forest and suggests the largest gap" {
     cutoffs: [2.0, 2.0, 2.0, 2.0],
     h0: distances,
     h1: distances,
+    h2: distances,
+    h2_analyzed: [true, true, true, true],
     conditions_aligned: Array::makei(4, fn(_) { Array::make(4, true) }),
   }
   let clustering = batch_clustering(matrix, 0)

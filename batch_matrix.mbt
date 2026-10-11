@@ -1,12 +1,15 @@
 ///|
-/// Symmetric H0/H1 bottleneck distances for one bounded batch study.
+/// Symmetric H0/H1/H2 bottleneck distances for one bounded batch study.
 /// None means no finite match because alive interval counts differ.
+/// H2 is None when either case did not analyze that dimension.
 pub struct BatchDistanceMatrix {
   names : Array[String]
   kinds : Array[String]
   cutoffs : Array[Double]
   h0 : Array[Array[Double?]]
   h1 : Array[Array[Double?]]
+  h2 : Array[Array[Double?]]
+  h2_analyzed : Array[Bool]
   conditions_aligned : Array[Array[Bool]]
 } derive(@debug.Debug)
 
@@ -39,10 +42,15 @@ pub fn batch_distance_matrix(
   let cutoffs = analyses.map(fn(result) { result.filtration.cutoff })
   let h0 = Array::makei(n, fn(_) { Array::make(n, None) })
   let h1 = Array::makei(n, fn(_) { Array::make(n, None) })
+  let h2 = Array::makei(n, fn(_) { Array::make(n, None) })
+  let h2_analyzed = analyses.map(fn(result) { result.homology_dimension == 2 })
   let conditions_aligned = Array::makei(n, fn(_) { Array::make(n, false) })
   for i = 0; i < n; i = i + 1 {
     h0[i][i] = Some(0.0)
     h1[i][i] = Some(0.0)
+    if h2_analyzed[i] {
+      h2[i][i] = Some(0.0)
+    }
     conditions_aligned[i][i] = true
     for j = i + 1; j < n; j = j + 1 {
       let d0 = compare_analyses(analyses[i], analyses[j], dimension=0)
@@ -51,12 +59,17 @@ pub fn batch_distance_matrix(
       h0[j][i] = d0
       h1[i][j] = d1
       h1[j][i] = d1
+      if h2_analyzed[i] && h2_analyzed[j] {
+        let d2 = compare_analyses(analyses[i], analyses[j], dimension=2)
+        h2[i][j] = d2
+        h2[j][i] = d2
+      }
       let aligned = kinds[i] == kinds[j] && cutoffs[i] == cutoffs[j]
       conditions_aligned[i][j] = aligned
       conditions_aligned[j][i] = aligned
     }
   }
-  { names, kinds, cutoffs, h0, h1, conditions_aligned, }
+  { names, kinds, cutoffs, h0, h1, h2, h2_analyzed, conditions_aligned, }
 }
 
 ///|
@@ -72,11 +85,15 @@ fn matrix_value(value : Double?) -> Json {
 pub fn batch_matrix_json(matrix : BatchDistanceMatrix) -> Json {
   let h0 : Array[Array[Json]] = []
   let h1 : Array[Array[Json]] = []
+  let h2 : Array[Array[Json]] = []
   for row in matrix.h0 {
     h0.push(row.map(matrix_value))
   }
   for row in matrix.h1 {
     h1.push(row.map(matrix_value))
+  }
+  for row in matrix.h2 {
+    h2.push(row.map(matrix_value))
   }
   {
     "schema_version": 1,
@@ -86,8 +103,10 @@ pub fn batch_matrix_json(matrix : BatchDistanceMatrix) -> Json {
     "cutoffs": matrix.cutoffs,
     "h0": h0,
     "h1": h1,
+    "h2": h2,
+    "h2_analyzed": matrix.h2_analyzed,
     "conditions_aligned": matrix.conditions_aligned,
-    "null_meaning": "unequal counts of classes alive at cutoff; no finite match",
+    "null_meaning": "H0/H1: unequal counts of classes alive at cutoff; H2: either not analyzed or unequal censored counts; inspect h2_analyzed to distinguish",
     "comparison_note": "matching kind and cutoff is necessary but not sufficient; verify units, grayscale transforms and data meaning before interpreting distances",
   }
 }
@@ -98,10 +117,16 @@ pub fn batch_matrix_csv(
   matrix : BatchDistanceMatrix,
   dimension : Int,
 ) -> String raise TopologyError {
-  if dimension != 0 && dimension != 1 {
-    raise TopologyError("matrix dimension must be 0 or 1")
+  if dimension < 0 || dimension > 2 {
+    raise TopologyError("matrix dimension must be 0, 1 or 2")
   }
-  let rows = if dimension == 0 { matrix.h0 } else { matrix.h1 }
+  let rows = if dimension == 0 {
+    matrix.h0
+  } else if dimension == 1 {
+    matrix.h1
+  } else {
+    matrix.h2
+  }
   let mut csv = "case"
   for name in matrix.names {
     csv += "," + name
@@ -156,7 +181,12 @@ fn matrix_table(
       }
       let content = match rows[i][j] {
         None =>
-          "<span title=\"存活类数量不同，无有限匹配\">—</span>"
+          if dimension == 2 &&
+            (!matrix.h2_analyzed[i] || !matrix.h2_analyzed[j]) {
+            "<span title=\"至少一侧未计算 H2\">—</span>"
+          } else {
+            "<span title=\"存活类数量不同，无有限匹配\">—</span>"
+          }
         Some(value) => {
           let opacity = if greatest == 0.0 {
             0.12
@@ -190,9 +220,17 @@ pub fn batch_matrix_html(matrix : BatchDistanceMatrix) -> String {
   for i, name in matrix.names {
     html += "<tr><th><a href=\"cases/\{name}/report.html\">\{name}</a></th><td>\{matrix_html_escape(matrix.kinds[i])}</td><td>\{matrix.cutoffs[i]}</td></tr>"
   }
-  html += "</tbody></table></div><p class=legend>橙框表示两侧复形类型或截止值不同。相同类型和截止值也不保证尺度单位、灰度变换和数据含义可比。</p><p class=muted>破折号表示截止时存活类数量不同，因而没有有限匹配；它不是距离 0。颜色只按本维度的有限距离归一化，用于浏览，数值以 CSV/JSON 为准。</p><p><a href=\"cluster-h0.svg\">查看 H0 分组树</a> · <a href=\"cluster-h1.svg\">查看 H1 分组树</a>（仅用有限且输入条件一致的距离）</p></section>"
+  html += "</tbody></table></div><p class=legend>橙框表示两侧复形类型或截止值不同。相同类型和截止值也不保证尺度单位、灰度变换和数据含义可比。</p><p class=muted>破折号表示没有有限匹配；H2 也可能是未计算。它不是距离 0。颜色只按本维度的有限距离归一化，用于浏览，数值以 CSV/JSON 为准。</p><p><a href=\"cluster-h0.svg\">查看 H0 分组树</a> · <a href=\"cluster-h1.svg\">查看 H1 分组树</a>"
+  if matrix.h2_analyzed.contains(true) {
+    html += " · <a href=\"cluster-h2.svg\">查看 H2 分组树</a>"
+  }
+  html += "（仅用有限且输入条件一致的距离）</p></section>"
   html += matrix_table(matrix, matrix.h0, 0)
   html += matrix_table(matrix, matrix.h1, 1)
+  if matrix.h2_analyzed.contains(true) {
+    html += "<p class=muted>H2 空格表示至少一侧未计算 H2，或截止时存活类数量不同；请结合 JSON 中的 h2_analyzed 判断。</p>"
+    html += matrix_table(matrix, matrix.h2, 2)
+  }
   html +
   "<footer class=muted>全部距离由 MoonBit 计算；页面可离线打开。</footer></main></body></html>"
 }

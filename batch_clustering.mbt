@@ -47,14 +47,20 @@ pub fn batch_clustering(
   matrix : BatchDistanceMatrix,
   dimension : Int,
 ) -> BatchClustering raise TopologyError {
-  if dimension != 0 && dimension != 1 {
-    raise TopologyError("clustering dimension must be 0 or 1")
+  if dimension < 0 || dimension > 2 {
+    raise TopologyError("clustering dimension must be 0, 1 or 2")
   }
   let n = matrix.names.length()
   if n < 1 || n > 8 {
     raise TopologyError("clustering requires 1..8 cases")
   }
-  let rows = if dimension == 0 { matrix.h0 } else { matrix.h1 }
+  let rows = if dimension == 0 {
+    matrix.h0
+  } else if dimension == 1 {
+    matrix.h1
+  } else {
+    matrix.h2
+  }
   let edges : Array[BatchClusterEdge] = []
   let mut omitted_pairs = 0
   for i = 0; i < n; i = i + 1 {

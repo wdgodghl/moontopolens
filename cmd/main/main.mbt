@@ -372,6 +372,14 @@ fn main {
           Some(value) => @topo.batch_matrix_csv(value, 1)
           None => ""
         }
+        let has_h2 = match matrix {
+          Some(value) => value.h2_analyzed.contains(true)
+          None => false
+        }
+        let matrix_h2_csv = match matrix {
+          Some(value) => @topo.batch_matrix_csv(value, 2)
+          None => ""
+        }
         let matrix_html = match matrix {
           Some(value) => @topo.batch_matrix_html(value)
           None => ""
@@ -382,6 +390,10 @@ fn main {
         }
         let cluster_h1 = match matrix {
           Some(value) => Some(@topo.batch_clustering(value, 1))
+          None => None
+        }
+        let cluster_h2 = match matrix {
+          Some(value) => Some(@topo.batch_clustering(value, 2))
           None => None
         }
         let output = argument(3)
@@ -450,6 +462,7 @@ fn main {
             !save_output(output, "distance-matrix.json", matrix_json) ||
             !save_output(output, "distance-h0.csv", matrix_h0_csv) ||
             !save_output(output, "distance-h1.csv", matrix_h1_csv) ||
+            (has_h2 && !save_output(output, "distance-h2.csv", matrix_h2_csv)) ||
             !save_output(output, "distance-heatmap.html", matrix_html) ||
             !save_output(
               output,
@@ -480,6 +493,26 @@ fn main {
               output,
               "cluster-h1.svg",
               @topo.batch_clustering_svg(cluster_h1.unwrap()),
+            ) ||
+            (
+              has_h2 &&
+              (
+                !save_output(
+                  output,
+                  "cluster-h2.json",
+                  @topo.batch_clustering_json(cluster_h2.unwrap()).stringify(),
+                ) ||
+                !save_output(
+                  output,
+                  "cluster-h2.csv",
+                  @topo.batch_clustering_csv(cluster_h2.unwrap()),
+                ) ||
+                !save_output(
+                  output,
+                  "cluster-h2.svg",
+                  @topo.batch_clustering_svg(cluster_h2.unwrap()),
+                )
+              )
             )
           ) {
           print_error("could not save complete batch distance matrix")
@@ -504,6 +537,11 @@ fn main {
           },
           "clustering_h1": if plan.all_pairs {
             "cluster-h1.json".to_json()
+          } else {
+            Json::null()
+          },
+          "clustering_h2": if has_h2 {
+            "cluster-h2.json".to_json()
           } else {
             Json::null()
           },
