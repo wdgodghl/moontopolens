@@ -102,10 +102,17 @@ pub fn series_lag_hints(text : String) -> (Json, String) raise TopologyError {
       left_variance += a * a
       right_variance += b * b
     }
-    let correlation = if left_variance == 0.0 || right_variance == 0.0 {
+    let raw_correlation = if left_variance == 0.0 || right_variance == 0.0 {
       0.0
     } else {
       covariance / left_variance.sqrt() / right_variance.sqrt()
+    }
+    let correlation = if raw_correlation > 1.0 {
+      1.0
+    } else if raw_correlation < -1.0 {
+      -1.0
+    } else {
+      raw_correlation
     }
     let mut information = 0.0
     for a = 0; a < bins; a = a + 1 {
