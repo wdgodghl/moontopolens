@@ -11,18 +11,18 @@
 | --- | --- |
 | MoonBit 主实现，moonc ≥ 0.10.14 | 核心算法与 CLI 逻辑为 MoonBit；本地 moonc 0.10.14 |
 | 公开仓库、清晰提交 | https://github.com/wdgodghl/moontopolens ；按功能逐步提交 |
-| 结构清晰且核心功能可运行 | H0/H1 与可选 H2、四种普通 JSON 输入、参数扫描与候选排序、滞后参考值、PGM/PNG 图像、Otsu 与反转、批量全对距离/层次分组、点云扰动稳定性、代表链、瓶颈距离、精确事件、尺度快照与推荐、景观向量、离线 HTML 等已实现 |
+| 结构清晰且核心功能可运行 | H0/H1 与可选 H2、四种普通 JSON 输入、参数扫描与候选排序、滞后参考值、多帧点云轨迹、PGM/PNG 图像、Otsu 与反转、批量全对距离/层次分组、点云扰动稳定性、代表链、瓶颈距离、精确事件、尺度快照与推荐、景观向量、离线 HTML 等已实现 |
 | README 可复现 | 安装、命令、预期结果、算法限制、三种完整场景 |
 | CI 检查/构建/测试 | .github/workflows/ci.yml；增加 GUDHI 外部 Rips 区间对照，远端运行结果以 Actions 为准 |
 | 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
-| 核心测试 | JS 和 Wasm GC 各 75 个测试；另有 CLI 全流程覆盖 PNG、分组、稳定性、候选排序和 H2 |
-| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.13.0 注册表返回 MIT、构建成功，独立安装并运行新增 API 样例成功 |
+| 核心测试 | JS 和 Wasm GC 各 81 个测试；另有 CLI 全流程覆盖 PNG、分组、稳定性、多帧追踪、候选排序和 H2 |
+| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.14.0 注册表返回 MIT、构建成功，独立安装并运行新增 API 样例成功 |
 | OSI 许可证与来源 | MIT；独立实现，公开算法背景见查重记录 |
 
 ## 本地验证
 
 - 类型检查和构建：JS、Wasm GC。
-- 测试：两后端各 75 个测试；参考测试内部覆盖 12×11 个形状/尺度组合，匹配见证覆盖 12 对形状。
+- 测试：两后端各 81 个测试；参考测试内部覆盖 12×11 个形状/尺度组合，匹配见证覆盖 12 对形状。
 - CLI：八种基础示例、九种分析导出文件、快捷摘要、尺度推荐、同图/异图比较、帮助、错误和输出冲突路径。
 - 新功能：每个示例在全部事件尺度核对快照 H0/H1 与分组数；景观 JSON/CSV/向量一致，双洞帐篷高度已核对。
 - 比较：三组报告导出、原始索引与代价 CSV 一致、同图零距离与存活类数量不同路径。
@@ -40,11 +40,12 @@
 - GUDHI 外部差分：既有 22 个 Rips 案例的 H0/H1 区间一致；新增八面体 H2 样例在本版 GitHub CI 中核对通过，方法和局限见 reference-validation.md。
 - 性能基准：8–28 点稠密输入和 32–128 点稀疏输入，三次独立运行取中位数；记录核心耗时和分析后进程 RSS，见 performance.md。
 - 时间序列滞后提示：交替序列和无效输入用例通过；CLI 示例产生六行扫描结果和两个参考值。
-- Mooncakes 注册表 `wdgodghl/moontopolens` 返回最新 0.13.0、MIT、`build_status=success`；独立项目安装 `wdgodghl/moontopolens@0.13.0` 并调用新增 API 成功。
+- 多帧追踪：正方形扩张后变为三角形的轨迹延续/终止、无环路、环路出现、截断类不匹配与非法输入路径均已核对；CLI 和离线报告脚本通过场景测试。
+- Mooncakes 注册表 `wdgodghl/moontopolens` 返回最新 0.14.0、MIT、`build_status=success`；独立项目安装 `wdgodghl/moontopolens@0.14.0` 并调用新增 API 成功。
 
 源码量由 `node scripts/check-source.mjs` 复算。
 统计排除测试和 host.mbt FFI，并另报告去除纯括号行后的代码行数。
-当前非空非注释行 4229；再排除纯括号行后为 3277 行（也排除 HTML/JS 多行模板）。
+当前非空非注释行 4517；再排除纯括号行后为 3504 行（也排除 HTML/JS 多行模板）。
 该统计口径用于内部质量检查，组织方“有效源码”口径由评审决定。
 
 0.11.0 的单元覆盖率记录为 1125/1652 个计数点（约 68.1%）；新增功能尚未重测覆盖率，
