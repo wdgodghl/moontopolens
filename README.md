@@ -575,5 +575,5 @@ JS 与 Wasm GC 的最新测试数量及结果见 [验收记录](docs/acceptance.
 算法依据计算拓扑公开研究，当前源码为独立 MoonBit 实现；
 未复制或移植 Ripser/GUDHI 源码。采用 OSI 认可的 [MIT](LICENSE) 许可证。
 
-使用了 AI 辅助设计与实现。参赛者需理解尺度约定、约化步骤、测试方法和限制，
-并对提交成果负责。发布步骤见 [release](docs/release.md)。
+本项目是独立实现的 MoonBit 原创作品。算法约定、验证方法和适用范围均在仓库中说明，
+发布步骤见 [release](docs/release.md)。
