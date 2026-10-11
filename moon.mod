@@ -1,6 +1,6 @@
 name = "wdgodghl/moontopolens"
 
-version = "0.12.0"
+version = "0.12.1"
 
 license = "MIT"
 

@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.12.0 扩展分析版**。
+当前版本：**0.12.1 扩展分析版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -364,7 +364,7 @@ H2 在完整报告、区间、Betti CSV、SVG 和离线分析页中可见；
 
 ## MoonBit 库用法
 
-包导入（先运行 `moon add wdgodghl/moontopolens@0.11.0`）：
+包导入（先运行 `moon add wdgodghl/moontopolens@0.12.1`）：
 
 ```text
 import {
@@ -401,7 +401,7 @@ let scale_picture = @topo.scale_svg(analysis, scale=1.0)
 
 - Rips 使用**直径约定**：距离 d 的边在 d 出现，无半径除二。
 - 矩阵要求严格对称、对角线为零；无需满足三角不等式，不偷偷修正输入。
-- 计算系数域为 GF(2)，实现 H0/H1，不宣称完整 H2 或整数同调。
+- 计算系数域为 GF(2)，默认分析 H0/H1；显式构建完整三维 Rips 骨架时分析 H2。不支持整数同调。
 - `death: null` 表示在**输入截止处仍存在**，不能据此证明在完整过滤中无限存活。
 - 区间为 `[birth,death)`，默认省略零长度区间；代表环路在出生时有效，不保证最短。
 - 比较包含有限区间和未死亡区间；后者数量不等时结果为 null。
@@ -414,7 +414,7 @@ let scale_picture = @topo.scale_svg(analysis, scale=1.0)
 - 持久景观限 2–1001 个采样点、1–16 层，并限制 `有限区间数×采样点数×层数 ≤ 2,000,000`。
   参数扫描固定 101 点、3 层；最多 12 组参数和 16000 个总细胞。
   连通分组要求零细胞/边保留一/两个原始顶点 ID；不支持缺失该编码的自定义过滤。
-- 只处理小规模内存数据，未做大数据性能承诺；完整 H2、最短环路和在线上传应用仍属后续计划。
+- 只处理有资源预算的内存数据，稀疏 Rips 构建已有 128 点基准；最短环路和在线上传应用仍属后续计划。
 
 算法结构与正确性说明见 [architecture](docs/architecture.md)。
 
@@ -439,8 +439,8 @@ moon package --list
 ```
 
 外部对照先运行 `moon build --target js`，再用 GUDHI 3.13.0 独立计算
-22 组 Rips 点云、距离矩阵和延迟嵌入的 H0/H1 区间；CI 会执行这一检查。
-基准使用确定性二维点云、相同截止值和三次独立进程，报告 MoonBit 构造/约化的中位耗时与分析后的进程 RSS。
+22 组 Rips 点云、距离矩阵和延迟嵌入的 H0/H1 区间，加上 1 组八面体 H2 区间；CI 会执行这一检查。
+基准使用确定性二维点云的稠密和稀疏分布，每组运行三次独立进程，报告 MoonBit 构造/约化的中位耗时与分析后的进程 RSS。
 RSS 包含 Node 运行时且**不是峰值**；基准仅说明已测规模，不代表大规模性能承诺。
 测试细节见 [外部对照](docs/reference-validation.md) 与 [性能记录](docs/performance.md)。
 
