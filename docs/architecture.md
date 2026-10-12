@@ -7,6 +7,7 @@
 | 文件 | 职责 |
 | --- | --- |
 | types.mbt | 过滤细胞、区间、结果类型；稳定排序与面索引 |
+| csv_io.mbt | 数值 CSV 解析、预览、点云与单列时间序列的标准请求转换 |
 | geometry.mbt | 有界点云校验、欧氏距离矩阵、圆形样本 |
 | rips.mbt | 沿邻接表枚举截止距离下的点、边、三角形及可选四面体 |
 | cubical.mbt | 顶点 lower-star 的网格顶点、边与方格 |
@@ -135,7 +136,7 @@ Betti 曲线读取 MoonBit 输出的全部事件，按真实尺度绘制阶梯�
 [Statistical Topological Data Analysis using Persistence Landscapes (JMLR, 2015)](https://jmlr.csail.mit.edu/papers/v16/bubenik15a.html)。
 此实现未复制该论文工具包或 GUDHI 源码。
 
-HTML 交互逻辑使用 Node VM 与 DOM 替身验证；不等同于真实浏览器渲染检查。
+HTML 交互逻辑使用 Node VM 与 DOM 替身验证；分析页另有真实浏览器桌面/窄屏实测，见 browser-validation.md。
 GUDHI 3.13.0 已在 30 个 Rips/cubical 案例上与 MoonBit 的相应 H0/H1/H2 区间一致；
 外部差分不覆盖瓶颈匹配与代表链，细节见 [外部对照](reference-validation.md)。
 已有 8–28 点稠密、32–128 点稀疏输入的耗时与分析后进程 RSS 基准，尚无峰值内存或无限规模保证，

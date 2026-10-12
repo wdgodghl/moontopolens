@@ -1,9 +1,10 @@
 # 选题功能落实情况
 
-MoonTopoLens 0.18.1 的主线是把小规模数据的多尺度连接分量、环路与空腔转成可复现的分析结果，并支持批量比较、解释和离线查看。
+MoonTopoLens 0.19.0 的主线是把小规模数据的多尺度连接分量、环路与空腔转成可复现的分析结果，并支持 CSV 导入、批量比较、解释和离线查看。
 
 | 功能主线 | 当前实现 | 可复现入口 |
 | --- | --- | --- |
+| CSV 入口与应用案例 | MoonBit 数值 CSV 解析、前五行预览、点云/单列序列请求及报告；固定真实测量子集与参考信号流程 | `csv-preview`、`csv-points`、`csv-series`、`application-cases.mjs` |
 | 点云和距离数据 | 欧氏距离、严格矩阵校验、Rips 二维骨架；可选 H2 所需三维骨架 | `square.json`、`octahedron-h2.json` |
 | 时间序列 | 延迟嵌入、最多 12 组维数/滞后参数扫描、有限 H1 候选排序；自相关与分箱互信息提供探索性滞后参考值 | `periodic-series.json`、`periodic-sweep.json`、`periodic-lag-hints.json` |
 | 多帧序列 | 2–12 个有序点云；逐帧 H0/H1 摘要、相邻瓶颈距离、H1 区间轨迹、时间线与变化图 | `evolving-loop.json` |

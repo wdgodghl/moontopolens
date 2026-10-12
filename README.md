@@ -9,16 +9,18 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.18.1 三维代表面、时空元数据与粗网格分析版**。
+当前版本：**0.19.0 CSV 导入、精确尺度交互与应用案例版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
+从表格数据到拓扑报告的完整流程见 [应用案例](docs/application-cases.md)。
 
 ## 能做什么
 
 | 输入/功能 | 实现 |
 | --- | --- |
 | 点云 | 1–32 维欧氏距离、Vietoris–Rips 过滤复形；可选完整 H2 分析 |
+| CSV 导入 | 带表头的数值点云与单列信号；先预览，再生成标准 JSON 请求及完整分析报告 |
 | 距离/不相似度矩阵 | 校验对称非负矩阵，构建 Rips 2-骨架或 H2 所需的 3-骨架 |
 | 二维网格 | 顶点值的 lower-star 方格复形，检测连接区域和洞 |
 | 三维体素 | 小型三维顶点网格的 lower-star 立方复形，分析 H0/H1/H2，浏览可旋转的代表面与联动 Z 层切片 |
@@ -72,6 +74,24 @@ moon run --target wasm-gc cmd/demo
 `moon add wdgodghl/moontopolens` 引入已发布的核心库。
 
 ## 三个完整使用场景
+
+### 从自己的 CSV 开始
+
+```sh
+moon run --target js cmd/main -- csv-preview examples/square.csv
+moon run --target js cmd/main -- csv-points examples/square.csv 2 --out out-csv-square
+moon run --target js cmd/main -- csv-series examples/periodic-series.csv 2 2 1 1 --out out-csv-signal
+```
+
+CSV 必须有唯一非空表头，数据列全部为数值；时间序列使用单列文件。
+序列参数依次是截止值、嵌入维数、滞后、步长。不会自动去重、标准化或插值。
+预览显示列名、行列数及前五行；完整分析额外保存 `csv-info.json` 和 `csv-request.json`。
+后者可直接用于既有 `slice`、`compare` 等命令。格式、限制及真实 Iris 测量数据案例见 [应用案例](docs/application-cases.md)。
+
+```sh
+moon build --target js
+node scripts/application-cases.mjs
+```
 
 ### 1. 识别点云环路并比较形状变化
 
@@ -163,8 +183,10 @@ moon run --target js cmd/main -- analyze examples/two-holes-grid.json --out out-
 直接用浏览器打开输出目录中的 `report.html`，无需服务器或网络：
 
 1. 拖动尺度滑块，观察当前 H0/H1 数量、进入复形的顶点和边。
+   也可输入精确尺度，或用“上一个事件 / 下一个事件”定位真实出生/死亡事件。
 2. 选择维度、最小观察寿命或“仅当前存活”，筛选并逐页查看全部区间排名。
 3. 点击区间编号，在该环路存活的尺度上查看橙色代表边。
+   选择当前未存活的 H1 区间会自动切到出生尺度，并显示选择说明。
 4. 查看 Betti 曲线，或将 CSV 导入表格/绘图工具继续分析。
 
 绘图坐标不参与同调计算：高维点云保留原维度距离，仅前两个坐标用于展示。
@@ -548,6 +570,7 @@ moon test --target wasm-gc
 moon coverage report -f summary
 node scripts/check-source.mjs
 node scripts/smoke.mjs
+node scripts/application-cases.mjs
 python -m pip install numpy==2.3.5 gudhi==3.13.0
 python scripts/reference_gudhi.py
 node scripts/benchmark.mjs
@@ -567,13 +590,15 @@ JS 与 Wasm GC 的最新测试数量及结果见 [验收记录](docs/acceptance.
 每个示例在全部 Betti 事件处验证快照分组数，持久景观用已知帐篷函数核对。
 匹配见证在 12 对形状中检查每个区间恰好出现一次、代价符合公式、最大代价等于瓶颈距离。
 另有三组离线对比报告、尺度 SVG、存活选择/无坐标/输出冲突的端到端验证。
-生成的 HTML 通过 DOM 替身检查滑块、筛选、选中环路与显示数值；该方法不验证真实浏览器视觉布局。
+生成的 HTML 通过 DOM 替身检查滑块、精确尺度、事件跳转、筛选、选中环路与显示数值。
+分析报告另经真实浏览器在桌面与窄屏视口检查，范围及局限见 [浏览器验证](docs/browser-validation.md)。
 
 ## 项目来源与许可证
 
 选题公开查重记录见 [duplicate-review](docs/duplicate-review.md)。
 算法依据计算拓扑公开研究，当前源码为独立 MoonBit 实现；
 未复制或移植 Ripser/GUDHI 源码。采用 OSI 认可的 [MIT](LICENSE) 许可证。
+`examples/iris` 的改编数据另按 CC BY 4.0 授权，来源与改编范围见该目录的 NOTICE；数据授权与代码 MIT 许可分开说明。
 
 本项目是独立实现的 MoonBit 原创作品。算法约定、验证方法和适用范围均在仓库中说明，
 发布步骤见 [release](docs/release.md)。

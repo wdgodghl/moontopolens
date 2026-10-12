@@ -1,6 +1,13 @@
 ///|
 fn usage() -> Unit {
   println("MoonTopoLens — persistent H0/H1 analysis")
+  println("moon run --target js cmd/main -- csv-preview INPUT.csv")
+  println(
+    "moon run --target js cmd/main -- csv-points INPUT.csv CUTOFF [--out NEW_DIRECTORY]",
+  )
+  println(
+    "moon run --target js cmd/main -- csv-series INPUT.csv CUTOFF DIMENSION LAG STRIDE [--out NEW_DIRECTORY]",
+  )
   println(
     "moon run --target js cmd/main -- analyze INPUT.json [--out NEW_DIRECTORY]",
   )
@@ -75,6 +82,17 @@ fn numeric_argument(index : Int) -> Double raise @topo.TopologyError {
     Number(value, ..) => value
     _ => raise @topo.TopologyError("expected a numeric argument")
   }
+}
+
+///|
+fn csv_integer_argument(index : Int) -> Int raise @topo.TopologyError {
+  let value = numeric_argument(index)
+  if value < 1.0 || value > 10000.0 || value != @math.floor(value) {
+    raise @topo.TopologyError(
+      "CSV embedding arguments must be integers in 1..10000",
+    )
+  }
+  value.to_int()
 }
 
 ///|
@@ -155,6 +173,62 @@ fn main {
   }
   try {
     match argument(0) {
+      "csv-preview" => {
+        if count != 2 {
+          raise @topo.TopologyError("csv-preview requires INPUT.csv")
+        }
+        println(
+          @topo.csv_preview_json(
+            @topo.parse_numeric_csv(read_input(argument(1))),
+          ).stringify(),
+        )
+      }
+      "csv-points" | "csv-series" => {
+        let series = argument(0) == "csv-series"
+        let required = if series { 6 } else { 3 }
+        if count != required && count != required + 2 {
+          raise @topo.TopologyError(
+            "CSV analysis requires FILE CUTOFF; series also requires DIMENSION LAG STRIDE; optional --out NEW_DIRECTORY",
+          )
+        }
+        if count == required + 2 &&
+          (argument(required) != "--out" || argument(required + 1) == "") {
+          raise @topo.TopologyError("expected --out NEW_DIRECTORY")
+        }
+        let source = read_input(argument(1))
+        let request = @topo.csv_request_json(
+          source,
+          if series {
+            "series"
+          } else {
+            "points"
+          },
+          threshold=numeric_argument(2),
+          dimension=if series { csv_integer_argument(3) } else { 2 },
+          lag=if series { csv_integer_argument(4) } else { 1 },
+          stride=if series { csv_integer_argument(5) } else { 1 },
+        )
+        let result = @topo.analyze_json(request.stringify())
+        let report = @topo.report_json(result).stringify()
+        if count == required + 2 {
+          let output = argument(required + 1)
+          if !new_output(output) {
+            raise @topo.TopologyError(
+              "output directory must be new and have an existing parent",
+            )
+          }
+          if !save_analysis(output, result, report) ||
+            !save_output(output, "csv-request.json", request.stringify()) ||
+            !save_output(
+              output,
+              "csv-info.json",
+              @topo.csv_preview_json(@topo.parse_numeric_csv(source)).stringify(),
+            ) {
+            raise @topo.TopologyError("could not save complete CSV analysis")
+          }
+        }
+        println(report)
+      }
       "volume" => {
         if (count != 3 && count != 5) ||
           (count == 5 && (argument(3) != "--out" || argument(4) == "")) {

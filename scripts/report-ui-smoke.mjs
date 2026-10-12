@@ -75,6 +75,24 @@ export function verifyReportUI(html, report, name) {
     assert.equal(curves[d].attributes.points, expected, 'Curve must retain every exact event at its actual scale');
   }
   if (name === 'matrix') assert.ok(elements.get('geometry').children.some(n => n.textContent.includes('无几何坐标')));
+  if (report.betti_events.length > 1) {
+    const previous = report.betti_events.filter(p => p.scale < report.cutoff).at(-1);
+    elements.get('event-previous').fire('click');
+    assert.equal(Number(elements.get('scale-exact').value), previous.scale);
+    elements.get('event-next').fire('click');
+    assert.equal(Number(elements.get('scale-exact').value), report.cutoff);
+  }
+  elements.get('scale-exact').value = String(report.cutoff + 1);
+  elements.get('scale-exact').fire('input');
+  assert.ok(elements.get('scale-message').textContent.includes('请输入'));
+  elements.get('scale-exact').value = String(report.cutoff);
+  elements.get('scale-exact').fire('input');
+  assert.equal(elements.get('scale-message').textContent, '');
+  if (name === 'short-loop-grid') {
+    elements.get('scale-exact').value = '0.0045';
+    elements.get('scale-exact').fire('input');
+    assert.equal(elements.get('h1').textContent, '1', 'Exact scale must reach a short-lived loop');
+  }
   if (name === 'square' || name === 'ring-grid' || name === 'two-holes-grid' || name === 'short-loop-grid') {
     elements.get('scale').value = name === 'square' ? '500' : name === 'short-loop-grid' ? '4' : '0';
     elements.get('scale').fire('input');

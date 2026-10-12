@@ -506,4 +506,24 @@ cli(['sweep'], 2);
 cli(['sequence'], 2);
 cli(['unknown'], 2);
 assert.ok(cli(['--help']).includes('MoonTopoLens'));
-console.log('CLI smoke passed: core scenarios, H2, PNG/PGM import, batch clustering, stability, temporal tracking, parameter ranking, offline reports, exports and error paths.');
+const csvPreview = JSON.parse(cli(['csv-preview', 'examples/square.csv']));
+assert.equal(csvPreview.row_count, 4);
+assert.deepEqual(csvPreview.headers, ['x', 'y']);
+for (const [mode, file, params, expected] of [
+  ['csv-points', 'square', ['2'], 'square'],
+  ['csv-series', 'periodic-series', ['3','2','1','1'], 'periodic-series'],
+]) {
+  const out = path.join(temporary, `csv-${file}`);
+  const report = JSON.parse(cli([mode, `examples/${file}.csv`, ...params, '--out', out]));
+  assert.deepEqual(report.intervals, JSON.parse(cli(['analyze', path.join(out, 'csv-request.json')])).intervals);
+  assert.deepEqual(report.intervals, JSON.parse(cli(['analyze', `examples/${expected}.json`])).intervals);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(out, 'csv-info.json'))).column_count, mode === 'csv-points' ? 2 : 1);
+  verifyReportUI(fs.readFileSync(path.join(out, 'report.html'), 'utf8'), report, 'csv');
+}
+const badCsv = path.join(temporary, 'bad.csv');
+fs.writeFileSync(badCsv, 'x,y\n1,\n');
+const invalidCsvOut = path.join(temporary, 'invalid-csv-output');
+cli(['csv-points', badCsv, '2', '--out', invalidCsvOut], 2);
+assert.equal(fs.existsSync(invalidCsvOut), false);
+cli(['csv-series', 'examples/periodic-series.csv', '2', '2.5', '1', '1'], 2);
+console.log('CLI smoke passed: CSV import/preview, exact-scale reports and existing topology/export/error scenarios.');

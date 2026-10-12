@@ -1,6 +1,7 @@
 import {
   "wdgodghl/moontopolens" @topo,
   "moonbitlang/core/json",
+  "moonbitlang/core/math",
 }
 
 pkgtype(kind: "executable")

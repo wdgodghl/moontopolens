@@ -60,6 +60,10 @@ pub fn comparison_json(Analysis, Analysis) -> Json raise TopologyError
 
 pub fn connected_components(Analysis, Double) -> Array[Array[Int]] raise TopologyError
 
+pub fn csv_preview_json(NumericCsv) -> Json
+
+pub fn csv_request_json(String, String, threshold~ : Double, dimension? : Int, lag? : Int, stride? : Int) -> Json raise TopologyError
+
 pub fn cubical_grid(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
 
 pub fn cubical_volume(Array[Array[Array[Double]]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
@@ -101,6 +105,8 @@ pub fn parse_batch_manifest(String) -> BatchPlan raise TopologyError
 pub fn parse_nifti1(Array[Int]) -> Array[Array[Array[Double]]] raise TopologyError
 
 pub fn parse_nifti1_study(Array[Int]) -> NiftiStudy raise TopologyError
+
+pub fn parse_numeric_csv(String) -> NumericCsv raise TopologyError
 
 pub fn parse_pgm(Array[Int]) -> PgmImage raise TopologyError
 
@@ -282,6 +288,12 @@ pub struct NiftiStudy {
   transform_source : String
 } derive(@debug.Debug)
 pub fn NiftiStudy::to_repr(Self) -> @debug.Repr
+
+pub struct NumericCsv {
+  headers : Array[String]
+  rows : Array[Array[Double]]
+} derive(@debug.Debug)
+pub fn NumericCsv::to_repr(Self) -> @debug.Repr
 
 pub struct PgmImage {
   grid : Array[Array[Double]]
