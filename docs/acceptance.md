@@ -16,7 +16,7 @@
 | README 可复现 | 安装、命令、预期结果、算法限制、三种完整场景 |
 | 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、三维体素、多帧体数据、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
 | 核心测试 | 0.19.0 本地 JS 和 Wasm GC 各 102 个测试；另有 CSV/JSON 等价、应用案例、报告精确尺度及既有 CLI 全流程验证 |
-| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.18.1 注册表显示 MIT、构建成功，全新独立项目安装与 API 测试通过 |
+| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.19.0 注册表显示 MIT、构建成功，全新独立项目安装与 API 测试通过 |
 | OSI 许可证与来源 | MIT；独立实现，公开算法背景见查重记录 |
 
 ## 本地验证
@@ -71,7 +71,7 @@ CLI 另有端到端场景验证，不计入上述单元覆盖率。覆盖率不�
 - 应用：UCI Iris 固定 36 行测量子集在 0.5/1.2 尺度分别有 18/2 个连接分量；两物种组的 H0/H1 瓶颈距离及合成信号参考结果由应用脚本复核。
 - 数据授权：Iris 改编 CSV 保留 CC BY 4.0 来源、原始选择索引、文件哈希及改编说明；项目代码继续使用 MIT。
 - 浏览器：1280×900 与 390×844 分析页布局、精确输入、事件与代表边高亮，以及三维代表面选择已实测；范围与局限见 browser-validation.md。
-- 新版本远端 CI 与 Mooncakes 状态在发布后记录；历史发布段落保留各自版本范围。
+- [0.19.0 GitHub CI](https://github.com/wdgodghl/moontopolens/actions/runs/38203746142) 全部通过；Mooncakes 确认最新 0.19.0、MIT、`build_status=success`。全新独立项目从注册表安装后，CSV 解析/预览、点云/序列请求及报告 API 的 JS/Wasm GC 各两项测试通过。历史发布段落保留各自版本范围。
 
 ## 算法与结果解释
 

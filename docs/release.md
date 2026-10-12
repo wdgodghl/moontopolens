@@ -1,11 +1,11 @@
 # Mooncakes 发布说明
 
-发布状态：**2026-10-12 已发布 0.18.1**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
+发布状态：**2026-10-12 已发布 0.19.0**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
 验收指南要求发布到 Mooncakes；以注册表中的实际模块条目作为完成证据。
 
 公开页面：https://mooncakes.io/docs/wdgodghl/moontopolens 。
-注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 确认最新版本 `0.18.1`、许可证 `MIT`、`build_status=success`。
-在全新独立项目安装 `wdgodghl/moontopolens@0.18.1`，调用粗网格分析与 H2 世界坐标代表面 API，核对空腔出生/死亡及世界坐标溢出拒绝，JS 与 Wasm GC 最小样例均通过。
+注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 确认最新版本 `0.19.0`、许可证 `MIT`、`build_status=success`。
+在全新独立项目安装 `wdgodghl/moontopolens@0.19.0`，调用 CSV 解析、预览、点云/序列请求和 HTML 报告 API，核对已知环路及缺失值拒绝；JS 与 Wasm GC 各两项最小样例均通过。
 
 ## 发布前
 
