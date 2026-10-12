@@ -16,7 +16,7 @@
 | README 可复现 | 安装、命令、预期结果、算法限制、三种完整场景 |
 | 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、三维体素、多帧体数据、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
 | 核心测试 | 0.20.0 本地 JS 和 Wasm GC 各 104 个测试；另有 CSV/JSON 等价、应用案例、报告精确尺度及既有 CLI 全流程验证 |
-| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.19.0 注册表显示 MIT、构建成功，全新独立项目安装与 API 测试通过 |
+| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.20.0 注册表显示 MIT、构建成功，全新独立项目安装与 API 测试通过 |
 | OSI 许可证与来源 | MIT；独立实现，公开算法背景见查重记录 |
 
 ## 本地验证
@@ -82,3 +82,5 @@ CLI 另有端到端场景验证，不计入上述单元覆盖率。覆盖率不�
 主元配对确定出生和死亡区间，出生代表链用于解释特征。
 截止时未死亡类、对角线匹配、事件合并、并查集分组、景观采样及资源预算的含义
 分别见 [架构与算法](architecture.md)、[功能范围](feature-scope.md) 和测试记录。
+
+0.20.0 发布验证：[GitHub CI](https://github.com/wdgodghl/moontopolens/actions/runs/38205231226) 全部通过；Mooncakes 最新版本 0.20.0、MIT、build_status=success。独立项目安装后，仅区间 API 的 JS/Wasm GC 样例各一项通过。
