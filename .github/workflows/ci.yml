@@ -51,6 +51,8 @@ jobs:
         run: node scripts/smoke.mjs
       - name: Reproduce documented application cases
         run: node scripts/application-cases.mjs
+      - name: Compare full and interval-only reduction modes
+        run: node scripts/benchmark-modes.mjs
       - name: Compare Rips and cubical diagrams against GUDHI
         run: |
           python -m pip install numpy==2.3.5 gudhi==3.13.0

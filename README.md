@@ -9,11 +9,19 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.19.0 CSV 导入、精确尺度交互与应用案例版**。
+当前版本：**0.20.0 可选代表链与资源对比基准版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
 从表格数据到拓扑报告的完整流程见 [应用案例](docs/application-cases.md)。
+无需代表环路时，可使用[仅区间模式](docs/reduction-modes.md)，查看两种模式的耗时和峰值内存对照。
+
+```sh
+moon run --target js cmd/main -- analyze examples/square.json --intervals-only --out out-intervals
+node scripts/benchmark-modes.mjs
+```
+
+此模式保持区间结果，关闭代表链计算和高亮。资源预算及输入上限不变；实测存储项减少，但不保证所有输入都更快。
 
 ## 能做什么
 

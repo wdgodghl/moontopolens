@@ -49,6 +49,8 @@ pub struct Analysis {
   intervals : Array[Interval]
   column_additions : Int
   homology_dimension : Int
+  representatives_computed : Bool
+  reduction_entries : Int
 } derive(@debug.Debug)
 
 ///|

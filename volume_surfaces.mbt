@@ -2,6 +2,9 @@
 /// Birth-time representative face chains for H2 classes in a 3D volume.
 /// They are algebraic cycles, not a segmentation or a shortest enclosing shell.
 pub fn volume_h2_surfaces_json(analysis : Analysis) -> Json raise TopologyError {
+  if !analysis.representatives_computed {
+    raise TopologyError("representatives were not computed")
+  }
   if analysis.filtration.kind != "cubical_volume" ||
     analysis.homology_dimension < 2 {
     raise TopologyError("H2 surfaces require a three-dimensional volume")
@@ -56,6 +59,9 @@ pub fn volume_h2_world_surfaces_json(
   analysis : Analysis,
   affine : Array[Array[Double]],
 ) -> Json raise TopologyError {
+  if !analysis.representatives_computed {
+    raise TopologyError("representatives were not computed")
+  }
   if analysis.filtration.kind != "cubical_volume" ||
     analysis.homology_dimension < 2 ||
     affine.length() != 3 {

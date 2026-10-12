@@ -53,7 +53,10 @@ fn rows_field(
 ///|
 /// Parse a bounded JSON request, construct a filtration, then analyze it.
 /// Supported kinds: points, matrix, grid, volume, series. Unknown fields are errors.
-pub fn analyze_json(text : String) -> Analysis raise TopologyError {
+pub fn analyze_json(
+  text : String,
+  representatives? : Bool = true,
+) -> Analysis raise TopologyError {
   if text.length() > 1000000 {
     raise TopologyError("JSON request exceeds one million characters")
   }
@@ -111,6 +114,13 @@ pub fn analyze_json(text : String) -> Analysis raise TopologyError {
         "unknown kind; expected points, matrix, grid, volume or series",
       )
   }
+  allowed.push("representatives")
+  let track = match object.get("representatives") {
+    None => representatives
+    Some(True) => representatives
+    Some(False) => false
+    _ => raise TopologyError("representatives must be a boolean")
+  }
   for field in object.keys() {
     if !allowed.contains(field) {
       raise TopologyError("unknown field for " + kind + ": " + field)
@@ -162,7 +172,11 @@ pub fn analyze_json(text : String) -> Analysis raise TopologyError {
     }
     _ => raise TopologyError("unreachable kind")
   }
-  analyze(filtration, max_homology_dimension=homology_dimension)
+  analyze(
+    filtration,
+    max_homology_dimension=homology_dimension,
+    representatives=track,
+  )
 }
 
 ///|
@@ -207,13 +221,19 @@ pub fn report_json(analysis : Analysis) -> Json {
     "vertex_count": analysis.filtration.vertex_count,
     "cell_count": cells.length(),
     "column_additions": analysis.column_additions,
+    "representatives_computed": analysis.representatives_computed,
+    "reduction_entries": analysis.reduction_entries,
     "homology_dimension": analysis.homology_dimension,
     "positions": analysis.filtration.positions,
     "position_meaning": "display projection: first two point coordinates; grid x and negative row; matrix has none",
     "summary": summary_json(analysis),
     "betti_events": betti_events_json(analysis),
     "essential_meaning": "alive at input cutoff; not proof of infinite lifetime",
-    "representative_meaning": "cycle at birth; not guaranteed shortest",
+    "representative_meaning": if analysis.representatives_computed {
+      "cycle at birth; not guaranteed shortest"
+    } else {
+      "not computed; empty arrays do not mean absence of topology"
+    },
     "intervals": intervals,
     "cells": cells,
   }

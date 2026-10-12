@@ -9,6 +9,14 @@ extern "js" fn benchmark_sparse() -> Bool =
   #|() => process.argv[3] === "sparse"
 
 ///|
+extern "js" fn benchmark_representatives() -> Bool =
+  #|() => process.argv[4] !== "intervals"
+
+///|
+extern "js" fn peak_rss_mib() -> Double =
+  #|() => process.resourceUsage().maxRSS / 1024
+
+///|
 extern "js" fn clock_ms() -> Double =
   #|() => performance.now()
 

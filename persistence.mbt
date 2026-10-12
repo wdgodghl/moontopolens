@@ -111,6 +111,7 @@ pub fn analyze(
   include_zero? : Bool = false,
   max_additions? : Int = 2000000,
   max_homology_dimension? : Int = 1,
+  representatives? : Bool = true,
 ) -> Analysis raise TopologyError {
   validate_filtration(filtration)
   if max_homology_dimension < 1 || max_homology_dimension > 2 {
@@ -130,7 +131,8 @@ pub fn analyze(
   for j = 0; j < cells.length(); j = j + 1 {
     let mut column = cells[j].boundary.copy()
     // Keep basis chains only for dimensions returned to the caller.
-    let mut chain = if cells[j].dimension <= max_homology_dimension {
+    let mut chain = if representatives &&
+      cells[j].dimension <= max_homology_dimension {
       [j]
     } else {
       []
@@ -148,7 +150,7 @@ pub fn analyze(
         )
       }
       column = xor_columns(column, reduced[k])
-      if cells[j].dimension <= max_homology_dimension {
+      if representatives && cells[j].dimension <= max_homology_dimension {
         chain = xor_columns(chain, chains[k])
       }
     }
@@ -166,7 +168,9 @@ pub fn analyze(
       )
     }
     reduced.push(column)
-    chains.push(chain)
+    if representatives {
+      chains.push(chain)
+    }
   }
   let intervals : Array[Interval] = []
   for i = 0; i < cells.length(); i = i + 1 {
@@ -191,7 +195,11 @@ pub fn analyze(
       } else {
         Some(d)
       },
-      representative: chains[i].copy(),
+      representative: if representatives {
+        chains[i].copy()
+      } else {
+        []
+      },
     })
   }
   {
@@ -199,6 +207,8 @@ pub fn analyze(
     intervals,
     column_additions: additions,
     homology_dimension: max_homology_dimension,
+    representatives_computed: representatives,
+    reduction_entries: stored_entries,
   }
 }
 
@@ -233,6 +243,9 @@ pub fn cycle_edges(
   analysis : Analysis,
   interval : Interval,
 ) -> Array[(Int, Int)] raise TopologyError {
+  if !analysis.representatives_computed {
+    raise TopologyError("representatives were not computed")
+  }
   if interval.dimension != 1 {
     raise TopologyError("cycle_edges requires an H1 interval")
   }

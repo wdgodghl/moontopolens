@@ -4,7 +4,7 @@
 fn main {
   let n = benchmark_size()
   let sparse = benchmark_sparse()
-  if n < 4 || n > (if sparse { 128 } else { 28 }) {
+  if n < 4 || n > (if sparse { 128 } else { 38 }) {
     println("benchmark size out of supported range")
     return
   }
@@ -21,7 +21,12 @@ fn main {
   let start = clock_ms()
   try {
     let result = @topo.analyze(
-      @topo.rips(points, threshold=if sparse { 0.21 } else { 2.0 }),
+      @topo.rips(
+        points,
+        threshold=if sparse { 0.21 } else { 2.0 },
+        max_cells=10000,
+      ),
+      representatives=benchmark_representatives(),
     )
     let elapsed = clock_ms() - start
     let report : Json = {
@@ -36,6 +41,10 @@ fn main {
       "elapsed_ms": elapsed,
       "rss_mib_after": rss_mib(),
       "heap_mib_after": heap_mib(),
+      "peak_rss_mib": peak_rss_mib(),
+      "representatives_computed": result.representatives_computed,
+      "reduction_entries": result.reduction_entries,
+      "diagram": result.intervals.map(fn(i) { (i.dimension, i.birth, i.death) }),
     }
     println(report.stringify())
   } catch {

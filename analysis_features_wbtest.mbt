@@ -36,6 +36,8 @@ test "landscape insertion budget is enforced before allocating output" {
     intervals,
     column_additions: 0,
     homology_dimension: 1,
+    representatives_computed: true,
+    reduction_entries: 0,
   }
   let invalid = try {
     ignore(

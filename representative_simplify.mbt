@@ -6,6 +6,9 @@ pub fn simplify_representative(
   analysis : Analysis,
   interval_index : Int,
 ) -> Array[Int] raise TopologyError {
+  if !analysis.representatives_computed {
+    raise TopologyError("representatives were not computed")
+  }
   if interval_index < 0 || interval_index >= analysis.intervals.length() {
     raise TopologyError("representative interval index out of range")
   }

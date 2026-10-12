@@ -6,9 +6,9 @@ import {
 }
 
 // Values
-pub fn analyze(Filtration, include_zero? : Bool, max_additions? : Int, max_homology_dimension? : Int) -> Analysis raise TopologyError
+pub fn analyze(Filtration, include_zero? : Bool, max_additions? : Int, max_homology_dimension? : Int, representatives? : Bool) -> Analysis raise TopologyError
 
-pub fn analyze_json(String) -> Analysis raise TopologyError
+pub fn analyze_json(String, representatives? : Bool) -> Analysis raise TopologyError
 
 pub fn analyze_volume_coarse(Array[Array[Array[Double]]], threshold~ : Double, max_cells? : Int) -> (Analysis, Int) raise TopologyError
 
@@ -177,6 +177,8 @@ pub struct Analysis {
   intervals : Array[Interval]
   column_additions : Int
   homology_dimension : Int
+  representatives_computed : Bool
+  reduction_entries : Int
 } derive(@debug.Debug)
 pub fn Analysis::to_repr(Self) -> @debug.Repr
 

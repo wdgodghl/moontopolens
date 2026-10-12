@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "node": "v24.15.0",
+  "platform": "win32-x64",
+  "cpu": "AMD Ryzen 9 7845HX with Radeon Graphics        ",
+  "repeats": 3,
+  "timing": "filtration construction and reduction; startup excluded",
+  "memory": "OS process lifetime high-water RSS via Node resourceUsage.maxRSS; includes runtime and startup, null if unavailable; not topology-only allocations",
+  "results": [
+    {
+      "distribution": "dense",
+      "point_count": 16,
+      "cell_count": 696,
+      "full": {
+        "elapsed_ms": 17.073699999999995,
+        "rss_mib_after": 46.2734375,
+        "peak_rss_mib": 46.65625,
+        "reduction_entries": 1019
+      },
+      "intervals": {
+        "elapsed_ms": 17.2962,
+        "rss_mib_after": 46.25390625,
+        "peak_rss_mib": 46.81640625,
+        "reduction_entries": 351
+      }
+    },
+    {
+      "distribution": "dense",
+      "point_count": 24,
+      "cell_count": 2324,
+      "full": {
+        "elapsed_ms": 35.690999999999995,
+        "rss_mib_after": 51.82421875,
+        "peak_rss_mib": 52.60546875,
+        "reduction_entries": 3080
+      },
+      "intervals": {
+        "elapsed_ms": 38.8676,
+        "rss_mib_after": 51.3671875,
+        "peak_rss_mib": 52.1484375,
+        "reduction_entries": 809
+      }
+    },
+    {
+      "distribution": "dense",
+      "point_count": 28,
+      "cell_count": 3682,
+      "full": {
+        "elapsed_ms": 49.74360000000001,
+        "rss_mib_after": 53.94921875,
+        "peak_rss_mib": 55,
+        "reduction_entries": 4670
+      },
+      "intervals": {
+        "elapsed_ms": 50.4191,
+        "rss_mib_after": 54.21875,
+        "peak_rss_mib": 55.1875,
+        "reduction_entries": 1111
+      }
+    },
+    {
+      "distribution": "dense",
+      "point_count": 38,
+      "cell_count": 9177,
+      "full": {
+        "elapsed_ms": 75.8054,
+        "rss_mib_after": 67.29296875,
+        "peak_rss_mib": 67.40234375,
+        "reduction_entries": 9551
+      },
+      "intervals": {
+        "elapsed_ms": 77.5876,
+        "rss_mib_after": 65.91015625,
+        "peak_rss_mib": 66.0859375,
+        "reduction_entries": 2086
+      }
+    },
+    {
+      "distribution": "sparse",
+      "point_count": 32,
+      "cell_count": 64,
+      "full": {
+        "elapsed_ms": 6.6030000000000015,
+        "rss_mib_after": 39.203125,
+        "peak_rss_mib": 39.2109375,
+        "reduction_entries": 136
+      },
+      "intervals": {
+        "elapsed_ms": 5.324799999999996,
+        "rss_mib_after": 39.11328125,
+        "peak_rss_mib": 39.1171875,
+        "reduction_entries": 48
+      }
+    },
+    {
+      "distribution": "sparse",
+      "point_count": 64,
+      "cell_count": 128,
+      "full": {
+        "elapsed_ms": 8.5441,
+        "rss_mib_after": 42.88671875,
+        "peak_rss_mib": 42.890625,
+        "reduction_entries": 272
+      },
+      "intervals": {
+        "elapsed_ms": 9.030500000000004,
+        "rss_mib_after": 42.74609375,
+        "peak_rss_mib": 42.75,
+        "reduction_entries": 96
+      }
+    },
+    {
+      "distribution": "sparse",
+      "point_count": 128,
+      "cell_count": 256,
+      "full": {
+        "elapsed_ms": 14.9041,
+        "rss_mib_after": 44.84375,
+        "peak_rss_mib": 46.48046875,
+        "reduction_entries": 544
+      },
+      "intervals": {
+        "elapsed_ms": 13.407300000000006,
+        "rss_mib_after": 44.69921875,
+        "peak_rss_mib": 46.48828125,
+        "reduction_entries": 192
+      }
+    }
+  ]
+}

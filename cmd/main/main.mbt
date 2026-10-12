@@ -9,7 +9,7 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- csv-series INPUT.csv CUTOFF DIMENSION LAG STRIDE [--out NEW_DIRECTORY]",
   )
   println(
-    "moon run --target js cmd/main -- analyze INPUT.json [--out NEW_DIRECTORY]",
+    "moon run --target js cmd/main -- analyze INPUT.json [--intervals-only] [--out NEW_DIRECTORY]",
   )
   println(
     "moon run --target js cmd/main -- image INPUT.pgm|INPUT.png CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
@@ -63,14 +63,17 @@ fn usage() -> Unit {
 }
 
 ///|
-fn load(path : String) -> @topo.Analysis raise @topo.TopologyError {
+fn load(
+  path : String,
+  representatives? : Bool = true,
+) -> @topo.Analysis raise @topo.TopologyError {
   let text = read_input(path)
   if text == "" {
     raise @topo.TopologyError(
       "input missing, unreadable, empty or exceeds 1MB: " + path,
     )
   }
-  @topo.analyze_json(text)
+  @topo.analyze_json(text, representatives~)
 }
 
 ///|
@@ -116,6 +119,7 @@ fn save_analysis(
   save_output(output, "report.html", @topo.html_report(result)) &&
   (
     result.filtration.kind != "cubical_volume" ||
+    !result.representatives_computed ||
     (
       save_output(
         output,
@@ -1122,20 +1126,23 @@ fn main {
         println(report)
       }
       "analyze" => {
-        if count != 2 && count != 4 {
+        let intervals_only = argument(2) == "--intervals-only"
+        let base = if intervals_only { 3 } else { 2 }
+        if count != base && count != base + 2 {
           print_error(
-            "analyze requires INPUT.json and optional --out NEW_DIRECTORY",
+            "analyze requires INPUT.json, optional --intervals-only then --out NEW_DIRECTORY",
           )
           return
         }
-        if count == 4 && (argument(2) != "--out" || argument(3) == "") {
+        if count == base + 2 &&
+          (argument(base) != "--out" || argument(base + 1) == "") {
           print_error("expected --out NEW_DIRECTORY")
           return
         }
-        let result = load(argument(1))
+        let result = load(argument(1), representatives=!intervals_only)
         let report = @topo.report_json(result).stringify()
-        if count == 4 {
-          let output = argument(3)
+        if count == base + 2 {
+          let output = argument(base + 1)
           if !new_output(output) {
             print_error(
               "output directory must be new and have an existing parent: " +

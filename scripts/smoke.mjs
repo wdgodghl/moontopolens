@@ -527,3 +527,15 @@ cli(['csv-points', badCsv, '2', '--out', invalidCsvOut], 2);
 assert.equal(fs.existsSync(invalidCsvOut), false);
 cli(['csv-series', 'examples/periodic-series.csv', '2', '2.5', '1', '1'], 2);
 console.log('CLI smoke passed: CSV import/preview, exact-scale reports and existing topology/export/error scenarios.');
+for (const input of ['square','ring-grid','hollow-volume']) {
+  const full=JSON.parse(cli(['analyze',`examples/${input}.json`]));
+  const out=path.join(temporary,`intervals-only-${input}`);
+  const lean=JSON.parse(cli(['analyze',`examples/${input}.json`,'--intervals-only','--out',out]));
+  assert.equal(lean.representatives_computed,false);
+  assert.deepEqual(lean.intervals.map(({representative,...rest})=>rest),full.intervals.map(({representative,...rest})=>rest));
+  assert.ok(lean.intervals.every(i=>i.representative.length===0));
+  assert.deepEqual(lean.summary,full.summary);
+  assert.ok(fs.readFileSync(path.join(out,'report.html'),'utf8').includes('仅区间模式'));
+  if(input==='hollow-volume') assert.equal(fs.existsSync(path.join(out,'volume-surfaces.json')),false);
+}
+console.log('Interval-only CLI equivalence and export checks passed.');
