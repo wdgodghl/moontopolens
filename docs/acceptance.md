@@ -14,6 +14,7 @@
 | 公开仓库、清晰提交 | https://github.com/wdgodghl/moontopolens ；按功能逐步提交 |
 | 结构清晰且核心功能可运行 | H0/H1 与可选 H2、点云/矩阵/序列/二维网格/三维体数据 JSON 输入、有界 NIfTI-1/4D 导入、参数扫描、多帧点云与体数据轨迹、PGM/PNG 图像、批量距离与分组、点云/强度扰动稳定性、H2 代表面及三维投影、粗网格近似分析、瓶颈距离、尺度快照、景观向量和离线 HTML 等已实现 |
 | README 可复现 | 安装、命令、预期结果、算法限制、三种完整场景 |
+| CI 检查/构建/测试 | GitHub Actions 包含格式、检查、双后端构建和测试、CLI 场景、应用案例、资源基准与外部区间对照 |
 | 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、三维体素、多帧体数据、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
 | 核心测试 | 0.20.0 本地 JS 和 Wasm GC 各 104 个测试；另有 CSV/JSON 等价、应用案例、报告精确尺度及既有 CLI 全流程验证 |
 | Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.20.0 注册表显示 MIT、构建成功，全新独立项目安装与 API 测试通过 |

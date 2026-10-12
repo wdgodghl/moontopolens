@@ -13,7 +13,7 @@
 2. 确认 OSI MIT 许可证、来源记录、安装与 JSON/PGM/批量输入示例。
 3. 检查 `moon.mod` 包名、版本、repository、license、readme、description。
 4. 运行 `moon package --list`，检查归档没有本地输出、工具链、凭据或 Git 历史。
-6. 如账号命名空间不同，同步修改模块名、内部 import、文档和 CI。
+5. 如账号命名空间不同，同步修改模块名、内部 import、文档和 CI。
 
 ## 登录及发布
 
