@@ -56,7 +56,9 @@ pub fn volume_h2_world_surfaces_json(
   analysis : Analysis,
   affine : Array[Array[Double]],
 ) -> Json raise TopologyError {
-  if analysis.filtration.kind != "cubical_volume" || affine.length() != 3 {
+  if analysis.filtration.kind != "cubical_volume" ||
+    analysis.homology_dimension < 2 ||
+    affine.length() != 3 {
     raise TopologyError("world surfaces require volume and a 3x4 affine")
   }
   for row in affine {
@@ -80,14 +82,18 @@ pub fn volume_h2_world_surfaces_json(
           let x = p[0]
           let y = -p[1]
           let z = p[2]
-          corners.push(
-            Array::makei(3, fn(axis) {
-              affine[axis][0] * x +
-              affine[axis][1] * y +
-              affine[axis][2] * z +
-              affine[axis][3]
-            }).to_json(),
-          )
+          let world = Array::makei(3, fn(axis) {
+            affine[axis][0] * x +
+            affine[axis][1] * y +
+            affine[axis][2] * z +
+            affine[axis][3]
+          })
+          for coordinate in world {
+            if !finite(coordinate) {
+              raise TopologyError("world surface coordinate overflow")
+            }
+          }
+          corners.push(world.to_json())
         }
         faces.push({ "cell_index": cell_index, "world_corners": corners })
       }

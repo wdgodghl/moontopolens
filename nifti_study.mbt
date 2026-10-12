@@ -108,6 +108,11 @@ pub fn parse_nifti1_study(bytes : Array[Int]) -> NiftiStudy raise TopologyError 
   if bytes.length() < 352 || bytes.length() > 1000000 {
     raise TopologyError("NIfTI-1 study must be 352 bytes to 1 MB")
   }
+  for byte in bytes {
+    if byte < 0 || byte > 255 {
+      raise TopologyError("NIfTI bytes must be in [0,255]")
+    }
+  }
   let little = if nifti_u32(bytes, 0, true) == 348 {
     true
   } else if nifti_u32(bytes, 0, false) == 348 {
