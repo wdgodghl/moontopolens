@@ -14,10 +14,9 @@
 | 公开仓库、清晰提交 | https://github.com/wdgodghl/moontopolens ；按功能逐步提交 |
 | 结构清晰且核心功能可运行 | H0/H1 与可选 H2、点云/矩阵/序列/二维网格/三维体数据 JSON 输入、有界 NIfTI-1/4D 导入、参数扫描、多帧点云与体数据轨迹、PGM/PNG 图像、批量距离与分组、点云/强度扰动稳定性、H2 代表面及三维投影、粗网格近似分析、瓶颈距离、尺度快照、景观向量和离线 HTML 等已实现 |
 | README 可复现 | 安装、命令、预期结果、算法限制、三种完整场景 |
-| CI 检查/构建/测试 | .github/workflows/ci.yml；含 GUDHI 外部 Rips/cubical 区间对照；0.18.0 对应运行全部通过 |
 | 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、三维体素、多帧体数据、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
 | 核心测试 | 0.18.1 本地 JS 和 Wasm GC 各 98 个测试；另有 CLI 全流程覆盖 NIfTI 4D/仿射、粗网格、图像/体数据稳定性、多帧 H2 追踪及既有核心功能 |
-| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.18.0 注册表显示 MIT、构建成功，独立项目安装与新增 API 测试通过 |
+| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.18.1 注册表显示 MIT、构建成功，全新独立项目安装与 API 测试通过 |
 | OSI 许可证与来源 | MIT；独立实现，公开算法背景见查重记录 |
 
 ## 本地验证
@@ -55,7 +54,8 @@
 CLI 另有端到端场景验证，不计入上述单元覆盖率。覆盖率不等于全部行为正确；本地重跑 30 个 GUDHI 对照案例一致。
 
 0.18.1 增加 NIfTI 原始字节、H2 计算状态和世界坐标溢出校验，新增三项双后端回归测试。
-0.18.1 的远端 CI 和 Mooncakes 发布结果以发布后的独立记录为准，上述 0.18.0 记录保留原版本范围。
+0.18.1 的 [GitHub CI](https://github.com/wdgodghl/moontopolens/actions/runs/38201855928) 全部通过；Mooncakes 注册表确认最新 0.18.1、MIT、`build_status=success`。
+全新独立项目从注册表安装 0.18.1，验证粗网格空腔、世界坐标导出及溢出拒绝，JS/Wasm GC 样例均通过；上述 0.18.0 记录保留原版本范围。
 
 ## 下一阶段
 

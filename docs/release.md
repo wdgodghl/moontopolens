@@ -1,11 +1,11 @@
 # Mooncakes 发布说明
 
-发布状态：**2026-10-11 已发布 0.18.0**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
+发布状态：**2026-10-12 已发布 0.18.1**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
 验收指南要求发布到 Mooncakes；以注册表中的实际模块条目作为完成证据。
 
 公开页面：https://mooncakes.io/docs/wdgodghl/moontopolens 。
-注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 确认最新版本 `0.18.0`、许可证 `MIT`、`build_status=success`。
-在独立项目安装 `wdgodghl/moontopolens@0.18.0`，调用粗网格分析与 H2 世界坐标代表面 API，JS 与 Wasm GC 最小样例均通过。
+注册表 `https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens` 确认最新版本 `0.18.1`、许可证 `MIT`、`build_status=success`。
+在全新独立项目安装 `wdgodghl/moontopolens@0.18.1`，调用粗网格分析与 H2 世界坐标代表面 API，核对空腔出生/死亡及世界坐标溢出拒绝，JS 与 Wasm GC 最小样例均通过。
 
 ## 发布前
 
@@ -13,7 +13,7 @@
 2. 确认 OSI MIT 许可证、来源记录、安装与 JSON/PGM/批量输入示例。
 3. 检查 `moon.mod` 包名、版本、repository、license、readme、description。
 4. 运行 `moon package --list`，检查归档没有本地输出、工具链、凭据或 Git 历史。
-5. 如账号命名空间不同，同步修改模块名、内部 import、文档和 CI。
+6. 如账号命名空间不同，同步修改模块名、内部 import、文档和 CI。
 
 ## 登录及发布
 
