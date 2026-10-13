@@ -3,7 +3,10 @@ fn usage() -> Unit {
   println("MoonTopoLens — persistent H0/H1 analysis")
   println("moon run --target js cmd/main -- csv-preview INPUT.csv")
   println(
-    "moon run --target js cmd/main -- csv-points INPUT.csv CUTOFF [--columns X,Y] [--normalize none|zscore|minmax] [--out NEW_DIRECTORY]",
+    "moon run --target js cmd/main -- points-sample INPUT.json SIZE [--out NEW_DIRECTORY]",
+  )
+  println(
+    "moon run --target js cmd/main -- csv-points INPUT.csv CUTOFF [--columns X,Y] [--normalize none|zscore|minmax] [--sample SIZE] [--out NEW_DIRECTORY]",
   )
   println(
     "moon run --target js cmd/main -- csv-series INPUT.csv CUTOFF DIMENSION LAG STRIDE [--columns VALUE] [--normalize none|zscore|minmax] [--out NEW_DIRECTORY]",
@@ -103,6 +106,7 @@ fn save_analysis(
   output : String,
   result : @topo.Analysis,
   report : String,
+  source? : Json = Json::null(),
 ) -> Bool raise @topo.TopologyError {
   save_output(output, "report.json", report) &&
   save_output(output, "barcode.svg", @topo.barcode_svg(result)) &&
@@ -116,7 +120,7 @@ fn save_analysis(
     @topo.recommendations_json(result).stringify(),
   ) &&
   save_output(output, "recommendations.csv", @topo.recommendations_csv(result)) &&
-  save_output(output, "report.html", @topo.html_report(result)) &&
+  save_output(output, "report.html", @topo.html_report(result, source~)) &&
   (
     result.filtration.kind != "cubical_volume" ||
     !result.representatives_computed ||
@@ -192,6 +196,7 @@ fn main {
         let required = if series { 6 } else { 3 }
         let columns : Array[String] = []
         let mut normalization = "none"
+        let mut sample_size = 0
         let mut output = ""
         let mut option = required
         let seen : Array[String] = []
@@ -208,6 +213,7 @@ fn main {
               for name in argument(option + 1).split(",") {
                 columns.push(name.to_owned())
               }
+            "--sample" => sample_size = csv_integer_argument(option + 1)
             "--normalize" => normalization = argument(option + 1)
             "--out" => {
               output = argument(option + 1)
@@ -236,26 +242,71 @@ fn main {
           stride=if series { csv_integer_argument(5) } else { 1 },
           columns~,
           normalization~,
+          sample_size~,
         )
         let result = @topo.analyze_json(request.stringify())
-        let report = @topo.report_json(result).stringify()
+        let info = if series {
+          @topo.csv_transform_json(
+            @topo.parse_numeric_csv(source, columns~),
+            normalization~,
+          )
+        } else {
+          @topo.csv_preparation_json(
+            source,
+            columns~,
+            normalization~,
+            sample_size~,
+          )
+        }
+        let sampling = match info {
+          Object(fields) =>
+            match fields.get("sampling") {
+              Some(value) => value
+              None => Json::null()
+            }
+          _ => Json::null()
+        }
+        let metadata : Json = { "csv": info, "sampling": sampling }
+        let report = @topo.report_json(result, source=metadata).stringify()
         if output != "" {
           if !new_output(output) {
             raise @topo.TopologyError(
               "output directory must be new and have an existing parent",
             )
           }
-          if !save_analysis(output, result, report) ||
+          if !save_analysis(output, result, report, source=metadata) ||
             !save_output(output, "csv-request.json", request.stringify()) ||
-            !save_output(
-              output,
-              "csv-info.json",
-              @topo.csv_transform_json(
-                @topo.parse_numeric_csv(source, columns~),
-                normalization~,
-              ).stringify(),
-            ) {
+            !save_output(output, "csv-info.json", info.stringify()) {
             raise @topo.TopologyError("could not save complete CSV analysis")
+          }
+        }
+        println(report)
+      }
+      "points-sample" => {
+        if (count != 3 && count != 5) ||
+          (count == 5 && (argument(3) != "--out" || argument(4) == "")) {
+          raise @topo.TopologyError(
+            "points-sample requires INPUT.json SIZE [--out NEW_DIRECTORY]",
+          )
+        }
+        let (request, info) = @topo.sampled_points_request(
+          read_input(argument(1)),
+          size=csv_integer_argument(2),
+        )
+        let result = @topo.analyze_json(request.stringify())
+        let metadata : Json = { "sampling": info }
+        let report = @topo.report_json(result, source=metadata).stringify()
+        if count == 5 {
+          let output = argument(4)
+          if !new_output(output) {
+            raise @topo.TopologyError(
+              "output directory must be new and have an existing parent",
+            )
+          }
+          if !save_analysis(output, result, report, source=metadata) ||
+            !save_output(output, "sample-request.json", request.stringify()) ||
+            !save_output(output, "sampling-info.json", info.stringify()) {
+            raise @topo.TopologyError("could not save sampled analysis")
           }
         }
         println(report)

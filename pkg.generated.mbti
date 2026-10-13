@@ -60,9 +60,11 @@ pub fn comparison_json(Analysis, Analysis) -> Json raise TopologyError
 
 pub fn connected_components(Analysis, Double) -> Array[Array[Int]] raise TopologyError
 
+pub fn csv_preparation_json(String, columns? : Array[String], normalization? : String, sample_size? : Int) -> Json raise TopologyError
+
 pub fn csv_preview_json(NumericCsv) -> Json
 
-pub fn csv_request_json(String, String, threshold~ : Double, dimension? : Int, lag? : Int, stride? : Int, columns? : Array[String], normalization? : String) -> Json raise TopologyError
+pub fn csv_request_json(String, String, threshold~ : Double, dimension? : Int, lag? : Int, stride? : Int, columns? : Array[String], normalization? : String, sample_size? : Int) -> Json raise TopologyError
 
 pub fn csv_transform_json(NumericCsv, normalization? : String) -> Json raise TopologyError
 
@@ -82,7 +84,7 @@ pub fn distance_matrix(Array[Array[Double]]) -> Array[Array[Double]] raise Topol
 
 pub fn field_stability_json(String, Double, trials? : Int) -> Json raise TopologyError
 
-pub fn html_report(Analysis) -> String
+pub fn html_report(Analysis, source? : Json) -> String
 
 pub fn interval_matching(Analysis, Analysis, dimension~ : Int) -> Array[IntervalMatch] raise TopologyError
 
@@ -114,6 +116,8 @@ pub fn parse_pgm(Array[Int]) -> PgmImage raise TopologyError
 
 pub fn persistence_landscape(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> Array[Array[Double]] raise TopologyError
 
+pub fn point_sample_json(PointSample) -> Json
+
 pub fn point_stability_html(Json) -> String
 
 pub fn point_stability_json(String, Double, trials? : Int) -> Json raise TopologyError
@@ -126,13 +130,17 @@ pub fn recommendations_csv(Analysis, max_loops? : Int) -> String raise TopologyE
 
 pub fn recommendations_json(Analysis, max_loops? : Int) -> Json raise TopologyError
 
-pub fn report_json(Analysis) -> Json
+pub fn report_json(Analysis, source? : Json) -> Json
 
 pub fn resample_volume(Array[Array[Array[Double]]], Int, sampling? : String) -> Array[Array[Array[Double]]] raise TopologyError
 
 pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
 
 pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
+
+pub fn sample_points(Array[Array[Double]], size~ : Int) -> PointSample raise TopologyError
+
+pub fn sampled_points_request(String, size~ : Int) -> (Json, Json) raise TopologyError
 
 pub fn scale_svg(Analysis, scale~ : Double, interval? : Int?) -> String raise TopologyError
 
@@ -307,6 +315,14 @@ pub struct PgmImage {
   encoding : String
 } derive(@debug.Debug)
 pub fn PgmImage::to_repr(Self) -> @debug.Repr
+
+pub struct PointSample {
+  points : Array[Array[Double]]
+  source_indices : Array[Int]
+  source_count : Int
+  covering_radius : Double
+} derive(@debug.Debug)
+pub fn PointSample::to_repr(Self) -> @debug.Repr
 
 pub struct ScaleRecommendation {
   scale : Double

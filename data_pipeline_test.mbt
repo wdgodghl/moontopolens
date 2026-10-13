@@ -57,3 +57,48 @@ test "population scaling and constant column handling" {
     assert_true(rejected)
   }
 }
+
+///|
+test "deterministic sampling coverage, ties and identity" {
+  let points = [[0.0], [1.0], [2.0], [3.0]]
+  let sample = @moontopolens.sample_points(points, size=2)
+  assert_eq(sample.source_indices, [0, 3])
+  assert_eq(sample.covering_radius, 1.0)
+  assert_eq(sample.points, [[0.0], [3.0]])
+  assert_eq(@moontopolens.sample_points(points, size=4).source_indices, [
+    0, 1, 2, 3,
+  ])
+  assert_eq(
+    @moontopolens.sample_points([[0.0], [0.0], [0.0], [0.0]], size=3).source_indices,
+    [0, 1, 2],
+  )
+  for size in [0, 129] {
+    let rejected = try {
+      ignore(@moontopolens.sample_points(points, size~))
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(rejected)
+  }
+  for rows in [[], [[0.0], [1.0, 2.0]], [[]]] {
+    let rejected = try {
+      ignore(@moontopolens.sample_points(rows, size=2))
+      false
+    } catch {
+      _ => true
+    }
+    assert_true(rejected)
+  }
+  let text = "x\n0\n1\n2\n3"
+  let request = @moontopolens.csv_request_json(
+    text,
+    "points",
+    threshold=4.0,
+    sample_size=2,
+  )
+  assert_eq(
+    @moontopolens.analyze_json(request.stringify()).filtration.vertex_count,
+    2,
+  )
+}

@@ -2,8 +2,11 @@
 /// A self-contained offline report. JavaScript only displays precomputed results:
 /// slider filtering, table selection and 2D projection; no homology runs in UI.
 /// JSON escapes '<' so public cell keys cannot terminate the data script.
-pub fn html_report(analysis : Analysis) -> String {
-  let data = report_json(analysis)
+pub fn html_report(
+  analysis : Analysis,
+  source? : Json = Json::null(),
+) -> String {
+  let data = report_json(analysis, source~)
     .stringify()
     .replace_all(old="<", new="\\u003c")
   let header =
@@ -33,6 +36,7 @@ pub fn html_report(analysis : Analysis) -> String {
     #|<section class="panel" style="margin-top:18px"><h2>Betti 曲线</h2><svg id="curve" viewBox="0 0 1000 250" role="img" aria-label="Betti 数随尺度变化的曲线"></svg><small>蓝色 H0 / 橙色 H1 / 紫色 H2（如已分析）；按全部出生和死亡事件绘制精确阶梯曲线。</small></section>
     #|<div class="notice">代表环路用于解释计算结果，不保证最短。高维点云仅投影前两个坐标，投影交叉不代表原空间相交。距离矩阵没有几何坐标时仍可查看全部拓扑结果。</div>
     #|<p id="selection-note" aria-live="polite">选择 H1 区间可查看出生时的代表环路；必要时自动切换到出生尺度。</p>
+    #|<p id="source-note" class="notice" hidden></p>
     #|<footer>由 MoonBit 核心计算生成。配套文件：report.json、intervals.csv、betti.csv、betti-events.csv、barcode.svg、diagram.svg。</footer>
     #|</main><script id="topology-data" type="application/json">
   let script =
@@ -40,6 +44,7 @@ pub fn html_report(analysis : Analysis) -> String {
     #|'use strict';
     #|const DATA=JSON.parse(document.getElementById('topology-data').textContent);
     #|const el=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';
+    #|const sampling=DATA.source?.sampling; if(sampling){el('source-note').hidden=false;el('source-note').textContent=`${sampling.approximate?'近似采样分析':'完整点集分析'}：${sampling.source_count} → ${sampling.sample_count} 点；覆盖半径 ${sampling.covering_radius}（分析坐标单位）。该半径不是持久图区间误差保证。原始编号保存在 source 数据中。`;}
     #|function node(tag,attrs={},text=''){const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,String(v));if(text)n.textContent=text;return n;}
     #|const end=i=>i.death===null?DATA.cutoff:i.death,life=i=>Math.max(0,end(i)-i.birth);
     #|const live=(i,s)=>i.birth<=s&&(i.death===null||s<i.death);

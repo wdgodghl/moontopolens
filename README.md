@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.20.2 CSV 选列与显式预处理版**。
+当前版本：**0.20.3 确定性点云采样版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -51,6 +51,19 @@ node scripts/benchmark-modes.mjs
 
 H0 对应连接分量，H1 对应闭合环路。长寿命特征在较多尺度存在，
 可以作为进一步分析的线索；其物理意义需要结合输入数据判断。
+
+### 较大点云的显式近似分析
+
+```sh
+moon run --target js cmd/main -- points-sample examples/square.json 3 --out out-sampled
+moon run --target js cmd/main -- csv-points examples/iris/subset.csv 1.2 --sample 16 --out out-sampled-csv
+```
+
+采样入口接受最多 10000 点、1–32 维，选取 1–128 点；受 4000 万坐标距离更新预算约束。
+使用从原始编号 0 开始的最远点采样，距离并列时选择较小编号。点数不超过采样量时保留全部点和顺序。
+CSV 按先选列、再变换、最后采样执行。结果记录原始编号、点数和分析坐标中的覆盖半径；半径不是持久图误差保证。
+`points-sample` 导出 `sample-request.json` 与 `sampling-info.json`；CSV 的对应信息保存在 `csv-info.json`。
+报告显式标注近似分析。精确 Rips 的细胞预算保持不变，采样后仍可能因截止尺度过大而超预算。
 
 ## 安装与运行
 

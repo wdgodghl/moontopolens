@@ -176,6 +176,7 @@ pub fn csv_request_json(
   stride? : Int = 1,
   columns? : Array[String] = [],
   normalization? : String = "none",
+  sample_size? : Int = 0,
 ) -> Json raise TopologyError {
   let table = transform_numeric_csv(
     parse_numeric_csv(text, columns~),
@@ -185,9 +186,17 @@ pub fn csv_request_json(
     raise TopologyError("CSV Rips threshold must be finite and nonnegative")
   }
   if kind == "points" {
-    ignore(distance_matrix(table.rows))
-    { "kind": "points", "threshold": threshold, "points": table.rows }
+    let points = if sample_size == 0 {
+      table.rows
+    } else {
+      sample_points(table.rows, size=sample_size).points
+    }
+    ignore(distance_matrix(points))
+    { "kind": "points", "threshold": threshold, "points": points }
   } else if kind == "series" {
+    if sample_size != 0 {
+      raise TopologyError("sampling is supported for points only")
+    }
     if table.headers.length() != 1 {
       raise TopologyError("CSV series requires exactly one value column")
     }
@@ -309,4 +318,40 @@ pub fn csv_transform_json(
       table.rows[i]
     }),
   }
+}
+
+///|
+/// Metadata maps analyzed vertices to zero-based nonblank CSV data rows.
+pub fn csv_preparation_json(
+  text : String,
+  columns? : Array[String] = [],
+  normalization? : String = "none",
+  sample_size? : Int = 0,
+) -> Json raise TopologyError {
+  let raw = parse_numeric_csv(text, columns~)
+  let transformed = transform_numeric_csv(raw, normalization~)
+  let indices = if sample_size == 0 {
+    Array::makei(raw.rows.length(), fn(i) { i })
+  } else {
+    sample_points(transformed.rows, size=sample_size).source_indices
+  }
+  let fields = match csv_transform_json(raw, normalization~) {
+    Object(fields) => fields
+    _ => raise TopologyError("invalid preparation metadata")
+  }
+  fields.set("data_row_indices", indices.to_json())
+  fields.set("selected_raw_rows", indices.map(fn(i) { raw.rows[i] }).to_json())
+  fields.set(
+    "sampling",
+    if sample_size == 0 {
+      Json::null()
+    } else {
+      point_sample_json(sample_points(transformed.rows, size=sample_size))
+    },
+  )
+  fields.set(
+    "index_meaning",
+    "zero-based nonblank data row, excluding header".to_json(),
+  )
+  fields.to_json()
 }

@@ -17,6 +17,21 @@ try {
   assert.deepEqual(info.offsets,[0,0,7]);assert.deepEqual(info.scales,[2,2,1]);assert.deepEqual(info.data_row_indices,[0,1,2,3]);
   assert.deepEqual(run(['analyze',path.join(out,'csv-request.json')]).intervals,report.intervals);
   for(const args of [[],['--columns','missing'],['--columns','x,x'],['--columns','x','--normalize','bad'],['--columns','x','--columns','y']])run(['csv-points',input,'2',...args],2);
+  const ring=n=>Array.from({length:n},(_,i)=>[Math.cos(i*2*Math.PI/n),Math.sin(i*2*Math.PI/n)]);
+  const ringFile=path.join(root,'ring.json');fs.writeFileSync(ringFile,JSON.stringify({kind:'points',threshold:2,points:ring(16)}));
+  const exact=run(['analyze',ringFile]);
+  const identity=run(['points-sample',ringFile,'16']);assert.deepEqual(identity.intervals,exact.intervals);assert.equal(identity.source.sampling.approximate,false);
+  const sampledOut=path.join(root,'sampled');const sampled=run(['points-sample',ringFile,'8','--out',sampledOut]);
+  const difference=run(['compare',ringFile,path.join(sampledOut,'sample-request.json')]);
+  assert.equal(sampled.source.sampling.approximate,true);assert.ok(difference.distances.every(d=>d.bottleneck!==null));
+  const full=JSON.parse(fs.readFileSync(ringFile));const chosen=JSON.parse(fs.readFileSync(path.join(sampledOut,'sample-request.json')));
+  assert.deepEqual(chosen.points,sampled.source.sampling.source_indices.map(i=>full.points[i]));
+  const large=path.join(root,'large.csv');fs.writeFileSync(large,'id,x,y\n'+ring(512).map((p,i)=>`row${i},${p.join(',')}`).join('\n'));
+  const largeOut=path.join(root,'large-report');const largeReport=run(['csv-points',large,'0.3','--columns','x,y','--sample','32','--out',largeOut]);
+  assert.equal(largeReport.vertex_count,32);assert.equal(largeReport.source.sampling.source_count,512);
+  const meta=JSON.parse(fs.readFileSync(path.join(largeOut,'csv-info.json')));assert.deepEqual(meta.data_row_indices,largeReport.source.sampling.source_indices);assert.equal(meta.selected_raw_rows.length,32);
+  run(['points-sample',ringFile,'129'],2);run(['csv-series',input,'2','2','1','1','--columns','x','--sample','2'],2);
+  console.log(JSON.stringify({sampling_validation:{source_points:16,sampled_points:8,diagram_distances:difference.distances.map(d=>({dimension:d.dimension,bottleneck:d.bottleneck})),covering_radius:sampled.source.sampling.covering_radius,large_source_points:512,large_sample_points:32}}));
   console.log('CSV column selection, affine parameters, replay and error paths passed.');
 } finally {fs.rmSync(root,{recursive:true,force:true});}
 

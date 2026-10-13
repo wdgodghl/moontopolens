@@ -182,7 +182,7 @@ pub fn analyze_json(
 ///|
 /// Portable report schema. null death means alive at the input cutoff.
 /// Representative cell indices refer to the accompanying cells array.
-pub fn report_json(analysis : Analysis) -> Json {
+pub fn report_json(analysis : Analysis, source? : Json = Json::null()) -> Json {
   let intervals : Array[Json] = []
   for interval in analysis.intervals {
     let death : Json = match interval.death {
@@ -212,7 +212,7 @@ pub fn report_json(analysis : Analysis) -> Json {
       "vertices": cell.vertices,
     })
   }
-  {
+  let report : Json = {
     "schema_version": 1,
     "project": "MoonTopoLens",
     "coefficients": "GF(2)",
@@ -236,5 +236,16 @@ pub fn report_json(analysis : Analysis) -> Json {
     },
     "intervals": intervals,
     "cells": cells,
+  }
+  if source != Json::null() {
+    match report {
+      Object(fields) => {
+        fields.set("source", source)
+        fields.to_json()
+      }
+      _ => report
+    }
+  } else {
+    report
   }
 }
