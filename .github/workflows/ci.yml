@@ -51,6 +51,8 @@ jobs:
         run: node scripts/smoke.mjs
       - name: Reproduce documented application cases
         run: node scripts/application-cases.mjs
+      - name: Reproduce data preparation paths
+        run: node scripts/data-pipeline.mjs
       - name: Compare full and interval-only reduction modes
         run: node scripts/benchmark-modes.mjs
       - name: Compare Rips and cubical diagrams against GUDHI

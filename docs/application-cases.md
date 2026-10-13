@@ -65,5 +65,5 @@ moon run --target js cmd/main -- csv-series examples/periodic-series.csv 2 2 1 1
 - 支持 UTF-8 BOM、LF/CRLF、字段引号、表头中的逗号与双引号转义；忽略空白行。
 - 数值采用 JSON 十进制/指数格式，例如 `-0.5`、`1.2e-3`；不接受 `NaN`、缺失值、类别列、千分位或多行字段。
 - 最多 32 列、10000 行、字段 256 字符；CLI 文件最多 1 MB。点云与嵌入后的点数仍受 128 点上限及细胞预算约束。
-- 不自动选列、去重、归一化、插值或排序。多列含时间戳的信号应先明确选择数值列。
+- 使用 `--columns` 显式选列；默认不变换。可选择 `--normalize zscore|minmax`，变换参数与零起始数据行编号保存在 `csv-info.json`。不自动去重、插值或排序。
 - `csv-preview` 输出列名、行列数及前五行；分析导出额外保存 `csv-info.json` 和可复现请求 `csv-request.json`。

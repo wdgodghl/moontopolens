@@ -3,10 +3,10 @@ fn usage() -> Unit {
   println("MoonTopoLens — persistent H0/H1 analysis")
   println("moon run --target js cmd/main -- csv-preview INPUT.csv")
   println(
-    "moon run --target js cmd/main -- csv-points INPUT.csv CUTOFF [--out NEW_DIRECTORY]",
+    "moon run --target js cmd/main -- csv-points INPUT.csv CUTOFF [--columns X,Y] [--normalize none|zscore|minmax] [--out NEW_DIRECTORY]",
   )
   println(
-    "moon run --target js cmd/main -- csv-series INPUT.csv CUTOFF DIMENSION LAG STRIDE [--out NEW_DIRECTORY]",
+    "moon run --target js cmd/main -- csv-series INPUT.csv CUTOFF DIMENSION LAG STRIDE [--columns VALUE] [--normalize none|zscore|minmax] [--out NEW_DIRECTORY]",
   )
   println(
     "moon run --target js cmd/main -- analyze INPUT.json [--intervals-only] [--out NEW_DIRECTORY]",
@@ -190,14 +190,37 @@ fn main {
       "csv-points" | "csv-series" => {
         let series = argument(0) == "csv-series"
         let required = if series { 6 } else { 3 }
-        if count != required && count != required + 2 {
-          raise @topo.TopologyError(
-            "CSV analysis requires FILE CUTOFF; series also requires DIMENSION LAG STRIDE; optional --out NEW_DIRECTORY",
-          )
+        let columns : Array[String] = []
+        let mut normalization = "none"
+        let mut output = ""
+        let mut option = required
+        let seen : Array[String] = []
+        while option < count {
+          let key = argument(option)
+          if option + 1 >= count || seen.contains(key) {
+            raise @topo.TopologyError(
+              "CSV options require unique names and values",
+            )
+          }
+          seen.push(key)
+          match key {
+            "--columns" =>
+              for name in argument(option + 1).split(",") {
+                columns.push(name.to_owned())
+              }
+            "--normalize" => normalization = argument(option + 1)
+            "--out" => {
+              output = argument(option + 1)
+              if output == "" {
+                raise @topo.TopologyError("empty output path")
+              }
+            }
+            _ => raise @topo.TopologyError("unknown CSV option")
+          }
+          option += 2
         }
-        if count == required + 2 &&
-          (argument(required) != "--out" || argument(required + 1) == "") {
-          raise @topo.TopologyError("expected --out NEW_DIRECTORY")
+        if count < required {
+          raise @topo.TopologyError("missing CSV analysis arguments")
         }
         let source = read_input(argument(1))
         let request = @topo.csv_request_json(
@@ -211,11 +234,12 @@ fn main {
           dimension=if series { csv_integer_argument(3) } else { 2 },
           lag=if series { csv_integer_argument(4) } else { 1 },
           stride=if series { csv_integer_argument(5) } else { 1 },
+          columns~,
+          normalization~,
         )
         let result = @topo.analyze_json(request.stringify())
         let report = @topo.report_json(result).stringify()
-        if count == required + 2 {
-          let output = argument(required + 1)
+        if output != "" {
           if !new_output(output) {
             raise @topo.TopologyError(
               "output directory must be new and have an existing parent",
@@ -226,7 +250,10 @@ fn main {
             !save_output(
               output,
               "csv-info.json",
-              @topo.csv_preview_json(@topo.parse_numeric_csv(source)).stringify(),
+              @topo.csv_transform_json(
+                @topo.parse_numeric_csv(source, columns~),
+                normalization~,
+              ).stringify(),
             ) {
             raise @topo.TopologyError("could not save complete CSV analysis")
           }

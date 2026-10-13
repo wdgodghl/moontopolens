@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.20.1 可选代表链与资源对比基准版**。
+当前版本：**0.20.2 CSV 选列与显式预处理版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -91,9 +91,15 @@ moon run --target js cmd/main -- csv-points examples/square.csv 2 --out out-csv-
 moon run --target js cmd/main -- csv-series examples/periodic-series.csv 2 2 1 1 --out out-csv-signal
 ```
 
-CSV 必须有唯一非空表头，数据列全部为数值；时间序列使用单列文件。
-序列参数依次是截止值、嵌入维数、滞后、步长。不会自动去重、标准化或插值。
-预览显示列名、行列数及前五行；完整分析额外保存 `csv-info.json` 和 `csv-request.json`。
+CSV 必须有唯一非空表头。默认所有列必须为数值；使用 `--columns` 可按列名选择并排序特征，未选列可包含文本。时间序列必须选取一列。
+序列参数依次是截止值、嵌入维数、滞后、步长。不自动去重或插值；`--normalize zscore` 使用总体标准差，`--normalize minmax` 映射到 [0,1]，默认 `none`。常量列在变换后为零。
+`csv-preview` 仍要求全数值表格。标准化参数仅从当前输入计算，跨样本比较时必须保证变换规则与尺度可比。
+
+```sh
+moon run --target js cmd/main -- csv-points examples/iris/subset.csv 1.2 --columns petal_length_cm,petal_width_cm --normalize zscore --out out-selected
+```
+
+请按实际表头指定列名。预览显示列名、行列数及前五行；完整分析额外保存 `csv-info.json` 和 `csv-request.json`。
 后者可直接用于既有 `slice`、`compare` 等命令。格式、限制及真实 Iris 测量数据案例见 [应用案例](docs/application-cases.md)。
 
 ```sh

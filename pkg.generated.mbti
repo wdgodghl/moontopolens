@@ -62,7 +62,9 @@ pub fn connected_components(Analysis, Double) -> Array[Array[Int]] raise Topolog
 
 pub fn csv_preview_json(NumericCsv) -> Json
 
-pub fn csv_request_json(String, String, threshold~ : Double, dimension? : Int, lag? : Int, stride? : Int) -> Json raise TopologyError
+pub fn csv_request_json(String, String, threshold~ : Double, dimension? : Int, lag? : Int, stride? : Int, columns? : Array[String], normalization? : String) -> Json raise TopologyError
+
+pub fn csv_transform_json(NumericCsv, normalization? : String) -> Json raise TopologyError
 
 pub fn cubical_grid(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
 
@@ -106,7 +108,7 @@ pub fn parse_nifti1(Array[Int]) -> Array[Array[Array[Double]]] raise TopologyErr
 
 pub fn parse_nifti1_study(Array[Int]) -> NiftiStudy raise TopologyError
 
-pub fn parse_numeric_csv(String) -> NumericCsv raise TopologyError
+pub fn parse_numeric_csv(String, columns? : Array[String]) -> NumericCsv raise TopologyError
 
 pub fn parse_pgm(Array[Int]) -> PgmImage raise TopologyError
 
@@ -149,6 +151,8 @@ pub fn summary_json(Analysis) -> Json
 pub fn topology_sequence(String) -> (Json, String, String, String) raise TopologyError
 
 pub fn topology_sequence_html(Json) -> String
+
+pub fn transform_numeric_csv(NumericCsv, normalization? : String) -> NumericCsv raise TopologyError
 
 pub fn validate_filtration(Filtration) -> Unit raise TopologyError
 
