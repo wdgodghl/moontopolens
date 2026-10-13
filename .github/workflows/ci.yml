@@ -22,7 +22,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install official stable MoonBit
+      - name: Install validated MoonBit toolchain
+        env:
+          MOONBIT_INSTALL_VERSION: '0.10.14+7d59c7ec9'
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
@@ -66,3 +68,24 @@ jobs:
           python scripts/reference_gudhi.py
       - name: Package validation
         run: moon package --list
+
+  stable-compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install current official stable MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Check current stable compiler compatibility
+        run: |
+          moon version --all
+          moon check --target js
+          moon check --target wasm-gc
+          moon build --target js
+          moon build --target wasm-gc
+          moon test --target js
+          moon test --target wasm-gc

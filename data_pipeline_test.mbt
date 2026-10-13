@@ -40,6 +40,12 @@ test "population scaling and constant column handling" {
     [[0.0, 0.0], [1.0, 0.0]],
   )
   let many = @moontopolens.parse_numeric_csv("x\n" + "7\n".repeat(1000))
+  let tiny = @moontopolens.transform_numeric_csv(
+    @moontopolens.parse_numeric_csv("x\n1e-200\n3e-200"),
+    normalization="zscore",
+  )
+  assert_true((tiny.rows[0][0] + 1.0).abs() < 1.0e-12)
+  assert_true((tiny.rows[1][0] - 1.0).abs() < 1.0e-12)
   assert_true(
     @moontopolens.transform_numeric_csv(many, normalization="zscore").rows.all(fn(
       row,

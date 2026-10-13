@@ -290,10 +290,11 @@ pub fn csv_transform_json(
       high = maximum(high, row[c])
       mean += row[c] / table.rows.length().to_double()
     }
-    let mut variance = 0.0
+    let mut deviation = 0.0
+    let root_count = table.rows.length().to_double().sqrt()
     for row in table.rows {
       let delta = row[c] - mean
-      variance += delta * delta / table.rows.length().to_double()
+      deviation = @math.hypot(deviation, delta / root_count)
     }
     let offset = if normalization == "zscore" {
       if high == low {
@@ -310,7 +311,7 @@ pub fn csv_transform_json(
       if high == low {
         0.0
       } else {
-        variance.sqrt()
+        deviation
       }
     } else if normalization == "minmax" {
       high - low

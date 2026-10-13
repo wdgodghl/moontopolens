@@ -70,7 +70,9 @@ CSV 按先选列、再变换、最后采样执行。结果记录原始编号、�
 
 需要 [MoonBit 官方工具链](https://docs.moonbitlang.com/en/latest/toolchain/moon/tutorial.html)，
 **moonc ≥ 0.10.14**，以及 Node.js 22（命令行文件读写）。
-本地验证版本为 moonc `0.10.14+7d59c7ec9`、moon `0.1.20260920`。
+本地及主 CI 固定使用 moonc `0.10.14+7d59c7ec9`、moon `0.1.20260920`。
+为复现格式检查，Linux/macOS 可用官方安装命令 `curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s 0.10.14+7d59c7ec9`。
+CI 另用当前官方稳定工具链执行双后端检查、构建和测试。
 核心库不依赖第三方 Mooncakes 包。
 
 ```sh
