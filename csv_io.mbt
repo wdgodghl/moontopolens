@@ -253,8 +253,20 @@ pub fn csv_transform_json(
     normalization != "minmax" {
     raise TopologyError("normalization must be none, zscore or minmax")
   }
-  if table.rows.length() == 0 || table.headers.length() == 0 {
-    raise TopologyError("empty numeric table")
+  if table.rows.length() == 0 ||
+    table.rows.length() > 10000 ||
+    table.headers.length() == 0 ||
+    table.headers.length() > 32 {
+    raise TopologyError(
+      "numeric table requires 1..10000 rows and 1..32 columns",
+    )
+  }
+  let names : Array[String] = []
+  for name in table.headers {
+    if name == "" || names.contains(name) {
+      raise TopologyError("numeric table headers must be unique and nonempty")
+    }
+    names.push(name)
   }
   for row in table.rows {
     if row.length() != table.headers.length() {
@@ -284,14 +296,22 @@ pub fn csv_transform_json(
       variance += delta * delta / table.rows.length().to_double()
     }
     let offset = if normalization == "zscore" {
-      mean
+      if high == low {
+        low
+      } else {
+        mean
+      }
     } else if normalization == "minmax" {
       low
     } else {
       0.0
     }
     let scale = if normalization == "zscore" {
-      variance.sqrt()
+      if high == low {
+        0.0
+      } else {
+        variance.sqrt()
+      }
     } else if normalization == "minmax" {
       high - low
     } else {
@@ -352,6 +372,48 @@ pub fn csv_preparation_json(
   fields.set(
     "index_meaning",
     "zero-based nonblank data row, excluding header".to_json(),
+  )
+  fields.to_json()
+}
+
+///|
+/// Source windows for delay-embedded CSV signals, before numeric transforms.
+pub fn csv_series_preparation_json(
+  text : String,
+  columns? : Array[String] = [],
+  normalization? : String = "none",
+  dimension? : Int = 2,
+  lag? : Int = 1,
+  stride? : Int = 1,
+) -> Json raise TopologyError {
+  let raw = parse_numeric_csv(text, columns~)
+  if raw.headers.length() != 1 {
+    raise TopologyError("CSV series requires exactly one value column")
+  }
+  let windows = delay_embed(
+    raw.rows.map(fn(row) { row[0] }),
+    dimension~,
+    lag~,
+    stride~,
+  )
+  let fields = match csv_transform_json(raw, normalization~) {
+    Object(fields) => fields
+    _ => raise TopologyError("invalid series metadata")
+  }
+  fields.set(
+    "data_row_indices",
+    Array::makei(windows.length(), fn(i) { i * stride }).to_json(),
+  )
+  fields.set(
+    "window_data_row_indices",
+    Array::makei(windows.length(), fn(i) {
+      Array::makei(dimension, fn(c) { i * stride + c * lag })
+    }).to_json(),
+  )
+  fields.set("selected_raw_rows", windows.to_json())
+  fields.set(
+    "index_meaning",
+    "zero-based nonblank data row indices of each delay window".to_json(),
   )
   fields.to_json()
 }

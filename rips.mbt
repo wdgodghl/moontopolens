@@ -128,7 +128,11 @@ pub fn rips(
     max_dimension~,
   )
   let positions = points.map(fn(point) {
-    [point[0], if point.length() > 1 { point[1] } else { 0.0 }]
+    if point.length() == 1 {
+      [point[0], 0.0]
+    } else {
+      point.copy()
+    }
   })
   {
     cells: f.cells,

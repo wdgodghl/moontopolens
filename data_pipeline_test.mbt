@@ -39,6 +39,14 @@ test "population scaling and constant column handling" {
     @moontopolens.transform_numeric_csv(table, normalization="minmax").rows,
     [[0.0, 0.0], [1.0, 0.0]],
   )
+  let many = @moontopolens.parse_numeric_csv("x\n" + "7\n".repeat(1000))
+  assert_true(
+    @moontopolens.transform_numeric_csv(many, normalization="zscore").rows.all(fn(
+      row,
+    ) {
+      row[0] == 0.0
+    }),
+  )
   let request = @moontopolens.csv_request_json(
     "id,v\na,0\nb,1\nc,0\nd,-1\ne,0",
     "series",

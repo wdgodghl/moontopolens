@@ -7,7 +7,9 @@
 | 文件 | 职责 |
 | --- | --- |
 | types.mbt | 过滤细胞、区间、结果类型；稳定排序与面索引 |
-| csv_io.mbt | 数值 CSV 解析、预览、点云与单列时间序列的标准请求转换 |
+| csv_io.mbt | CSV 选列、显式仿射变换、标准请求与原始行/延迟窗口追溯 |
+| point_sampling.mbt | 有界确定性最远点采样、原始编号和覆盖半径 |
+| batch_features.mbt | 共同网格的批量 Betti、有限熵与景观向量 |
 | geometry.mbt | 有界点云校验、欧氏距离矩阵、圆形样本 |
 | rips.mbt | 沿邻接表枚举截止距离下的点、边、三角形及可选四面体 |
 | cubical.mbt | 顶点 lower-star 的网格顶点、边与方格 |

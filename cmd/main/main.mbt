@@ -1,7 +1,9 @@
 ///|
 fn usage() -> Unit {
   println("MoonTopoLens — persistent H0/H1 analysis")
-  println("moon run --target js cmd/main -- csv-preview INPUT.csv")
+  println(
+    "moon run --target js cmd/main -- csv-preview INPUT.csv [--columns X,Y]",
+  )
   println(
     "moon run --target js cmd/main -- points-sample INPUT.json SIZE [--out NEW_DIRECTORY]",
   )
@@ -18,7 +20,7 @@ fn usage() -> Unit {
     "moon run --target js cmd/main -- image INPUT.pgm|INPUT.png CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
   )
   println(
-    "moon run --target js cmd/main -- batch MANIFEST.json --out NEW_DIRECTORY",
+    "moon run --target js cmd/main -- batch MANIFEST.json --out NEW_DIRECTORY [--features DIMENSION START END]",
   )
   println(
     "moon run --target js cmd/main -- sequence FRAMES.json [--out NEW_DIRECTORY]",
@@ -182,12 +184,21 @@ fn main {
   try {
     match argument(0) {
       "csv-preview" => {
-        if count != 2 {
-          raise @topo.TopologyError("csv-preview requires INPUT.csv")
+        if (count != 2 && count != 4) ||
+          (count == 4 && argument(2) != "--columns") {
+          raise @topo.TopologyError(
+            "csv-preview requires INPUT.csv [--columns X,Y]",
+          )
+        }
+        let columns : Array[String] = []
+        if count == 4 {
+          for name in argument(3).split(",") {
+            columns.push(name.to_owned())
+          }
         }
         println(
           @topo.csv_preview_json(
-            @topo.parse_numeric_csv(read_input(argument(1))),
+            @topo.parse_numeric_csv(read_input(argument(1)), columns~),
           ).stringify(),
         )
       }
@@ -246,9 +257,13 @@ fn main {
         )
         let result = @topo.analyze_json(request.stringify())
         let info = if series {
-          @topo.csv_transform_json(
-            @topo.parse_numeric_csv(source, columns~),
+          @topo.csv_series_preparation_json(
+            source,
+            columns~,
             normalization~,
+            dimension=csv_integer_argument(3),
+            lag=csv_integer_argument(4),
+            stride=csv_integer_argument(5),
           )
         } else {
           @topo.csv_preparation_json(
@@ -697,8 +712,13 @@ fn main {
         println(report_text)
       }
       "batch" => {
-        if count != 4 || argument(2) != "--out" || argument(3) == "" {
-          print_error("batch requires MANIFEST.json --out NEW_DIRECTORY")
+        if (count != 4 && count != 8) ||
+          argument(2) != "--out" ||
+          argument(3) == "" ||
+          (count == 8 && argument(4) != "--features") {
+          print_error(
+            "batch requires MANIFEST.json --out NEW_DIRECTORY [--features DIMENSION START END]",
+          )
           return
         }
         let manifest = argument(1)
@@ -829,6 +849,23 @@ fn main {
           Some(value) => Some(@topo.batch_clustering(value, 2))
           None => None
         }
+        let features = if count == 8 {
+          let value = numeric_argument(5)
+          if value < 0.0 || value > 2.0 || value != @math.floor(value) {
+            raise @topo.TopologyError("feature dimension must be 0, 1 or 2")
+          }
+          Some(
+            @topo.batch_features(
+              analyses,
+              plan.cases.map(fn(case) { case.name }),
+              dimension=value.to_int(),
+              start=numeric_argument(6),
+              end=numeric_argument(7),
+            ),
+          )
+        } else {
+          None
+        }
         let output = argument(3)
         if !new_output(output) {
           print_error(
@@ -951,7 +988,20 @@ fn main {
           print_error("could not save complete batch distance matrix")
           return
         }
+        match features {
+          Some((info, csv)) =>
+            if !save_output(output, "features.json", info.stringify()) ||
+              !save_output(output, "features.csv", csv) {
+              raise @topo.TopologyError("could not save batch features")
+            }
+          None => ()
+        }
         let summary : Json = {
+          "features": if count == 8 {
+            "features.json".to_json()
+          } else {
+            Json::null()
+          },
           "case_count": plan.cases.length(),
           "comparison_count": plan.comparisons.length(),
           "total_cells": total_cells,

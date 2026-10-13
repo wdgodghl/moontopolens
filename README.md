@@ -9,11 +9,12 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.20.3 确定性点云采样版**。
+当前版本：**0.20.4 数据追溯与批量特征版**。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
 从表格数据到拓扑报告的完整流程见 [应用案例](docs/application-cases.md)。
+选列、变换、原始数据追溯、三维旋转和统一批量特征见 [数据工作流](docs/data-workflows.md)。
 无需代表环路时，可使用[仅区间模式](docs/reduction-modes.md)，查看两种模式的耗时和峰值内存对照。
 
 ```sh
@@ -27,14 +28,14 @@ node scripts/benchmark-modes.mjs
 
 | 输入/功能 | 实现 |
 | --- | --- |
-| 点云 | 1–32 维欧氏距离、Vietoris–Rips 过滤复形；可选完整 H2 分析 |
-| CSV 导入 | 带表头的数值点云与单列信号；先预览，再生成标准 JSON 请求及完整分析报告 |
+| 点云 | 1–32 维欧氏距离、Vietoris–Rips 过滤复形；可选 H2、确定性近似采样及三维旋转 |
+| CSV 导入 | 显式选列、可选 Z 分数或 min-max 变换、单列信号与原始数据追溯 |
 | 距离/不相似度矩阵 | 校验对称非负矩阵，构建 Rips 2-骨架或 H2 所需的 3-骨架 |
 | 二维网格 | 顶点值的 lower-star 方格复形，检测连接区域和洞 |
 | 三维体素 | 小型三维顶点网格的 lower-star 立方复形，分析 H0/H1/H2，浏览可旋转的代表面与联动 Z 层切片 |
 | 灰度图像 | PGM P2/P5 或 8 位 PNG 灰度/RGB/RGBA，经灰度转换后进入网格过滤复形 |
 | 图像预处理 | 可选 Otsu 自动截止值与亮暗反转，记录可复现的实际参数 |
-| 批量项目 | 从一个 JSON 清单分析多份输入并生成指定两两比较和总索引 |
+| 批量项目 | 多份输入、指定比较及总索引；可在共同网格上导出 Betti、熵和景观特征表 |
 | 全对比较 | 可选 H0/H1 与已计算的 H2 距离方阵、CSV、离线热图和单链接层次分组，提示比较条件不一致 |
 | 时间序列 | 指定维数、滞后、步长的延迟嵌入，随后进行 Rips 分析 |
 | 参数敏感性 | 同一时间序列扫描多组维数/滞后值，导出环路摘要、对齐的景观向量和候选排序 |
@@ -106,7 +107,7 @@ moon run --target js cmd/main -- csv-series examples/periodic-series.csv 2 2 1 1
 
 CSV 必须有唯一非空表头。默认所有列必须为数值；使用 `--columns` 可按列名选择并排序特征，未选列可包含文本。时间序列必须选取一列。
 序列参数依次是截止值、嵌入维数、滞后、步长。不自动去重或插值；`--normalize zscore` 使用总体标准差，`--normalize minmax` 映射到 [0,1]，默认 `none`。常量列在变换后为零。
-`csv-preview` 仍要求全数值表格。标准化参数仅从当前输入计算，跨样本比较时必须保证变换规则与尺度可比。
+`csv-preview` 默认要求全数值，也支持 `--columns` 预览选中的数值列。标准化参数仅从当前输入计算，跨样本比较时必须保证变换规则与尺度可比。
 
 ```sh
 moon run --target js cmd/main -- csv-points examples/iris/subset.csv 1.2 --columns petal_length_cm,petal_width_cm --normalize zscore --out out-selected
@@ -216,7 +217,7 @@ moon run --target js cmd/main -- analyze examples/two-holes-grid.json --out out-
    选择当前未存活的 H1 区间会自动切到出生尺度，并显示选择说明。
 4. 查看 Betti 曲线，或将 CSV 导入表格/绘图工具继续分析。
 
-绘图坐标不参与同调计算：高维点云保留原维度距离，仅前两个坐标用于展示。
+高维点云使用全部维度计算距离；报告保留完整坐标，二维展示前两个坐标，也可用前三个坐标旋转查看三维投影。
 一维点云投影到横轴；网格使用 `(列,-行)`；距离矩阵没有几何坐标时显示说明。
 网格的已进入二维方格面以青绿色显示，可以观察洞的填充；Rips 点云的三角形不绘制，
 应结合 H1 数字判断环路是否已死亡。HTML 表格每页显示 50 行，JSON 和 CSV 保留全部区间。

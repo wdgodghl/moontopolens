@@ -30,6 +30,8 @@ pub fn batch_clustering_svg(BatchClustering) -> String
 
 pub fn batch_distance_matrix(BatchPlan, Array[Analysis]) -> BatchDistanceMatrix raise TopologyError
 
+pub fn batch_features(Array[Analysis], Array[String], dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> (Json, String) raise TopologyError
+
 pub fn batch_matrix_csv(BatchDistanceMatrix, Int) -> String raise TopologyError
 
 pub fn batch_matrix_html(BatchDistanceMatrix) -> String
@@ -65,6 +67,8 @@ pub fn csv_preparation_json(String, columns? : Array[String], normalization? : S
 pub fn csv_preview_json(NumericCsv) -> Json
 
 pub fn csv_request_json(String, String, threshold~ : Double, dimension? : Int, lag? : Int, stride? : Int, columns? : Array[String], normalization? : String, sample_size? : Int) -> Json raise TopologyError
+
+pub fn csv_series_preparation_json(String, columns? : Array[String], normalization? : String, dimension? : Int, lag? : Int, stride? : Int) -> Json raise TopologyError
 
 pub fn csv_transform_json(NumericCsv, normalization? : String) -> Json raise TopologyError
 

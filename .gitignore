@@ -5,3 +5,4 @@
 *.tmp
 *.zip
 *.log
+/node_modules/

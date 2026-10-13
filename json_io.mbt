@@ -225,7 +225,7 @@ pub fn report_json(analysis : Analysis, source? : Json = Json::null()) -> Json {
     "reduction_entries": analysis.reduction_entries,
     "homology_dimension": analysis.homology_dimension,
     "positions": analysis.filtration.positions,
-    "position_meaning": "display projection: first two point coordinates; grid x and negative row; matrix has none",
+    "position_meaning": "point coordinates retained; 1D padded with zero; display uses first 2 or 3 coordinates; grid x and negative row; matrix has none",
     "summary": summary_json(analysis),
     "betti_events": betti_events_json(analysis),
     "essential_meaning": "alive at input cutoff; not proof of infinite lifetime",

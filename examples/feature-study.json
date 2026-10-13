@@ -1,0 +1,8 @@
+{
+  "cases": [
+    {"name": "square", "input": "square.json"},
+    {"name": "square-copy", "input": "square.json"},
+    {"name": "rectangle", "input": "rectangle.json"}
+  ],
+  "comparisons": []
+}

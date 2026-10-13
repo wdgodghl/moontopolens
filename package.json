@@ -1,0 +1,9 @@
+{
+  "name": "moontopolens-report-tests",
+  "version": "0.20.4",
+  "private": true,
+  "license": "MIT",
+  "engines": {"node": ">=22"},
+  "scripts": {"test:browser": "node scripts/browser-regression.mjs"},
+  "devDependencies": {"playwright": "1.62.1"}
+}

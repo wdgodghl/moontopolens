@@ -1,6 +1,6 @@
 # 初步开发与验收记录
 
-截至 2026-10-12。这是工程证据，不代表赛事评审保证通过。
+当前源码版本 0.20.4，截至 2026-10-13。这是工程证据，不代表赛事评审保证通过。
 
 赛事口径说明：本项目采用的十项验收指南包含 Mooncakes 发布，发布记录见下文。
 官网公开摘要与正式章程可能另有补充，最终以赛事通知为准。
@@ -14,11 +14,19 @@
 | 公开仓库、清晰提交 | https://github.com/wdgodghl/moontopolens ；按功能逐步提交 |
 | 结构清晰且核心功能可运行 | H0/H1 与可选 H2、点云/矩阵/序列/二维网格/三维体数据 JSON 输入、有界 NIfTI-1/4D 导入、参数扫描、多帧点云与体数据轨迹、PGM/PNG 图像、批量距离与分组、点云/强度扰动稳定性、H2 代表面及三维投影、粗网格近似分析、瓶颈距离、尺度快照、景观向量和离线 HTML 等已实现 |
 | README 可复现 | 安装、命令、预期结果、算法限制、三种完整场景 |
-| CI 检查/构建/测试 | GitHub Actions 包含格式、检查、双后端构建和测试、CLI 场景、应用案例、资源基准与外部区间对照 |
+| CI 检查/构建/测试 | GitHub Actions 包含格式、检查、双后端构建和测试、CLI 场景、应用案例、资源基准与外部区间对照、CSV 数据流程及真实 Chromium 桌面/窄屏报告回归 |
 | 运行示例 | cmd/demo + examples 中的点云、矩阵、时间序列、网格、三维体素、多帧体数据、PGM、PNG、批量分组和 H2 输入；CLI smoke 已通过 |
-| 核心测试 | 0.20.0 本地 JS 和 Wasm GC 各 104 个测试；另有 CSV/JSON 等价、应用案例、报告精确尺度及既有 CLI 全流程验证 |
-| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；最新 0.20.0 注册表显示 MIT、构建成功，全新独立项目安装与 API 测试通过 |
+| 核心测试 | 0.20.4 本地 JS 和 Wasm GC 各 109 个测试；另有 CSV/JSON 等价、应用案例、报告精确尺度及既有 CLI 全流程验证 |
+| Mooncakes 生态发布 | [模块页](https://mooncakes.io/docs/wdgodghl/moontopolens)已公开；采用 MIT；当前发布版本与构建状态见模块页。0.20.0 的独立安装与 API 验证记录保留在下文 |
 | OSI 许可证与来源 | MIT；独立实现，公开算法背景见查重记录 |
+
+## 0.20.2–0.20.4 数据流程完善
+
+- 0.20.2：按列名选取数值特征，明确选择 none/zscore/minmax，记录变换参数。
+- 0.20.3：确定性最远点采样，保存原始编号和覆盖半径；16 点精确对照与 512 点输入验证通过。
+- 0.20.4：完整点云坐标、三维旋转、代表链原始行/延迟窗口追溯、共同网格批量特征。
+- 本地 JS 与 Wasm GC 各 109 项测试通过；批量向量与单独景观一致，非法特征范围不创建目录。
+- 真实 Chromium 的桌面与窄屏报告回归通过并接入 CI。范围与复现方式见 data-workflows.md。
 
 ## 本地验证
 
@@ -84,4 +92,4 @@ CLI 另有端到端场景验证，不计入上述单元覆盖率。覆盖率不�
 截止时未死亡类、对角线匹配、事件合并、并查集分组、景观采样及资源预算的含义
 分别见 [架构与算法](architecture.md)、[功能范围](feature-scope.md) 和测试记录。
 
-0.20.0 发布验证：[GitHub CI](https://github.com/wdgodghl/moontopolens/actions/runs/38205231226) 全部通过；Mooncakes 最新版本 0.20.0、MIT、build_status=success。独立项目安装后，仅区间 API 的 JS/Wasm GC 样例各一项通过。
+0.20.0 发布验证：[GitHub CI](https://github.com/wdgodghl/moontopolens/actions/runs/38205231226) 全部通过；当时 Mooncakes 版本 0.20.0、MIT、build_status=success。独立项目安装后，仅区间 API 的 JS/Wasm GC 样例各一项通过。

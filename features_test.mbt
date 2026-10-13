@@ -77,12 +77,12 @@ test "CSV exports include cutoff samples and essential blanks" {
 }
 
 ///|
-test "report coordinates are projection only and grids retain vertex indices" {
+test "report retains point coordinates and grids retain vertex indices" {
   let points = @moontopolens.rips(
     [[0.0, 2.0, 10.0], [1.0, 3.0, 10.0]],
     threshold=2.0,
   )
-  assert_eq(points.positions, [[0.0, 2.0], [1.0, 3.0]])
+  assert_eq(points.positions, [[0.0, 2.0, 10.0], [1.0, 3.0, 10.0]])
   let matrix = @moontopolens.rips_matrix(
     [[0.0, 1.0], [1.0, 0.0]],
     threshold=1.0,

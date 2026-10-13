@@ -44,9 +44,12 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
   }
   for point in filtration.positions {
     if point.length() != 2 &&
-      !(filtration.kind == "cubical_volume" && point.length() == 3) {
+      !(filtration.kind == "cubical_volume" && point.length() == 3) &&
+      !((filtration.kind == "rips" || filtration.kind == "rips_h2") &&
+      point.length() >= 2 &&
+      point.length() <= 32) {
       raise TopologyError(
-        "display positions require two coordinates, or three for cubical_volume",
+        "positions require 2 coordinates, 3 for volume, or 2..32 for point Rips",
       )
     }
     for x in point {
