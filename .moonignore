@@ -1,7 +1,8 @@
 /_build/
-/.git/
+/.mooncakes/
+/node_modules/
 /out/
 /out-*/
 *.tmp
-*.log
 *.zip
+*.log

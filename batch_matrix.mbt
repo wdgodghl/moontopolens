@@ -193,7 +193,7 @@ fn matrix_table(
           } else {
             0.12 + 0.65 * value / greatest
           }
-          "<span class=heat style=\"background:rgba(56,189,248,\{opacity})\">\{value}</span>"
+          "<span class=heat style=\"background:rgba(56,189,248,\{opacity});color:#ffffff;background-clip:padding-box\"><span style=\"background:#0b1120;padding:2px 4px;border-radius:3px\">\{value}</span></span>"
         }
       }
       html += "<td class=\"cell\{warning}\">\{content}</td>"
@@ -231,6 +231,8 @@ pub fn batch_matrix_html(matrix : BatchDistanceMatrix) -> String {
     html += "<p class=muted>H2 空格表示至少一侧未计算 H2，或截止时存活类数量不同；请结合 JSON 中的 h2_analyzed 判断。</p>"
     html += matrix_table(matrix, matrix.h2, 2)
   }
-  html +
-  "<footer class=muted>全部距离由 MoonBit 计算；页面可离线打开。</footer></main></body></html>"
+  accessible_report(
+    html +
+    "<footer class=muted>全部距离由 MoonBit 计算；页面可离线打开。</footer></main></body></html>",
+  )
 }

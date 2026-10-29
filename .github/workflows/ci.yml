@@ -55,11 +55,14 @@ jobs:
         run: node scripts/application-cases.mjs
       - name: Reproduce data preparation paths
         run: node scripts/data-pipeline.mjs
+      - name: Exact sparse inputs and globally shortest birth representatives
+        run: node scripts/exact-analysis.mjs
       - name: Offline reports in Chromium desktop and mobile viewports
         run: |
           npm ci --ignore-scripts
           npx playwright install --with-deps chromium
           npm run test:browser
+          node scripts/accessibility.mjs
       - name: Compare full and interval-only reduction modes
         run: node scripts/benchmark-modes.mjs
       - name: Compare Rips and cubical diagrams against GUDHI

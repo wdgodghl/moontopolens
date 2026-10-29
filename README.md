@@ -9,7 +9,8 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.20.4 数据追溯与批量特征版**。
+当前版本：**0.20.5 精确稀疏计算与分步教学版**。
+分步教学、键盘操作、精确稀疏点云与最短同调代表链见 [功能与保证](docs/exact-and-guided.md)。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
 已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
@@ -65,6 +66,19 @@ moon run --target js cmd/main -- csv-points examples/iris/subset.csv 1.2 --sampl
 CSV 按先选列、再变换、最后采样执行。结果记录原始编号、点数和分析坐标中的覆盖半径；半径不是持久图误差保证。
 `points-sample` 导出 `sample-request.json` 与 `sampling-info.json`；CSV 的对应信息保存在 `csv-info.json`。
 报告显式标注近似分析。精确 Rips 的细胞预算保持不变，采样后仍可能因截止尺度过大而超预算。
+
+### 精确稀疏点云与教学
+
+```sh
+moon run --target js cmd/main -- analyze examples/large-circle.json --out out-exact
+moon run --target js cmd/main -- shortest examples/square.json 4 --out out-shortest
+```
+
+1024 点圆环示例不采样，截止 0.007 时 H0=1、H1=1。打开报告的“开始分步教学”即可跟随五步观察并完成计数测验。
+CSV 可用 `--engine sparse --max-cells 10000`。精确稀疏入口最多 8192 点，旧点云/矩阵入口仍最多 128 点；稠密输入仍可能超预算。
+`shortest` 精确最小化所选 H1 类在出生尺度的边数；候选可能包含多个连通部分，不是最小欧氏周长。
+独立二维边界秩最多 20，并设状态和工作预算；超限明确报错，不冒充最优。
+报告增加键盘入口、重绘焦点保持和可滚动区域，九类报告接受键盘、语义树和 axe 自动检查。
 
 ## 安装与运行
 
@@ -582,7 +596,7 @@ let scale_picture = @topo.scale_svg(analysis, scale=1.0)
 - 持久景观限 2–1001 个采样点、1–16 层，并限制 `有限区间数×采样点数×层数 ≤ 2,000,000`。
   参数扫描固定 101 点、3 层；最多 12 组参数和 16000 个总细胞。
   连通分组要求零细胞/边保留一/两个原始顶点 ID；不支持缺失该编码的自定义过滤。
-- 只处理有资源预算的内存数据，稀疏 Rips 构建已有 128 点基准；最短环路和在线上传应用仍属后续计划。
+- 只处理有资源预算的内存数据。`points_sparse` 支持最多 8192 点的精确构建，仍受细胞和工作预算限制；`shortest` 在所选 H1 类的出生尺度最小化边数，超限报错。在线上传应用尚未提供。
 
 算法结构与正确性说明见 [architecture](docs/architecture.md)。
 

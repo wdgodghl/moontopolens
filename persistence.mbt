@@ -39,7 +39,13 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
   }
   check_budget(cells.length(), 10000)
   if filtration.positions.length() >
-    (if filtration.kind == "cubical_volume" { 32768 } else { 4096 }) {
+    (if filtration.kind == "cubical_volume" {
+      32768
+    } else if filtration.kind == "rips" || filtration.kind == "rips_h2" {
+      8192
+    } else {
+      4096
+    }) {
     raise TopologyError("too many display positions")
   }
   for point in filtration.positions {

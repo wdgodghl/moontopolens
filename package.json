@@ -1,9 +1,18 @@
 {
   "name": "moontopolens-report-tests",
-  "version": "0.20.4",
+  "version": "0.20.5",
   "private": true,
   "license": "MIT",
-  "engines": {"node": ">=22"},
-  "scripts": {"test:browser": "node scripts/browser-regression.mjs"},
-  "devDependencies": {"playwright": "1.62.1"}
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test:browser": "node scripts/browser-regression.mjs",
+    "test:accessibility": "node scripts/accessibility.mjs",
+    "test:exact": "node scripts/exact-analysis.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "axe-core": "4.14.0"
+  }
 }

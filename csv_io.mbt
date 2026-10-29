@@ -177,6 +177,7 @@ pub fn csv_request_json(
   columns? : Array[String] = [],
   normalization? : String = "none",
   sample_size? : Int = 0,
+  max_cells? : Int = 4000,
 ) -> Json raise TopologyError {
   let table = transform_numeric_csv(
     parse_numeric_csv(text, columns~),
@@ -185,14 +186,27 @@ pub fn csv_request_json(
   if !finite(threshold) || threshold < 0.0 || threshold > 1.0e100 {
     raise TopologyError("CSV Rips threshold must be finite and nonnegative")
   }
-  if kind == "points" {
+  check_budget(0, max_cells)
+  if kind == "points" || kind == "points_sparse" {
+    if kind == "points_sparse" && sample_size != 0 {
+      raise TopologyError("choose exact sparse or sampling, not both")
+    }
     let points = if sample_size == 0 {
       table.rows
     } else {
       sample_points(table.rows, size=sample_size).points
     }
-    ignore(distance_matrix(points))
-    { "kind": "points", "threshold": threshold, "points": points }
+    if kind == "points_sparse" {
+      ignore(rips_sparse(points, threshold~, max_cells~))
+    } else {
+      ignore(distance_matrix(points))
+    }
+    {
+      "kind": kind,
+      "threshold": threshold,
+      "points": points,
+      "max_cells": max_cells,
+    }
   } else if kind == "series" {
     if sample_size != 0 {
       raise TopologyError("sampling is supported for points only")
@@ -209,6 +223,7 @@ pub fn csv_request_json(
       "dimension": dimension,
       "lag": lag,
       "stride": stride,
+      "max_cells": max_cells,
     }
   } else {
     raise TopologyError("CSV kind must be points or series")

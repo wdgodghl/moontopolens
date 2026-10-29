@@ -27,7 +27,7 @@ if not CLI.is_file():
 
 
 def coordinates(request):
-    if request["kind"] == "points":
+    if request["kind"] in ("points", "points_sparse"):
         return request["points"], None
     if request["kind"] == "matrix":
         return None, request["matrix"]
@@ -151,6 +151,11 @@ def cases():
             "points": [[0, 0], [1, 0], [1, 1], [0, 1]],
             "threshold": cutoff,
         }
+    for name in ("square", "rectangle"):
+        request = json.loads((ROOT / "examples" / f"{name}.json").read_text(encoding="utf-8"))
+        yield f"sparse-{name}", {**request, "kind": "points_sparse"}
+    yield "sparse-euclidean-octahedron", {"kind": "points_sparse", "threshold": 2, "homology_dimension": 2,
+        "points": [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]}
     for seed in range(12):
         points = [
             [(i * 7 + seed * 3) % 11 / 3, (i * i + seed * 5) % 13 / 4]
@@ -168,7 +173,10 @@ def main():
     with tempfile.TemporaryDirectory(prefix="moontopolens-reference-") as folder:
         input_path = Path(folder) / "case.json"
         for name, request in cases():
-            moon = moon_diagrams(request, input_path)
+            try:
+                moon = moon_diagrams(request, input_path)
+            except subprocess.CalledProcessError as exc:
+                raise AssertionError(f"{name}: {exc.stderr}") from exc
             reference = gudhi_diagrams(request)
             for degree in range(request.get("homology_dimension", 2 if request["kind"] == "volume" else 1) + 1):
                 if not same_bars(moon[degree], reference[degree]):

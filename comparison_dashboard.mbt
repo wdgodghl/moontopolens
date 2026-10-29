@@ -26,5 +26,7 @@ pub fn comparison_html(
     #|el('comparability').textContent=DATA.cutoffs_equal&&DATA.complex_kinds_equal?'截止尺度和复形类型一致；请自行确认尺度单位及数据含义可比。':'截止尺度或复形类型不同；需确认截断条件和尺度单位，不能直接将数值差异解释为结构变化。';
     #|function render(){const dimension=el('dimension').value,diagonal=el('diagonal-only').checked,rows=DATA.distances.flatMap(d=>d.matches.map(m=>({...m,dimension:d.dimension}))).filter(m=>(dimension==='all'||String(m.dimension)===dimension)&&(!diagonal||m.kind==='diagonal'||m.kind==='unmatched_censored'));el('match-count').textContent=`共 ${rows.length} 个匹配，显示 ${Math.min(rows.length,200)} 行`;const body=el('matches');body.replaceChildren();for(const m of rows.slice(0,200)){const tr=document.createElement('tr');for(const value of [`H${m.dimension}`,label(m.left),label(m.right),kinds[m.kind],m.cost===null?'无有限匹配':fmt(m.cost)]){const td=document.createElement('td');td.textContent=value;tr.append(td);}body.append(tr);}}
     #|el('dimension').addEventListener('input',render);el('diagonal-only').addEventListener('input',render);render();</script></main></body></html>
-  header + diagram_svg(a) + middle + diagram_svg(b) + table + data + script
+  accessible_report(
+    header + diagram_svg(a) + middle + diagram_svg(b) + table + data + script,
+  )
 }

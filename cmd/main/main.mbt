@@ -1,6 +1,10 @@
 ///|
 fn usage() -> Unit {
-  println("MoonTopoLens — persistent H0/H1 analysis")
+  println("MoonTopoLens — persistent H0/H1/H2 analysis")
+  println("shortest INPUT.json INTERVAL_INDEX [--out NEW_DIRECTORY]")
+  println(
+    "Exact large points: analyze a kind=points_sparse request; CSV: --engine sparse --max-cells 10000",
+  )
   println(
     "moon run --target js cmd/main -- csv-preview INPUT.csv [--columns X,Y]",
   )
@@ -208,6 +212,8 @@ fn main {
         let columns : Array[String] = []
         let mut normalization = "none"
         let mut sample_size = 0
+        let mut engine = "dense"
+        let mut max_cells = 4000
         let mut output = ""
         let mut option = required
         let seen : Array[String] = []
@@ -224,6 +230,8 @@ fn main {
               for name in argument(option + 1).split(",") {
                 columns.push(name.to_owned())
               }
+            "--engine" => engine = argument(option + 1)
+            "--max-cells" => max_cells = csv_integer_argument(option + 1)
             "--sample" => sample_size = csv_integer_argument(option + 1)
             "--normalize" => normalization = argument(option + 1)
             "--out" => {
@@ -239,11 +247,21 @@ fn main {
         if count < required {
           raise @topo.TopologyError("missing CSV analysis arguments")
         }
+        if engine != "dense" && engine != "sparse" {
+          raise @topo.TopologyError("engine must be dense or sparse")
+        }
+        if series && engine != "dense" {
+          raise @topo.TopologyError(
+            "sparse engine currently requires CSV points",
+          )
+        }
         let source = read_input(argument(1))
         let request = @topo.csv_request_json(
           source,
           if series {
             "series"
+          } else if engine == "sparse" {
+            "points_sparse"
           } else {
             "points"
           },
@@ -254,6 +272,7 @@ fn main {
           columns~,
           normalization~,
           sample_size~,
+          max_cells~,
         )
         let result = @topo.analyze_json(request.stringify())
         let info = if series {
@@ -281,7 +300,19 @@ fn main {
             }
           _ => Json::null()
         }
-        let metadata : Json = { "csv": info, "sampling": sampling }
+        let metadata : Json = {
+          "csv": info,
+          "sampling": sampling,
+          "engine": engine,
+          "approximate": match sampling {
+            Object(fields) =>
+              match fields.get("approximate") {
+                Some(value) => value
+                None => false.to_json()
+              }
+            _ => false.to_json()
+          },
+        }
         let report = @topo.report_json(result, source=metadata).stringify()
         if output != "" {
           if !new_output(output) {
@@ -322,6 +353,29 @@ fn main {
             !save_output(output, "sample-request.json", request.stringify()) ||
             !save_output(output, "sampling-info.json", info.stringify()) {
             raise @topo.TopologyError("could not save sampled analysis")
+          }
+        }
+        println(report)
+      }
+      "shortest" => {
+        if (count != 3 && count != 5) ||
+          (count == 5 && (argument(3) != "--out" || argument(4) == "")) {
+          raise @topo.TopologyError(
+            "shortest requires INPUT.json INTERVAL_INDEX [--out NEW_DIRECTORY]",
+          )
+        }
+        let value = numeric_argument(2)
+        if value < 0.0 || value > 10000.0 || value != @math.floor(value) {
+          raise @topo.TopologyError(
+            "interval index must be an integer in 0..10000",
+          )
+        }
+        let result = load(argument(1))
+        let report = @topo.shortest_representative_json(result, value.to_int()).stringify()
+        if count == 5 {
+          if !new_output(argument(4)) ||
+            !save_output(argument(4), "shortest.json", report) {
+            raise @topo.TopologyError("could not save shortest representative")
           }
         }
         println(report)

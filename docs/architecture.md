@@ -11,6 +11,10 @@
 | point_sampling.mbt | 有界确定性最远点采样、原始编号和覆盖半径 |
 | batch_features.mbt | 共同网格的批量 Betti、有限熵与景观向量 |
 | geometry.mbt | 有界点云校验、欧氏距离矩阵、圆形样本 |
+| sparse_rips.mbt | 首坐标扫描、稀疏邻接与有预算的精确 Rips，最多 8192 点 |
+| shortest_cycle.mbt | 二维边界基与 Gray code 陪集枚举，求所选 H1 类的最少边数代表 |
+| tutorial.mbt | 数据驱动的分步引导与计数测验 |
+| report_accessibility.mbt | 键盘入口、地标、焦点与表格/图形语义补全 |
 | rips.mbt | 沿邻接表枚举截止距离下的点、边、三角形及可选四面体 |
 | cubical.mbt | 顶点 lower-star 的网格顶点、边与方格 |
 | volume.mbt | 三维顶点值网格的顶点、棱、面与立方体；形状和资源预算校验 |

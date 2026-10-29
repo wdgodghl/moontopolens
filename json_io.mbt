@@ -86,6 +86,7 @@ pub fn analyze_json(
   }
   if homology_dimension == 2 &&
     kind != "points" &&
+    kind != "points_sparse" &&
     kind != "matrix" &&
     kind != "series" &&
     kind != "volume" {
@@ -97,7 +98,7 @@ pub fn analyze_json(
     raise TopologyError("volume requires homology_dimension 2")
   }
   let allowed = match kind {
-    "points" =>
+    "points" | "points_sparse" =>
       ["kind", "threshold", "max_cells", "points", "homology_dimension"]
     "matrix" =>
       ["kind", "threshold", "max_cells", "matrix", "homology_dimension"]
@@ -127,6 +128,13 @@ pub fn analyze_json(
     }
   }
   let filtration = match kind {
+    "points_sparse" =>
+      rips_sparse(
+        rows_field(object, "points"),
+        threshold~,
+        max_cells=budget,
+        max_dimension=homology_dimension + 1,
+      )
     "points" =>
       rips(
         rows_field(object, "points"),

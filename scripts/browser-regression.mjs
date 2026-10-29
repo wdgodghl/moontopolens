@@ -27,7 +27,7 @@ try {
     await open(csvOut);
     assert.equal(await page.locator('#rotation-controls').isVisible(),true);
     const loop=csv.intervals.findIndex(i=>i.dimension===1);assert.ok(loop>=0);
-    await page.getByRole('button',{name:`#${loop}`,exact:true}).click();assert.equal(await page.locator('#h1').textContent(),'1');
+    await page.locator(`[data-interval-index="${loop}"]`).click();assert.equal(await page.locator('#h1').textContent(),'1');
     assert.equal(await page.locator('#source-rows tr').count(),4);
     assert.ok((await page.locator('#source-rows').textContent()).includes('[2,2,2]'),'must retain pre-normalization values');
     await page.locator('#projection-mode').selectOption('3d');
