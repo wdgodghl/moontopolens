@@ -30,10 +30,14 @@ test "selected columns ignore labels and preserve requested order" {
 ///|
 test "population scaling and constant column handling" {
   let table = @moontopolens.parse_numeric_csv("x,constant\n1,7\n3,7")
-  assert_eq(
-    @moontopolens.transform_numeric_csv(table, normalization="zscore").rows,
-    [[-1.0, 0.0], [1.0, 0.0]],
-  )
+  let scaled = @moontopolens.transform_numeric_csv(
+      table,
+      normalization="zscore",
+    ).rows
+  assert_true((scaled[0][0] + 1.0).abs() < 1.0e-12)
+  assert_true((scaled[1][0] - 1.0).abs() < 1.0e-12)
+  assert_eq(scaled[0][1], 0.0)
+  assert_eq(scaled[1][1], 0.0)
   assert_eq(@moontopolens.transform_numeric_csv(table).rows, table.rows)
   assert_eq(
     @moontopolens.transform_numeric_csv(table, normalization="minmax").rows,
