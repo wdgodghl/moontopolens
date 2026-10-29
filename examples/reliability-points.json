@@ -1,0 +1,37 @@
+{
+  "kind": "reliability",
+  "mode": "subsample_points",
+  "input": {
+    "kind": "points",
+    "threshold": 2.0,
+    "points": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  },
+  "trials": 8,
+  "seed": 17,
+  "sizes": [
+    3,
+    4
+  ],
+  "thresholds": [
+    1.2,
+    2
+  ],
+  "match_tolerance": 0.15
+}

@@ -1,0 +1,98 @@
+{
+  "kind": "reliability",
+  "mode": "mean_band",
+  "assumption": "iid_independent_samples",
+  "inputs": [
+    {
+      "kind": "points",
+      "threshold": 2.0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "kind": "points",
+      "threshold": 2.0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "kind": "points",
+      "threshold": 2.0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "kind": "points",
+      "threshold": 2.0,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ]
+    }
+  ],
+  "start": 0,
+  "end": 2,
+  "confidence": 0.95
+}

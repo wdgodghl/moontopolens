@@ -1,0 +1,167 @@
+{
+  "kind": "cohort",
+  "samples": [
+    {
+      "name": "A1",
+      "group": "A",
+      "request": {
+        "kind": "points",
+        "threshold": 2,
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "name": "A2",
+      "group": "A",
+      "request": {
+        "kind": "points",
+        "threshold": 2,
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            1.1,
+            0
+          ],
+          [
+            1.1,
+            1.1
+          ],
+          [
+            0,
+            1.1
+          ]
+        ]
+      }
+    },
+    {
+      "name": "A3",
+      "group": "A",
+      "request": {
+        "kind": "points",
+        "threshold": 2,
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            1.2,
+            0
+          ],
+          [
+            1.2,
+            1.2
+          ],
+          [
+            0,
+            1.2
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B1",
+      "group": "B",
+      "request": {
+        "kind": "points",
+        "threshold": 2,
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            0.3,
+            0
+          ],
+          [
+            0.3,
+            0.3
+          ],
+          [
+            0,
+            0.3
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B2",
+      "group": "B",
+      "request": {
+        "kind": "points",
+        "threshold": 2,
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            0.4,
+            0
+          ],
+          [
+            0.4,
+            0.4
+          ],
+          [
+            0,
+            0.4
+          ]
+        ]
+      }
+    },
+    {
+      "name": "B3",
+      "group": "B",
+      "request": {
+        "kind": "points",
+        "threshold": 2,
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            0.5,
+            0
+          ],
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0,
+            0.5
+          ]
+        ]
+      }
+    }
+  ],
+  "unit": "length unit",
+  "dimension": 1,
+  "start": 0,
+  "end": 2,
+  "preprocessing": "none",
+  "design": "independent"
+}

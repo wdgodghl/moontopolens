@@ -67,3 +67,8 @@ moon run --target js cmd/main -- csv-series examples/periodic-series.csv 2 2 1 1
 - 最多 32 列、10000 行、字段 256 字符；CLI 文件最多 1 MB。点云与嵌入后的点数仍受 128 点上限及细胞预算约束。
 - 使用 `--columns` 显式选列；默认不变换。可选择 `--normalize zscore|minmax`，变换参数与零起始数据行编号保存在 `csv-info.json`。不自动去重、插值或排序。
 - `csv-preview` 输出列名、行列数及前五行；分析导出额外保存 `csv-info.json` 和可复现请求 `csv-request.json`。
+
+## 0.20.6 研究流程
+
+时间戳信号变化、真实 PM2.5 测量子集、物理孔隙定量与分组统计比较见 [研究工作流](research-workflows.md)。
+运行 `node scripts/research-cases.mjs` 可生成完整报告，并核对解析置换分布、几何量和窗口回放。

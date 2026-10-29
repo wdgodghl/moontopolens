@@ -1,0 +1,14 @@
+{
+  "kind": "signal_study",
+  "unit": "PM2.5 ug/m^3; time in hours",
+  "window": 16,
+  "hop": 8,
+  "baseline_windows": 3,
+  "dimension": 2,
+  "lag": 2,
+  "threshold": 2,
+  "normalization": "baseline_zscore",
+  "interpolation": "linear",
+  "grid_step": 1,
+  "max_gap": 3
+}

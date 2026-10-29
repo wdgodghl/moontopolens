@@ -54,6 +54,8 @@ pub fn bottleneck(Array[(Double, Double)], Array[(Double, Double)]) -> Double ra
 
 pub fn circle_points(Int, Double) -> Array[Array[Double]] raise TopologyError
 
+pub fn cohort_study(String) -> Json raise TopologyError
+
 pub fn compare_analyses(Analysis, Analysis, dimension~ : Int) -> Double? raise TopologyError
 
 pub fn comparison_html(Analysis, Analysis) -> String raise TopologyError
@@ -126,6 +128,14 @@ pub fn point_stability_html(Json) -> String
 
 pub fn point_stability_json(String, Double, trials? : Int) -> Json raise TopologyError
 
+pub fn pore_compare(Json, Json) -> Json raise TopologyError
+
+pub fn pore_nifti_request(NiftiStudy, String) -> Json raise TopologyError
+
+pub fn pore_study(String) -> Json raise TopologyError
+
+pub fn pore_surface_obj(Json) -> String raise TopologyError
+
 pub fn ranked_intervals(Analysis, dimension~ : Int, min_lifetime? : Double, include_alive? : Bool) -> Array[Interval] raise TopologyError
 
 pub fn recommend_scales(Analysis, max_loops? : Int) -> Array[ScaleRecommendation] raise TopologyError
@@ -134,9 +144,17 @@ pub fn recommendations_csv(Analysis, max_loops? : Int) -> String raise TopologyE
 
 pub fn recommendations_json(Analysis, max_loops? : Int) -> Json raise TopologyError
 
+pub fn reliability_study(String) -> Json raise TopologyError
+
 pub fn report_json(Analysis, source? : Json) -> Json
 
 pub fn resample_volume(Array[Array[Array[Double]]], Int, sampling? : String) -> Array[Array[Array[Double]]] raise TopologyError
+
+pub fn research_csv(Json, field? : String) -> String raise TopologyError
+
+pub fn research_files(Json) -> Array[(String, String)] raise TopologyError
+
+pub fn research_html(Json) -> String
 
 pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
 
@@ -159,6 +177,10 @@ pub fn series_sweep_html(Json) -> String
 pub fn shortest_representative(Analysis, Int, max_states? : Int) -> Array[Int] raise TopologyError
 
 pub fn shortest_representative_json(Analysis, Int) -> Json raise TopologyError
+
+pub fn signal_csv_request(String, String) -> Json raise TopologyError
+
+pub fn signal_study(String) -> Json raise TopologyError
 
 pub fn simplify_representative(Analysis, Int) -> Array[Int] raise TopologyError
 

@@ -1,6 +1,14 @@
 ///|
 fn usage() -> Unit {
   println("MoonTopoLens — persistent H0/H1/H2 analysis")
+  println(
+    "reliability|cohort|signal-study|pores INPUT.json [--out NEW_DIRECTORY]",
+  )
+  println("signal-csv INPUT.csv CONFIG.json [--out NEW_DIRECTORY]")
+  println("pores-nifti INPUT.nii[.gz] CONFIG.json [--out NEW_DIRECTORY]")
+  println(
+    "pore-compare LEFT_REQUEST.json RIGHT_REQUEST.json [--out NEW_DIRECTORY]",
+  )
   println("shortest INPUT.json INTERVAL_INDEX [--out NEW_DIRECTORY]")
   println(
     "Exact large points: analyze a kind=points_sparse request; CSV: --engine sparse --max-cells 10000",
@@ -187,6 +195,76 @@ fn main {
   }
   try {
     match argument(0) {
+      "reliability"
+      | "cohort"
+      | "signal-study"
+      | "signal-csv"
+      | "pores"
+      | "pores-nifti"
+      | "pore-compare" => {
+        let command = argument(0)
+        let base = if command == "signal-csv" ||
+          command == "pores-nifti" ||
+          command == "pore-compare" {
+          3
+        } else {
+          2
+        }
+        if count != base && count != base + 2 {
+          raise @topo.TopologyError(
+            "research command requires input file(s) [--out NEW_DIRECTORY]",
+          )
+        }
+        if count == base + 2 &&
+          (argument(base) != "--out" || argument(base + 1) == "") {
+          raise @topo.TopologyError("expected --out NEW_DIRECTORY")
+        }
+        let input = read_input(argument(1))
+        let result = match command {
+          "reliability" => @topo.reliability_study(input)
+          "cohort" => @topo.cohort_study(resolve_cohort(argument(1), input))
+          "signal-study" => @topo.signal_study(input)
+          "signal-csv" =>
+            @topo.signal_study(
+              @topo.signal_csv_request(input, read_input(argument(2))).stringify(),
+            )
+          "pores-nifti" =>
+            @topo.pore_study(
+              @topo.pore_nifti_request(
+                @topo.parse_nifti1_study(
+                  {
+                    let bytes = read_nifti_input(argument(1))
+                    Array::makei(bytes.length(), fn(i) { bytes[i] })
+                  },
+                ),
+                read_input(argument(2)),
+              ).stringify(),
+            )
+          "pores" => @topo.pore_study(input)
+          _ =>
+            @topo.pore_compare(
+              @topo.pore_study(input),
+              @topo.pore_study(read_input(argument(2))),
+            )
+        }
+        if count == base + 2 {
+          let files = @topo.research_files(result)
+          let output = argument(base + 1)
+          if !new_output(output) {
+            raise @topo.TopologyError(
+              "output directory must be new and have an existing parent",
+            )
+          }
+          for (name, content) in files {
+            if !save_output(output, name, content) {
+              raise @topo.TopologyError(
+                "could not save complete research report",
+              )
+            }
+          }
+        }
+        println(result.stringify())
+      }
       "csv-preview" => {
         if (count != 2 && count != 4) ||
           (count == 4 && argument(2) != "--columns") {
@@ -1385,4 +1463,49 @@ fn main {
   } catch {
     error => print_error(error.message())
   }
+}
+
+///|
+fn resolve_cohort(
+  path : String,
+  text : String,
+) -> String raise @topo.TopologyError {
+  let parsed = @json.parse(text) catch {
+    _ => raise @topo.TopologyError("invalid cohort JSON")
+  }
+  let fields : Map[String, Json] = @json.from_json(parsed) catch {
+    _ => raise @topo.TopologyError("invalid cohort object")
+  }
+  let samples : Array[Json] = @json.from_json(
+    fields.get("samples").unwrap_or(Json::null()),
+  ) catch {
+    _ => raise @topo.TopologyError("invalid cohort samples")
+  }
+  let resolved : Array[Json] = []
+  for sample in samples {
+    let sf : Map[String, Json] = @json.from_json(sample) catch {
+      _ => raise @topo.TopologyError("invalid sample object")
+    }
+    if sf.contains("input") {
+      if sf.contains("request") {
+        raise @topo.TopologyError(
+          "cohort sample must use either input or request",
+        )
+      }
+      let relative : String = @json.from_json(sf["input"]) catch {
+        _ => raise @topo.TopologyError("invalid relative sample path")
+      }
+      let request = @json.parse(read_batch_text(path, relative)) catch {
+        _ =>
+          raise @topo.TopologyError(
+            "sample input must be a readable JSON child of the manifest directory",
+          )
+      }
+      sf.remove("input") |> ignore
+      sf.set("request", request)
+    }
+    resolved.push(sf.to_json())
+  }
+  fields.set("samples", resolved.to_json())
+  fields.to_json().stringify()
 }

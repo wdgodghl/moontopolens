@@ -1,0 +1,10 @@
+{
+  "kind": "pores",
+  "threshold": 0.5,
+  "polarity": "high",
+  "radii": [
+    0,
+    0.5,
+    1
+  ]
+}
