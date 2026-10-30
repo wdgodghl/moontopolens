@@ -13,9 +13,9 @@ pub fn observed_lifetime(analysis : Analysis, interval : Interval) -> Double {
 /// Undead intervals use cutoff-birth; ranking is not proof of infinite lifetime.
 pub fn ranked_intervals(
   analysis : Analysis,
-  dimension~ : Int,
-  min_lifetime? : Double = 0.0,
-  include_alive? : Bool = true,
+  dimension~ : Int32,
+  min_lifetime~ : Double = 0.0,
+  include_alive~ : Bool = true,
 ) -> Array[Interval] raise TopologyError {
   if dimension < 0 ||
     dimension > analysis.homology_dimension ||
@@ -128,7 +128,7 @@ pub fn intervals_csv(analysis : Analysis) -> String {
 /// Uniform samples over the filtration's observed range, including cutoff.
 pub fn betti_csv(
   analysis : Analysis,
-  samples? : Int = 101,
+  samples~ : Int32 = 101,
 ) -> String raise TopologyError {
   if samples < 2 || samples > 1001 {
     raise TopologyError("Betti CSV requires 2..1001 samples")

@@ -1,7 +1,7 @@
 ///|
 pub fn research_csv(
   report : Json,
-  field? : String = "rows",
+  field~ : String = "rows",
 ) -> String raise TopologyError {
   let f = batch_object(report, "research report")
   let rows : Array[Json] = match f.get(field) {

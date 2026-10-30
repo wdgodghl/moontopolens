@@ -2,7 +2,7 @@
 // remain in MoonBit. It converts supported PNG pixels to an ordinary P5 raster.
 
 ///|
-extern "js" fn png_as_pgm(data : FixedArray[Int]) -> FixedArray[Int] =
+extern "js" fn png_as_pgm(data : FixedArray[Int32]) -> FixedArray[Int32] =
   #|(source) => {
   #|  try {
   #|    const zlib = require("node:zlib");

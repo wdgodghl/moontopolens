@@ -115,7 +115,7 @@ pub fn batch_matrix_json(matrix : BatchDistanceMatrix) -> Json {
 /// Square CSV with blanks for null distances. Batch names are CSV-safe ASCII.
 pub fn batch_matrix_csv(
   matrix : BatchDistanceMatrix,
-  dimension : Int,
+  dimension : Int32,
 ) -> String raise TopologyError {
   if dimension < 0 || dimension > 2 {
     raise TopologyError("matrix dimension must be 0, 1 or 2")
@@ -163,7 +163,7 @@ fn matrix_max(rows : Array[Array[Double?]]) -> Double {
 fn matrix_table(
   matrix : BatchDistanceMatrix,
   rows : Array[Array[Double?]],
-  dimension : Int,
+  dimension : Int32,
 ) -> String {
   let greatest = matrix_max(rows)
   let mut html = "<section class=panel><h2>H\{dimension} 瓶颈距离</h2><div class=scroll><table><thead><tr><th>案例</th>"

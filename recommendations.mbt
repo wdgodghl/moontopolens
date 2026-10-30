@@ -3,7 +3,7 @@
 /// The interval index refers to Analysis.intervals and may be passed to slice.
 pub struct ScaleRecommendation {
   scale : Double
-  interval_index : Int?
+  interval_index : Int32?
   reason : String
   observed_lifetime : Double?
   censored : Bool
@@ -19,12 +19,12 @@ pub extend ScaleRecommendation with @debug.Debug::{to_repr}
 /// do merge. The final cutoff is always appended as a baseline view.
 pub fn recommend_scales(
   analysis : Analysis,
-  max_loops? : Int = 5,
+  max_loops~ : Int32 = 5,
 ) -> Array[ScaleRecommendation] raise TopologyError {
   if max_loops < 1 || max_loops > 10 {
     raise TopologyError("scale recommendations require 1..10 loop suggestions")
   }
-  let indices : Array[Int] = []
+  let indices : Array[Int32] = []
   for i = 0; i < analysis.intervals.length(); i = i + 1 {
     if analysis.intervals[i].dimension == 1 {
       indices.push(i)
@@ -103,7 +103,7 @@ fn recommendation_number(value : Double?) -> Json {
 }
 
 ///|
-fn recommendation_index(value : Int?) -> Json {
+fn recommendation_index(value : Int32?) -> Json {
   match value {
     Some(index) => index.to_json()
     None => Json::null()
@@ -114,7 +114,7 @@ fn recommendation_index(value : Int?) -> Json {
 /// Structured explanation with the exact scale and Betti counts for each view.
 pub fn recommendations_json(
   analysis : Analysis,
-  max_loops? : Int = 5,
+  max_loops~ : Int32 = 5,
 ) -> Json raise TopologyError {
   let suggestions : Array[Json] = []
   for item in recommend_scales(analysis, max_loops~) {
@@ -141,7 +141,7 @@ pub fn recommendations_json(
 ///|
 pub fn recommendations_csv(
   analysis : Analysis,
-  max_loops? : Int = 5,
+  max_loops~ : Int32 = 5,
 ) -> String raise TopologyError {
   let mut text = "rank,scale,interval_index,reason,observed_lifetime,censored,H0,H1\n"
   let suggestions = recommend_scales(analysis, max_loops~)

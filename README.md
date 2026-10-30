@@ -9,7 +9,7 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.20.6 应用研究工作流版**。
+当前版本：**0.20.7 工具链更新版**。
 可靠性与有条件置信带、长信号变化、孔洞空间定量、独立/配对分组检验见 [研究工作流与适用条件](docs/research-workflows.md)。
 分步教学、键盘操作、精确稀疏点云与最短同调代表链见 [功能与保证](docs/exact-and-guided.md)。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
@@ -88,9 +88,9 @@ CSV 可用 `--engine sparse --max-cells 10000`。精确稀疏入口最多 8192 �
 ## 安装与运行
 
 需要 [MoonBit 官方工具链](https://docs.moonbitlang.com/en/latest/toolchain/moon/tutorial.html)，
-**moonc ≥ 0.10.14**，以及 Node.js 22（命令行文件读写）。
-本地及主 CI 固定使用 moonc `0.10.14+7d59c7ec9`、moon `0.1.20260920`。
-为复现格式检查，Linux/macOS 可用官方安装命令 `curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s 0.10.14+7d59c7ec9`。
+**moonc ≥ 0.10.16**，以及 Node.js 22（命令行文件读写）。
+本地及主 CI 固定使用 moonc `0.10.18+6c83a7f62`、moon `0.1.20261028`。
+为复现格式检查，Linux/macOS 可用官方安装命令 `curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s 0.10.18+6c83a7f62`。
 CI 另用当前官方稳定工具链执行双后端检查、构建和测试。
 核心库不依赖第三方 Mooncakes 包。
 

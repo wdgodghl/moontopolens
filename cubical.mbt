@@ -6,7 +6,7 @@
 pub fn cubical_grid(
   grid : Array[Array[Double]],
   threshold~ : Double,
-  max_cells? : Int = 4000,
+  max_cells~ : Int32 = 4000,
 ) -> Filtration raise TopologyError {
   if !finite(threshold) || threshold.abs() > 1.0e100 {
     raise TopologyError(

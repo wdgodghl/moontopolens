@@ -1,5 +1,5 @@
 ///|
-fn nifti_u16(bytes : Array[Int], at : Int, little : Bool) -> Int {
+fn nifti_u16(bytes : Array[Int32], at : Int32, little : Bool) -> Int32 {
   if little {
     bytes[at] | (bytes[at + 1] << 8)
   } else {
@@ -8,7 +8,7 @@ fn nifti_u16(bytes : Array[Int], at : Int, little : Bool) -> Int {
 }
 
 ///|
-fn nifti_u32(bytes : Array[Int], at : Int, little : Bool) -> Int {
+fn nifti_u32(bytes : Array[Int32], at : Int32, little : Bool) -> Int32 {
   if little {
     bytes[at] |
     (bytes[at + 1] << 8) |
@@ -23,7 +23,7 @@ fn nifti_u32(bytes : Array[Int], at : Int, little : Bool) -> Int {
 }
 
 ///|
-fn nifti_f32(bytes : Array[Int], at : Int, little : Bool) -> Double {
+fn nifti_f32(bytes : Array[Int32], at : Int32, little : Bool) -> Double {
   Float::reinterpret_from_int(nifti_u32(bytes, at, little)).to_double()
 }
 
@@ -32,7 +32,7 @@ fn nifti_f32(bytes : Array[Int], at : Int, little : Bool) -> Double {
 /// uint8, int16, int32 and float32 scalar voxels in either byte order.
 /// Returned volume is indexed [z][y][x], matching cubical_volume.
 pub fn parse_nifti1(
-  bytes : Array[Int],
+  bytes : Array[Int32],
 ) -> Array[Array[Array[Double]]] raise TopologyError {
   if bytes.length() < 352 || bytes.length() > 1000000 {
     raise TopologyError("NIfTI-1 file must be between 352 bytes and 1 MB")

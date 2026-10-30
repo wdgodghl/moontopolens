@@ -1,5 +1,5 @@
 ///|
-fn pore_neighbors(i : Int, w : Int, h : Int, d : Int) -> Array[Int] {
+fn pore_neighbors(i : Int32, w : Int32, h : Int32, d : Int32) -> Array[Int32] {
   let x = i % w
   let y = i / w % h
   let z = i / (w * h)
@@ -41,9 +41,9 @@ fn pore_neighbors(i : Int, w : Int, h : Int, d : Int) -> Array[Int] {
 /// Exact separable min-plus distance to axis-aligned solid voxel boxes.
 fn pore_distances(
   mask : Array[Bool],
-  w : Int,
-  h : Int,
-  d : Int,
+  w : Int32,
+  h : Int32,
+  d : Int32,
   spacing : Array[Double],
 ) -> Array[Double] {
   let mut distance = mask.map(fn(pore) { if pore { 1.0e100 } else { 0.0 } })
@@ -71,12 +71,12 @@ fn pore_distances(
 ///|
 fn pore_labels(
   mask : Array[Bool],
-  w : Int,
-  h : Int,
-  d : Int,
-) -> (Array[Int], Array[Array[Int]]) raise TopologyError {
+  w : Int32,
+  h : Int32,
+  d : Int32,
+) -> (Array[Int32], Array[Array[Int32]]) raise TopologyError {
   let labels = Array::make(mask.length(), 0)
-  let components : Array[Array[Int]] = []
+  let components : Array[Array[Int32]] = []
   for start = 0; start < mask.length(); start = start + 1 {
     if !mask[start] || labels[start] != 0 {
       continue
@@ -103,7 +103,12 @@ fn pore_labels(
 }
 
 ///|
-fn pore_spans(cells : Array[Int], w : Int, h : Int, d : Int) -> Array[Bool] {
+fn pore_spans(
+  cells : Array[Int32],
+  w : Int32,
+  h : Int32,
+  d : Int32,
+) -> Array[Bool] {
   let faces = Array::make(6, false)
   for i in cells {
     let x = i % w
@@ -360,10 +365,10 @@ pub fn pore_study(text : String) -> Json raise TopologyError {
 ///|
 pub fn pore_surface_obj(report : Json) -> String raise TopologyError {
   let f = batch_object(report, "pore report")
-  let shape : Array[Int] = @json.from_json(required_field(f, "shape_xyz")) catch {
+  let shape : Array[Int32] = @json.from_json(required_field(f, "shape_xyz")) catch {
     _ => raise TopologyError("invalid pore shape")
   }
-  let labels : Array[Int] = @json.from_json(required_field(f, "labels")) catch {
+  let labels : Array[Int32] = @json.from_json(required_field(f, "labels")) catch {
     _ => raise TopologyError("invalid labels")
   }
   let spacing = research_numbers(f, "spacing", [])
@@ -438,20 +443,20 @@ pub fn pore_compare(left : Json, right : Json) -> Json raise TopologyError {
       )
     }
   }
-  let la : Array[Int] = @json.from_json(required_field(a, "labels")) catch {
+  let la : Array[Int32] = @json.from_json(required_field(a, "labels")) catch {
     _ => raise TopologyError("invalid left labels")
   }
-  let lb : Array[Int] = @json.from_json(required_field(b, "labels")) catch {
+  let lb : Array[Int32] = @json.from_json(required_field(b, "labels")) catch {
     _ => raise TopologyError("invalid right labels")
   }
   if la.length() != lb.length() || la.length() > 262144 {
     raise TopologyError("invalid pore label lengths")
   }
-  let overlaps : Map[String, Int] = Map([])
-  let counts_a : Map[Int, Int] = Map([])
-  let counts_b : Map[Int, Int] = Map([])
-  let outgoing : Map[Int, Array[Int]] = Map([])
-  let incoming : Map[Int, Array[Int]] = Map([])
+  let overlaps : Map[String, Int32] = Map([])
+  let counts_a : Map[Int32, Int32] = Map([])
+  let counts_b : Map[Int32, Int32] = Map([])
+  let outgoing : Map[Int32, Array[Int32]] = Map([])
+  let incoming : Map[Int32, Array[Int32]] = Map([])
   for i, x in la {
     let y = lb[i]
     if x > 0 {
@@ -482,10 +487,10 @@ pub fn pore_compare(left : Json, right : Json) -> Json raise TopologyError {
   keys.sort()
   for key in keys {
     let parts = key.split(":").to_array()
-    let x : Int = @json.from_json(@json.parse(parts[0].to_owned())) catch {
+    let x : Int32 = @json.from_json(@json.parse(parts[0].to_owned())) catch {
       _ => raise TopologyError("invalid overlap")
     }
-    let y : Int = @json.from_json(@json.parse(parts[1].to_owned())) catch {
+    let y : Int32 = @json.from_json(@json.parse(parts[1].to_owned())) catch {
       _ => raise TopologyError("invalid overlap")
     }
     let intersection = overlaps[key]

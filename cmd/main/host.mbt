@@ -1,11 +1,11 @@
 // Thin Node host adapter: arguments and filesystem only; all analysis is MoonBit.
 
 ///|
-extern "js" fn argument_count() -> Int =
+extern "js" fn argument_count() -> Int32 =
   #|() => process.argv.length - 2
 
 ///|
-extern "js" fn argument(index : Int) -> String =
+extern "js" fn argument(index : Int32) -> String =
   #|(i) => process.argv[i + 2] || ""
 
 ///|
@@ -20,7 +20,7 @@ extern "js" fn read_input(path : String) -> String =
   #|}
 
 ///|
-extern "js" fn read_binary_input(path : String) -> FixedArray[Int] =
+extern "js" fn read_binary_input(path : String) -> FixedArray[Int32] =
   #|(path) => {
   #|  const fs = require("node:fs");
   #|  try {
@@ -31,7 +31,7 @@ extern "js" fn read_binary_input(path : String) -> FixedArray[Int] =
   #|}
 
 ///|
-extern "js" fn read_nifti_input(path : String) -> FixedArray[Int] =
+extern "js" fn read_nifti_input(path : String) -> FixedArray[Int32] =
   #|(path) => {
   #|  const fs = require("node:fs"), zlib = require("node:zlib");
   #|  try {
@@ -65,7 +65,7 @@ extern "js" fn read_batch_text(manifest : String, relative : String) -> String =
 extern "js" fn read_batch_binary(
   manifest : String,
   relative : String,
-) -> FixedArray[Int] =
+) -> FixedArray[Int32] =
   #|(manifest, relative) => {
   #|  const fs = require("node:fs"), path = require("node:path");
   #|  try {

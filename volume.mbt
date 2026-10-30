@@ -1,5 +1,5 @@
 ///|
-fn volume_face_key(axis : String, start : Int) -> String {
+fn volume_face_key(axis : String, start : Int32) -> String {
   "vf:\{axis}:\{start}"
 }
 
@@ -7,12 +7,12 @@ fn volume_face_key(axis : String, start : Int) -> String {
 fn volume_cell(
   raw : Array[RawCell],
   values : Array[Double],
-  vertices : Array[Int],
+  vertices : Array[Int32],
   faces : Array[String],
   key : String,
-  dimension : Int,
+  dimension : Int32,
   threshold : Double,
-  max_cells : Int,
+  max_cells : Int32,
 ) -> Unit raise TopologyError {
   let mut value = values[vertices[0]]
   for vertex in vertices {
@@ -31,7 +31,7 @@ fn volume_cell(
 pub fn cubical_volume(
   volume : Array[Array[Array[Double]]],
   threshold~ : Double,
-  max_cells? : Int = 4000,
+  max_cells~ : Int32 = 4000,
 ) -> Filtration raise TopologyError {
   if !finite(threshold) || threshold.abs() > 1.0e100 {
     raise TopologyError("volume threshold must be bounded and finite")

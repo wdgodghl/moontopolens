@@ -98,8 +98,8 @@ pub fn cohort_study(text : String) -> Json raise TopologyError {
       requests[i] = rf.to_json()
     }
   }
-  let a_ids : Array[Int] = []
-  let b_ids : Array[Int] = []
+  let a_ids : Array[Int32] = []
+  let b_ids : Array[Int32] = []
   for i, g in groups {
     if g == "A" {
       a_ids.push(i)

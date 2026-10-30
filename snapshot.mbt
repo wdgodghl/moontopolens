@@ -13,7 +13,7 @@ fn snapshot_scale(
 }
 
 ///|
-fn component_root(parents : Array[Int], vertex : Int) -> Int {
+fn component_root(parents : Array[Int32], vertex : Int32) -> Int32 {
   let mut current = vertex
   while parents[current] != current {
     parents[current] = parents[parents[current]]
@@ -28,9 +28,9 @@ fn component_root(parents : Array[Int], vertex : Int) -> Int {
 pub fn connected_components(
   analysis : Analysis,
   scale : Double,
-) -> Array[Array[Int]] raise TopologyError {
+) -> Array[Array[Int32]] raise TopologyError {
   snapshot_scale(analysis, scale)
-  let vertices : Array[Int] = []
+  let vertices : Array[Int32] = []
   for cell in analysis.filtration.cells {
     if cell.value > scale {
       break
@@ -45,7 +45,7 @@ pub fn connected_components(
     }
   }
   vertices.sort()
-  let indices : Map[Int, Int] = Map([])
+  let indices : Map[Int32, Int32] = Map([])
   for i = 0; i < vertices.length(); i = i + 1 {
     if indices.contains(vertices[i]) {
       raise TopologyError("components require unique zero-cell vertex IDs")
@@ -78,8 +78,8 @@ pub fn connected_components(
       parents[a] = b
     }
   }
-  let groups : Array[Array[Int]] = []
-  let group_indices : Map[Int, Int] = Map([])
+  let groups : Array[Array[Int32]] = []
+  let group_indices : Map[Int32, Int32] = Map([])
   for i = 0; i < vertices.length(); i = i + 1 {
     let root = component_root(parents, i)
     match group_indices.get(root) {
@@ -110,7 +110,7 @@ pub fn snapshot_json(
       cells_by_dimension[cell.dimension] += 1
     }
   }
-  let alive : Array[Int] = []
+  let alive : Array[Int32] = []
   for i = 0; i < analysis.intervals.length(); i = i + 1 {
     let interval = analysis.intervals[i]
     let survives = match interval.death {

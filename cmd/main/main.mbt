@@ -82,7 +82,7 @@ fn usage() -> Unit {
 ///|
 fn load(
   path : String,
-  representatives? : Bool = true,
+  representatives~ : Bool = true,
 ) -> @topo.Analysis raise @topo.TopologyError {
   let text = read_input(path)
   if text == "" {
@@ -94,7 +94,7 @@ fn load(
 }
 
 ///|
-fn numeric_argument(index : Int) -> Double raise @topo.TopologyError {
+fn numeric_argument(index : Int32) -> Double raise @topo.TopologyError {
   let parsed = @json.parse(argument(index)) catch {
     _ => raise @topo.TopologyError("expected a numeric argument")
   }
@@ -105,7 +105,7 @@ fn numeric_argument(index : Int) -> Double raise @topo.TopologyError {
 }
 
 ///|
-fn csv_integer_argument(index : Int) -> Int raise @topo.TopologyError {
+fn csv_integer_argument(index : Int32) -> Int32 raise @topo.TopologyError {
   let value = numeric_argument(index)
   if value < 1.0 || value > 10000.0 || value != @math.floor(value) {
     raise @topo.TopologyError(
@@ -120,7 +120,7 @@ fn save_analysis(
   output : String,
   result : @topo.Analysis,
   report : String,
-  source? : Json = Json::null(),
+  source~ : Json = Json::null(),
 ) -> Bool raise @topo.TopologyError {
   save_output(output, "report.json", report) &&
   save_output(output, "barcode.svg", @topo.barcode_svg(result)) &&
@@ -159,7 +159,7 @@ fn image_info(
   cutoff : Double,
   automatic : Bool,
   inverted : Bool,
-  source_format? : String = "PGM",
+  source_format~ : String = "PGM",
 ) -> Json {
   {
     "source_format": source_format,
@@ -864,7 +864,7 @@ fn main {
         let analyses : Array[@topo.Analysis] = []
         let reports : Array[String] = []
         let image_infos : Array[String] = []
-        let positions : Map[String, Int] = Map([])
+        let positions : Map[String, Int32] = Map([])
         let mut total_cells = 0
         for case in plan.cases {
           let result = if case.format == "json" {

@@ -4,8 +4,8 @@
 pub struct NiftiStudy {
   volumes : Array[Array[Array[Array[Double]]]]
   affine : Array[Array[Double]]
-  spatial_units : Int
-  temporal_units : Int
+  spatial_units : Int32
+  temporal_units : Int32
   time_step : Double
   time_offset : Double
   transform_source : String
@@ -16,7 +16,7 @@ pub extend NiftiStudy with @debug.Debug::{to_repr}
 
 ///|
 fn nifti_affine(
-  bytes : Array[Int],
+  bytes : Array[Int32],
   little : Bool,
 ) -> (Array[Array[Double]], String) raise TopologyError {
   let qform = nifti_u16(bytes, 252, little)
@@ -104,7 +104,9 @@ fn nifti_affine(
 ///|
 /// Parse bounded NIfTI-1 .nii bytes with one to eight 3D time frames.
 /// The original byte order, slope and intercept are honored per frame.
-pub fn parse_nifti1_study(bytes : Array[Int]) -> NiftiStudy raise TopologyError {
+pub fn parse_nifti1_study(
+  bytes : Array[Int32],
+) -> NiftiStudy raise TopologyError {
   if bytes.length() < 352 || bytes.length() > 1000000 {
     raise TopologyError("NIfTI-1 study must be 352 bytes to 1 MB")
   }

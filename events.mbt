@@ -2,9 +2,9 @@
 /// Exact right-continuous Betti counts at filtration event scales.
 pub struct BettiEvent {
   scale : Double
-  h0 : Int
-  h1 : Int
-  h2 : Int
+  h0 : Int32
+  h1 : Int32
+  h2 : Int32
 } derive(@debug.Debug)
 
 ///|
@@ -20,7 +20,7 @@ pub fn betti_events(analysis : Analysis) -> Array[BettiEvent] {
   } else {
     analysis.filtration.cells[0].value
   }
-  let deltas : Array[(Double, Int, Int, Int)] = [
+  let deltas : Array[(Double, Int32, Int32, Int32)] = [
     (start, 0, 0, 0),
     (cutoff, 0, 0, 0),
   ]

@@ -1,6 +1,6 @@
 # Mooncakes 发布说明
 
-当前源码版本：**0.20.5**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
+当前源码版本：**0.20.7**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
 公开模块页：https://mooncakes.io/docs/wdgodghl/moontopolens 。
 注册表：https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens 。
 已发布版本和构建状态以注册表为准；源码版本号本身不作为发布成功证明。
@@ -8,6 +8,7 @@
 0.20.2 提供 CSV 选列与显式变换，0.20.3 提供确定性点云采样，
 0.20.4 提供三维点云旋转、原始数据追溯、共同网格批量特征与 Chromium 回归。
 0.20.5 增加精确稀疏计算、指定 H1 类最少边数代表链、教学与可访问性回归。
+0.20.6 增加四类应用研究工作流；0.20.7 更新最低编译器与固定验证工具链。
 变更详情见 CHANGELOG.md，使用方法见 data-workflows.md。
 
 历史安装验证：0.20.0 在全新独立项目调用完整与仅区间分析 API，核对正方形区间与代表链模式；

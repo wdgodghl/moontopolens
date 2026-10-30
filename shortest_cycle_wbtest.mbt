@@ -41,7 +41,7 @@ test "exact solver escapes a greedy local minimum" {
   }
   let result = analyze(finalize(raw, 7, "custom", 0.0))
   let mut selected = -1
-  let seed : Array[Int] = []
+  let seed : Array[Int32] = []
   for i, cell in result.filtration.cells {
     if cell.dimension == 1 && !cell.vertices.contains(3) {
       seed.push(i)

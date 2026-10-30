@@ -4,7 +4,7 @@
 pub fn point_stability_json(
   text : String,
   epsilon : Double,
-  trials? : Int = 8,
+  trials~ : Int32 = 8,
 ) -> Json raise TopologyError {
   if !finite(epsilon) || epsilon < 0.0 || epsilon > 1.0e6 {
     raise TopologyError(
@@ -43,7 +43,7 @@ pub fn point_stability_json(
   if points.length() > 24 {
     raise TopologyError("stability supports at most 24 points")
   }
-  let h1_indices : Array[Int] = []
+  let h1_indices : Array[Int32] = []
   for index, interval in baseline.intervals {
     if interval.dimension == 1 {
       h1_indices.push(index)

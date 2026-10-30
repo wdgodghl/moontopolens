@@ -15,8 +15,8 @@ test "optimal matching accounts for each interval and attains the distance" {
     )
     for dimension = 0; dimension < 2; dimension = dimension + 1 {
       let matches = @moontopolens.interval_matching(a, b, dimension~)
-      let left : Array[Int] = []
-      let right : Array[Int] = []
+      let left : Array[Int32] = []
+      let right : Array[Int32] = []
       let mut highest = 0.0
       for pair in matches {
         if pair.left is Some(i) {
@@ -68,8 +68,8 @@ test "optimal matching accounts for each interval and attains the distance" {
       }
       left.sort()
       right.sort()
-      let expected_left : Array[Int] = []
-      let expected_right : Array[Int] = []
+      let expected_left : Array[Int32] = []
+      let expected_right : Array[Int32] = []
       for i = 0; i < a.intervals.length(); i = i + 1 {
         if a.intervals[i].dimension == dimension {
           expected_left.push(i)

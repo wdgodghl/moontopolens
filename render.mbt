@@ -17,7 +17,7 @@ fn chart_bounds(analysis : Analysis) -> (Double, Double) {
 }
 
 ///|
-fn color(dimension : Int) -> String {
+fn color(dimension : Int32) -> String {
   if dimension == 0 {
     "#38bdf8"
   } else if dimension == 1 {

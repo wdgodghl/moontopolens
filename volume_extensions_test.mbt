@@ -23,7 +23,7 @@ test "H2 volume representatives expose boundary faces" {
     if interval.dimension == 2 {
       let simple = @moontopolens.simplify_representative(analysis, index)
       assert_true(simple.length() <= interval.representative.length())
-      let boundary : Map[Int, Bool] = Map([])
+      let boundary : Map[Int32, Bool] = Map([])
       for face in simple {
         for edge in analysis.filtration.cells[face].boundary {
           boundary[edge] = !boundary.get(edge).unwrap_or(false)

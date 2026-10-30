@@ -3,9 +3,9 @@
 /// No normalization or resampling is applied implicitly.
 pub fn delay_embed(
   series : Array[Double],
-  dimension~ : Int,
-  lag~ : Int,
-  stride? : Int = 1,
+  dimension~ : Int32,
+  lag~ : Int32,
+  stride~ : Int32 = 1,
 ) -> Array[Array[Double]] raise TopologyError {
   if dimension < 1 ||
     dimension > 32 ||

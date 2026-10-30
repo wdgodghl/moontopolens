@@ -77,7 +77,7 @@ pub fn validate_matrix(
 ///|
 /// Generate a deterministic 2D circle for teaching and reproducible examples.
 pub fn circle_points(
-  count : Int,
+  count : Int32,
   radius : Double,
 ) -> Array[Array[Double]] raise TopologyError {
   if count < 3 ||

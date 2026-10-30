@@ -7,7 +7,11 @@ fn volume_sequence_optional(value : Double?) -> Json {
 }
 
 ///|
-fn volume_h2_observation(analysis : Analysis, frame : Int, index : Int) -> Json {
+fn volume_h2_observation(
+  analysis : Analysis,
+  frame : Int32,
+  index : Int32,
+) -> Json {
   let interval = analysis.intervals[index]
   {
     "frame": frame,
@@ -52,7 +56,7 @@ pub fn volume_sequence_json(text : String) -> Json raise TopologyError {
   let seen : Map[String, Bool] = Map([])
   let frames : Array[Json] = []
   let mut total_cells = 0
-  let mut shape : Array[Int] = []
+  let mut shape : Array[Int32] = []
   for value in frame_values {
     let fields = batch_object(value, "volume frame")
     batch_fields(fields, ["name", "volume"], "volume frame")
@@ -99,7 +103,7 @@ pub fn volume_sequence_json(text : String) -> Json raise TopologyError {
     names.push(name)
   }
   let tracks : Array[Array[Json]] = []
-  let mut previous : Map[Int, Int] = Map([])
+  let mut previous : Map[Int32, Int32] = Map([])
   for index, interval in analyses[0].intervals {
     if interval.dimension == 2 {
       let id = tracks.length()
@@ -111,7 +115,7 @@ pub fn volume_sequence_json(text : String) -> Json raise TopologyError {
   for frame = 1; frame < analyses.length(); frame = frame + 1 {
     let left = analyses[frame - 1]
     let right = analyses[frame]
-    let current : Map[Int, Int] = Map([])
+    let current : Map[Int32, Int32] = Map([])
     let mut continued = 0
     let mut appeared = 0
     let mut disappeared = 0

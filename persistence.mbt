@@ -1,7 +1,7 @@
 ///|
 /// Symmetric difference of sorted sparse GF(2) vectors (addition modulo two).
-fn xor_columns(a : Array[Int], b : Array[Int]) -> Array[Int] {
-  let result : Array[Int] = []
+fn xor_columns(a : Array[Int32], b : Array[Int32]) -> Array[Int32] {
+  let result : Array[Int32] = []
   let mut i = 0
   let mut j = 0
   while i < a.length() && j < b.length() {
@@ -92,7 +92,7 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
       raise TopologyError("vertices must have empty boundaries")
     }
     let mut last = -1
-    let mut twice : Array[Int] = []
+    let mut twice : Array[Int32] = []
     for face in cell.boundary {
       if face <= last || face >= i || face < 0 {
         raise TopologyError(
@@ -117,10 +117,10 @@ pub fn validate_filtration(filtration : Filtration) -> Unit raise TopologyError 
 /// Emits H0/H1 by default and optionally H2 for a complete 3-skeleton.
 pub fn analyze(
   filtration : Filtration,
-  include_zero? : Bool = false,
-  max_additions? : Int = 2000000,
-  max_homology_dimension? : Int = 1,
-  representatives? : Bool = true,
+  include_zero~ : Bool = false,
+  max_additions~ : Int32 = 2000000,
+  max_homology_dimension~ : Int32 = 1,
+  representatives~ : Bool = true,
 ) -> Analysis raise TopologyError {
   validate_filtration(filtration)
   if max_homology_dimension < 1 || max_homology_dimension > 2 {
@@ -130,8 +130,8 @@ pub fn analyze(
     raise TopologyError("max_additions must be between 1 and 10000000")
   }
   let cells = filtration.cells
-  let reduced : Array[Array[Int]] = []
-  let chains : Array[Array[Int]] = []
+  let reduced : Array[Array[Int32]] = []
+  let chains : Array[Array[Int32]] = []
   let owner = Array::make(cells.length(), -1)
   let deaths = Array::make(cells.length(), -1)
   let positive = Array::make(cells.length(), false)
@@ -225,9 +225,9 @@ pub fn analyze(
 /// Count classes alive at a scale in the analyzed (possibly truncated) complex.
 pub fn betti(
   analysis : Analysis,
-  dimension : Int,
+  dimension : Int32,
   scale : Double,
-) -> Int raise TopologyError {
+) -> Int32 raise TopologyError {
   if dimension < 0 || dimension > analysis.homology_dimension || !finite(scale) {
     raise TopologyError(
       "Betti query requires an analyzed dimension and finite scale",
@@ -251,14 +251,14 @@ pub fn betti(
 pub fn cycle_edges(
   analysis : Analysis,
   interval : Interval,
-) -> Array[(Int, Int)] raise TopologyError {
+) -> Array[(Int32, Int32)] raise TopologyError {
   if !analysis.representatives_computed {
     raise TopologyError("representatives were not computed")
   }
   if interval.dimension != 1 {
     raise TopologyError("cycle_edges requires an H1 interval")
   }
-  let edges : Array[(Int, Int)] = []
+  let edges : Array[(Int32, Int32)] = []
   for i in interval.representative {
     if i < 0 || i >= analysis.filtration.cells.length() {
       raise TopologyError("representative index outside filtration")

@@ -2,7 +2,7 @@
 /// Finite points (birth, death) of one dimension in a persistence diagram.
 pub fn diagram(
   analysis : Analysis,
-  dimension : Int,
+  dimension : Int32,
 ) -> Array[(Double, Double)] raise TopologyError {
   if dimension < 0 || dimension > analysis.homology_dimension {
     raise TopologyError("diagram dimension must have been analyzed")
@@ -43,11 +43,11 @@ fn validate_diagram(
 
 ///|
 fn match_augment(
-  row : Int,
+  row : Int32,
   costs : Array[Array[Double]],
   epsilon : Double,
   visited : Array[Bool],
-  owners : Array[Int],
+  owners : Array[Int32],
 ) -> Bool {
   for col = 0; col < owners.length(); col = col + 1 {
     if visited[col] || costs[row][col] > epsilon {
@@ -67,7 +67,7 @@ fn match_augment(
 fn matching_owners(
   costs : Array[Array[Double]],
   epsilon : Double,
-) -> Array[Int]? {
+) -> Array[Int32]? {
   let n = costs.length()
   let owners = Array::make(n, -1)
   for row = 0; row < n; row = row + 1 {
@@ -142,7 +142,7 @@ pub fn bottleneck(
 pub fn compare_analyses(
   a : Analysis,
   b : Analysis,
-  dimension~ : Int,
+  dimension~ : Int32,
 ) -> Double? raise TopologyError {
   let da = diagram(a, dimension)
   let db = diagram(b, dimension)
@@ -174,10 +174,10 @@ pub fn compare_analyses(
 /// Sample persistent Betti counts, suitable for downstream feature extraction.
 pub fn betti_curve(
   analysis : Analysis,
-  dimension~ : Int,
+  dimension~ : Int32,
   scales : Array[Double],
-) -> Array[Int] raise TopologyError {
-  let result : Array[Int] = []
+) -> Array[Int32] raise TopologyError {
+  let result : Array[Int32] = []
   for scale in scales {
     result.push(betti(analysis, dimension, scale))
   }

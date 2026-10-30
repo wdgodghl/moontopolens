@@ -23,8 +23,8 @@ fn number_field(
 fn integer_field(
   object : Map[String, Json],
   name : String,
-  fallback : Int,
-) -> Int raise TopologyError {
+  fallback : Int32,
+) -> Int32 raise TopologyError {
   match object.get(name) {
     None => fallback
     Some(Number(n, ..)) => {
@@ -55,7 +55,7 @@ fn rows_field(
 /// Supported kinds: points, matrix, grid, volume, series. Unknown fields are errors.
 pub fn analyze_json(
   text : String,
-  representatives? : Bool = true,
+  representatives~ : Bool = true,
 ) -> Analysis raise TopologyError {
   if text.length() > 1000000 {
     raise TopologyError("JSON request exceeds one million characters")
@@ -190,7 +190,7 @@ pub fn analyze_json(
 ///|
 /// Portable report schema. null death means alive at the input cutoff.
 /// Representative cell indices refer to the accompanying cells array.
-pub fn report_json(analysis : Analysis, source? : Json = Json::null()) -> Json {
+pub fn report_json(analysis : Analysis, source~ : Json = Json::null()) -> Json {
   let intervals : Array[Json] = []
   for interval in analysis.intervals {
     let death : Json = match interval.death {

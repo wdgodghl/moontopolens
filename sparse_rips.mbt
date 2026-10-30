@@ -4,8 +4,8 @@
 pub fn rips_sparse(
   points : Array[Array[Double]],
   threshold~ : Double,
-  max_cells? : Int = 10000,
-  max_dimension? : Int = 2,
+  max_cells~ : Int32 = 10000,
+  max_dimension~ : Int32 = 2,
 ) -> Filtration raise TopologyError {
   let n = points.length()
   if n > 8192 ||
@@ -35,8 +35,8 @@ pub fn rips_sparse(
     }
   }
   let raw : Array[RawCell] = []
-  let weights : Array[Map[Int, Double]] = Array::makei(n, fn(_) { Map([]) })
-  let neighbors : Array[Array[Int]] = Array::makei(n, fn(_) { [] })
+  let weights : Array[Map[Int32, Double]] = Array::makei(n, fn(_) { Map([]) })
+  let neighbors : Array[Array[Int32]] = Array::makei(n, fn(_) { [] })
   for i = 0; i < n; i = i + 1 {
     raw.push({
       key: vertex_key(i),

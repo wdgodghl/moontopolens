@@ -1,10 +1,10 @@
 ///|
 priv struct SweepCandidate {
-  dimension : Int
-  lag : Int
-  stride : Int
-  point_count : Int
-  finite_h1_count : Int
+  dimension : Int32
+  lag : Int32
+  stride : Int32
+  point_count : Int32
+  finite_h1_count : Int32
   longest_finite_h1_lifetime : Double
 }
 
@@ -12,16 +12,16 @@ priv struct SweepCandidate {
 fn sweep_integer_list(
   object : Map[String, Json],
   name : String,
-  lower : Int,
-  upper : Int,
-) -> Array[Int] raise TopologyError {
+  lower : Int32,
+  upper : Int32,
+) -> Array[Int32] raise TopologyError {
   let values : Array[Json] = @json.from_json(required_field(object, name)) catch {
     _ => raise TopologyError(name + " must be an array of integers")
   }
   if values.is_empty() || values.length() > 12 {
     raise TopologyError(name + " must contain 1..12 values")
   }
-  let result : Array[Int] = []
+  let result : Array[Int32] = []
   for value in values {
     let number = match value {
       Number(n, ..) => n

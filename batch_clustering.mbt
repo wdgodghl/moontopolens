@@ -1,8 +1,8 @@
 ///|
 /// One single-linkage join. Leaves use ids 0..n-1; joins use ids n onward.
 pub struct BatchClusterMerge {
-  left : Int
-  right : Int
+  left : Int32
+  right : Int32
   distance : Double
   members : Array[String]
 } derive(@debug.Debug)
@@ -14,11 +14,11 @@ pub extend BatchClusterMerge with @debug.Debug::{to_repr}
 /// A forest is returned when some pairs have no finite, comparable distance.
 pub struct BatchClustering {
   names : Array[String]
-  dimension : Int
+  dimension : Int32
   merges : Array[BatchClusterMerge]
-  roots : Array[Int]
+  roots : Array[Int32]
   groups : Array[Array[String]]
-  omitted_pairs : Int
+  omitted_pairs : Int32
 } derive(@debug.Debug)
 
 ///|
@@ -26,13 +26,13 @@ pub extend BatchClustering with @debug.Debug::{to_repr}
 
 ///|
 priv struct BatchClusterEdge {
-  a : Int
-  b : Int
+  a : Int32
+  b : Int32
   distance : Double
 }
 
 ///|
-fn batch_cluster_root(parent : Array[Int], index : Int) -> Int {
+fn batch_cluster_root(parent : Array[Int32], index : Int32) -> Int32 {
   let mut root = index
   while parent[root] != root {
     root = parent[root]
@@ -45,7 +45,7 @@ fn batch_cluster_root(parent : Array[Int], index : Int) -> Int {
 /// Missing distances never become zero or an arbitrary large replacement.
 pub fn batch_clustering(
   matrix : BatchDistanceMatrix,
-  dimension : Int,
+  dimension : Int32,
 ) -> BatchClustering raise TopologyError {
   if dimension < 0 || dimension > 2 {
     raise TopologyError("clustering dimension must be 0, 1 or 2")
@@ -112,7 +112,7 @@ pub fn batch_clustering(
     node[keep] = n + merges.length() - 1
     members[keep] = joined
   }
-  let roots : Array[Int] = []
+  let roots : Array[Int32] = []
   let groups : Array[Array[String]] = []
   for i = 0; i < n; i = i + 1 {
     if parent[i] == i {
@@ -218,7 +218,7 @@ pub fn batch_clustering_groups(
       }
     }
   }
-  let positions : Map[Int, Int] = Map([])
+  let positions : Map[Int32, Int32] = Map([])
   let groups : Array[Array[String]] = []
   for i, name in clustering.names {
     match positions.get(labels[i]) {

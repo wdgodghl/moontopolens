@@ -405,7 +405,7 @@ test "block resampling preserves contiguous within-block source indices" {
     "seed": 91,
   }
   for row in study_rows(reliability_study(request.stringify()), "rows") {
-    let ids : Array[Int] = @json.from_json(
+    let ids : Array[Int32] = @json.from_json(
       required_field(study_fields(row), "source_indices"),
     )
     assert_eq(ids.length(), 16)
@@ -429,7 +429,7 @@ test "bootstrap records duplicate observations and bounded indices" {
   }
   let mut duplicate = false
   for row in study_rows(reliability_study(request.stringify()), "rows") {
-    let ids : Array[Int] = @json.from_json(
+    let ids : Array[Int32] = @json.from_json(
       required_field(study_fields(row), "source_indices"),
     )
     for i, v in ids {

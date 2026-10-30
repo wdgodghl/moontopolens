@@ -61,7 +61,7 @@ pub fn series_lag_hints(text : String) -> (Json, String) raise TopologyError {
   if bins < 2 || bins > 32 {
     raise TopologyError("bins must be 2..32")
   }
-  let labels : Array[Int] = []
+  let labels : Array[Int32] = []
   for sample in series {
     let scaled = (sample - minimum) / (maximum_value - minimum)
     let mut label = (scaled * bins.to_double()).to_int()

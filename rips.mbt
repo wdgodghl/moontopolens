@@ -4,8 +4,8 @@
 pub fn rips_matrix(
   matrix : Array[Array[Double]],
   threshold~ : Double,
-  max_cells? : Int = 4000,
-  max_dimension? : Int = 2,
+  max_cells~ : Int32 = 4000,
+  max_dimension~ : Int32 = 2,
 ) -> Filtration raise TopologyError {
   validate_matrix(matrix)
   if max_dimension != 2 && max_dimension != 3 {
@@ -17,7 +17,7 @@ pub fn rips_matrix(
   check_budget(matrix.length(), max_cells)
   let raw : Array[RawCell] = []
   let n = matrix.length()
-  let neighbors : Array[Array[Int]] = Array::makei(n, fn(_) { [] })
+  let neighbors : Array[Array[Int32]] = Array::makei(n, fn(_) { [] })
   for i = 0; i < n; i = i + 1 {
     raw.push({
       key: vertex_key(i),
@@ -118,8 +118,8 @@ pub fn rips_matrix(
 pub fn rips(
   points : Array[Array[Double]],
   threshold~ : Double,
-  max_cells? : Int = 4000,
-  max_dimension? : Int = 2,
+  max_cells~ : Int32 = 4000,
+  max_dimension~ : Int32 = 2,
 ) -> Filtration raise TopologyError {
   let f = rips_matrix(
     distance_matrix(points),

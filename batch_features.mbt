@@ -4,11 +4,11 @@
 pub fn batch_features(
   analyses : Array[Analysis],
   names : Array[String],
-  dimension~ : Int,
+  dimension~ : Int32,
   start~ : Double,
   end~ : Double,
-  samples? : Int = 101,
-  layers? : Int = 3,
+  samples~ : Int32 = 101,
+  layers~ : Int32 = 3,
 ) -> (Json, String) raise TopologyError {
   if analyses.length() < 1 ||
     analyses.length() > 8 ||
@@ -81,7 +81,7 @@ pub fn batch_features(
         vector.push(value)
       }
     }
-    let curve : Array[Int] = []
+    let curve : Array[Int32] = []
     for scale in grid {
       curve.push(betti(analysis, dimension, scale))
     }

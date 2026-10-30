@@ -6,17 +6,17 @@ import {
 }
 
 // Values
-pub fn analyze(Filtration, include_zero? : Bool, max_additions? : Int, max_homology_dimension? : Int, representatives? : Bool) -> Analysis raise TopologyError
+pub fn analyze(Filtration, include_zero? : Bool, max_additions? : Int32, max_homology_dimension? : Int32, representatives? : Bool) -> Analysis raise TopologyError
 
 pub fn analyze_json(String, representatives? : Bool) -> Analysis raise TopologyError
 
-pub fn analyze_volume_coarse(Array[Array[Array[Double]]], threshold~ : Double, max_cells? : Int) -> (Analysis, Int) raise TopologyError
+pub fn analyze_volume_coarse(Array[Array[Array[Double]]], threshold~ : Double, max_cells? : Int32) -> (Analysis, Int32) raise TopologyError
 
-pub fn analyze_volume_coarse_json(String) -> (Analysis, Int) raise TopologyError
+pub fn analyze_volume_coarse_json(String) -> (Analysis, Int32) raise TopologyError
 
 pub fn barcode_svg(Analysis) -> String
 
-pub fn batch_clustering(BatchDistanceMatrix, Int) -> BatchClustering raise TopologyError
+pub fn batch_clustering(BatchDistanceMatrix, Int32) -> BatchClustering raise TopologyError
 
 pub fn batch_clustering_csv(BatchClustering) -> String
 
@@ -30,19 +30,19 @@ pub fn batch_clustering_svg(BatchClustering) -> String
 
 pub fn batch_distance_matrix(BatchPlan, Array[Analysis]) -> BatchDistanceMatrix raise TopologyError
 
-pub fn batch_features(Array[Analysis], Array[String], dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> (Json, String) raise TopologyError
+pub fn batch_features(Array[Analysis], Array[String], dimension~ : Int32, start~ : Double, end~ : Double, samples? : Int32, layers? : Int32) -> (Json, String) raise TopologyError
 
-pub fn batch_matrix_csv(BatchDistanceMatrix, Int) -> String raise TopologyError
+pub fn batch_matrix_csv(BatchDistanceMatrix, Int32) -> String raise TopologyError
 
 pub fn batch_matrix_html(BatchDistanceMatrix) -> String
 
 pub fn batch_matrix_json(BatchDistanceMatrix) -> Json
 
-pub fn betti(Analysis, Int, Double) -> Int raise TopologyError
+pub fn betti(Analysis, Int32, Double) -> Int32 raise TopologyError
 
-pub fn betti_csv(Analysis, samples? : Int) -> String raise TopologyError
+pub fn betti_csv(Analysis, samples? : Int32) -> String raise TopologyError
 
-pub fn betti_curve(Analysis, dimension~ : Int, Array[Double]) -> Array[Int] raise TopologyError
+pub fn betti_curve(Analysis, dimension~ : Int32, Array[Double]) -> Array[Int32] raise TopologyError
 
 pub fn betti_events(Analysis) -> Array[BettiEvent]
 
@@ -52,55 +52,55 @@ pub fn betti_events_json(Analysis) -> Json
 
 pub fn bottleneck(Array[(Double, Double)], Array[(Double, Double)]) -> Double raise TopologyError
 
-pub fn circle_points(Int, Double) -> Array[Array[Double]] raise TopologyError
+pub fn circle_points(Int32, Double) -> Array[Array[Double]] raise TopologyError
 
 pub fn cohort_study(String) -> Json raise TopologyError
 
-pub fn compare_analyses(Analysis, Analysis, dimension~ : Int) -> Double? raise TopologyError
+pub fn compare_analyses(Analysis, Analysis, dimension~ : Int32) -> Double? raise TopologyError
 
 pub fn comparison_html(Analysis, Analysis) -> String raise TopologyError
 
 pub fn comparison_json(Analysis, Analysis) -> Json raise TopologyError
 
-pub fn connected_components(Analysis, Double) -> Array[Array[Int]] raise TopologyError
+pub fn connected_components(Analysis, Double) -> Array[Array[Int32]] raise TopologyError
 
-pub fn csv_preparation_json(String, columns? : Array[String], normalization? : String, sample_size? : Int) -> Json raise TopologyError
+pub fn csv_preparation_json(String, columns? : Array[String], normalization? : String, sample_size? : Int32) -> Json raise TopologyError
 
 pub fn csv_preview_json(NumericCsv) -> Json
 
-pub fn csv_request_json(String, String, threshold~ : Double, dimension? : Int, lag? : Int, stride? : Int, columns? : Array[String], normalization? : String, sample_size? : Int, max_cells? : Int) -> Json raise TopologyError
+pub fn csv_request_json(String, String, threshold~ : Double, dimension? : Int32, lag? : Int32, stride? : Int32, columns? : Array[String], normalization? : String, sample_size? : Int32, max_cells? : Int32) -> Json raise TopologyError
 
-pub fn csv_series_preparation_json(String, columns? : Array[String], normalization? : String, dimension? : Int, lag? : Int, stride? : Int) -> Json raise TopologyError
+pub fn csv_series_preparation_json(String, columns? : Array[String], normalization? : String, dimension? : Int32, lag? : Int32, stride? : Int32) -> Json raise TopologyError
 
 pub fn csv_transform_json(NumericCsv, normalization? : String) -> Json raise TopologyError
 
-pub fn cubical_grid(Array[Array[Double]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+pub fn cubical_grid(Array[Array[Double]], threshold~ : Double, max_cells? : Int32) -> Filtration raise TopologyError
 
-pub fn cubical_volume(Array[Array[Array[Double]]], threshold~ : Double, max_cells? : Int) -> Filtration raise TopologyError
+pub fn cubical_volume(Array[Array[Array[Double]]], threshold~ : Double, max_cells? : Int32) -> Filtration raise TopologyError
 
-pub fn cycle_edges(Analysis, Interval) -> Array[(Int, Int)] raise TopologyError
+pub fn cycle_edges(Analysis, Interval) -> Array[(Int32, Int32)] raise TopologyError
 
-pub fn delay_embed(Array[Double], dimension~ : Int, lag~ : Int, stride? : Int) -> Array[Array[Double]] raise TopologyError
+pub fn delay_embed(Array[Double], dimension~ : Int32, lag~ : Int32, stride? : Int32) -> Array[Array[Double]] raise TopologyError
 
-pub fn diagram(Analysis, Int) -> Array[(Double, Double)] raise TopologyError
+pub fn diagram(Analysis, Int32) -> Array[(Double, Double)] raise TopologyError
 
 pub fn diagram_svg(Analysis) -> String
 
 pub fn distance_matrix(Array[Array[Double]]) -> Array[Array[Double]] raise TopologyError
 
-pub fn field_stability_json(String, Double, trials? : Int) -> Json raise TopologyError
+pub fn field_stability_json(String, Double, trials? : Int32) -> Json raise TopologyError
 
 pub fn html_report(Analysis, source? : Json) -> String
 
-pub fn interval_matching(Analysis, Analysis, dimension~ : Int) -> Array[IntervalMatch] raise TopologyError
+pub fn interval_matching(Analysis, Analysis, dimension~ : Int32) -> Array[IntervalMatch] raise TopologyError
 
 pub fn intervals_csv(Analysis) -> String
 
 pub fn invert_pgm(PgmImage) -> PgmImage
 
-pub fn landscape_csv(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> String raise TopologyError
+pub fn landscape_csv(Analysis, dimension~ : Int32, start~ : Double, end~ : Double, samples? : Int32, layers? : Int32) -> String raise TopologyError
 
-pub fn landscape_json(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> Json raise TopologyError
+pub fn landscape_json(Analysis, dimension~ : Int32, start~ : Double, end~ : Double, samples? : Int32, layers? : Int32) -> Json raise TopologyError
 
 pub fn matching_csv(Analysis, Analysis) -> String raise TopologyError
 
@@ -112,21 +112,21 @@ pub fn otsu_threshold(PgmImage) -> Double
 
 pub fn parse_batch_manifest(String) -> BatchPlan raise TopologyError
 
-pub fn parse_nifti1(Array[Int]) -> Array[Array[Array[Double]]] raise TopologyError
+pub fn parse_nifti1(Array[Int32]) -> Array[Array[Array[Double]]] raise TopologyError
 
-pub fn parse_nifti1_study(Array[Int]) -> NiftiStudy raise TopologyError
+pub fn parse_nifti1_study(Array[Int32]) -> NiftiStudy raise TopologyError
 
 pub fn parse_numeric_csv(String, columns? : Array[String]) -> NumericCsv raise TopologyError
 
-pub fn parse_pgm(Array[Int]) -> PgmImage raise TopologyError
+pub fn parse_pgm(Array[Int32]) -> PgmImage raise TopologyError
 
-pub fn persistence_landscape(Analysis, dimension~ : Int, start~ : Double, end~ : Double, samples? : Int, layers? : Int) -> Array[Array[Double]] raise TopologyError
+pub fn persistence_landscape(Analysis, dimension~ : Int32, start~ : Double, end~ : Double, samples? : Int32, layers? : Int32) -> Array[Array[Double]] raise TopologyError
 
 pub fn point_sample_json(PointSample) -> Json
 
 pub fn point_stability_html(Json) -> String
 
-pub fn point_stability_json(String, Double, trials? : Int) -> Json raise TopologyError
+pub fn point_stability_json(String, Double, trials? : Int32) -> Json raise TopologyError
 
 pub fn pore_compare(Json, Json) -> Json raise TopologyError
 
@@ -136,19 +136,19 @@ pub fn pore_study(String) -> Json raise TopologyError
 
 pub fn pore_surface_obj(Json) -> String raise TopologyError
 
-pub fn ranked_intervals(Analysis, dimension~ : Int, min_lifetime? : Double, include_alive? : Bool) -> Array[Interval] raise TopologyError
+pub fn ranked_intervals(Analysis, dimension~ : Int32, min_lifetime? : Double, include_alive? : Bool) -> Array[Interval] raise TopologyError
 
-pub fn recommend_scales(Analysis, max_loops? : Int) -> Array[ScaleRecommendation] raise TopologyError
+pub fn recommend_scales(Analysis, max_loops? : Int32) -> Array[ScaleRecommendation] raise TopologyError
 
-pub fn recommendations_csv(Analysis, max_loops? : Int) -> String raise TopologyError
+pub fn recommendations_csv(Analysis, max_loops? : Int32) -> String raise TopologyError
 
-pub fn recommendations_json(Analysis, max_loops? : Int) -> Json raise TopologyError
+pub fn recommendations_json(Analysis, max_loops? : Int32) -> Json raise TopologyError
 
 pub fn reliability_study(String) -> Json raise TopologyError
 
 pub fn report_json(Analysis, source? : Json) -> Json
 
-pub fn resample_volume(Array[Array[Array[Double]]], Int, sampling? : String) -> Array[Array[Array[Double]]] raise TopologyError
+pub fn resample_volume(Array[Array[Array[Double]]], Int32, sampling? : String) -> Array[Array[Array[Double]]] raise TopologyError
 
 pub fn research_csv(Json, field? : String) -> String raise TopologyError
 
@@ -156,17 +156,17 @@ pub fn research_files(Json) -> Array[(String, String)] raise TopologyError
 
 pub fn research_html(Json) -> String
 
-pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
+pub fn rips(Array[Array[Double]], threshold~ : Double, max_cells? : Int32, max_dimension? : Int32) -> Filtration raise TopologyError
 
-pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
+pub fn rips_matrix(Array[Array[Double]], threshold~ : Double, max_cells? : Int32, max_dimension? : Int32) -> Filtration raise TopologyError
 
-pub fn rips_sparse(Array[Array[Double]], threshold~ : Double, max_cells? : Int, max_dimension? : Int) -> Filtration raise TopologyError
+pub fn rips_sparse(Array[Array[Double]], threshold~ : Double, max_cells? : Int32, max_dimension? : Int32) -> Filtration raise TopologyError
 
-pub fn sample_points(Array[Array[Double]], size~ : Int) -> PointSample raise TopologyError
+pub fn sample_points(Array[Array[Double]], size~ : Int32) -> PointSample raise TopologyError
 
-pub fn sampled_points_request(String, size~ : Int) -> (Json, Json) raise TopologyError
+pub fn sampled_points_request(String, size~ : Int32) -> (Json, Json) raise TopologyError
 
-pub fn scale_svg(Analysis, scale~ : Double, interval? : Int?) -> String raise TopologyError
+pub fn scale_svg(Analysis, scale~ : Double, interval? : Int32?) -> String raise TopologyError
 
 pub fn series_lag_hints(String) -> (Json, String) raise TopologyError
 
@@ -174,15 +174,15 @@ pub fn series_sweep(String) -> (Json, String, String) raise TopologyError
 
 pub fn series_sweep_html(Json) -> String
 
-pub fn shortest_representative(Analysis, Int, max_states? : Int) -> Array[Int] raise TopologyError
+pub fn shortest_representative(Analysis, Int32, max_states? : Int32) -> Array[Int32] raise TopologyError
 
-pub fn shortest_representative_json(Analysis, Int) -> Json raise TopologyError
+pub fn shortest_representative_json(Analysis, Int32) -> Json raise TopologyError
 
 pub fn signal_csv_request(String, String) -> Json raise TopologyError
 
 pub fn signal_study(String) -> Json raise TopologyError
 
-pub fn simplify_representative(Analysis, Int) -> Array[Int] raise TopologyError
+pub fn simplify_representative(Analysis, Int32) -> Array[Int32] raise TopologyError
 
 pub fn snapshot_json(Analysis, Double) -> Json raise TopologyError
 
@@ -219,10 +219,10 @@ pub fn TopologyError::to_repr(Self) -> @debug.Repr
 pub struct Analysis {
   filtration : Filtration
   intervals : Array[Interval]
-  column_additions : Int
-  homology_dimension : Int
+  column_additions : Int32
+  homology_dimension : Int32
   representatives_computed : Bool
-  reduction_entries : Int
+  reduction_entries : Int32
 } derive(@debug.Debug)
 pub fn Analysis::to_repr(Self) -> @debug.Repr
 
@@ -237,8 +237,8 @@ pub struct BatchCase {
 pub fn BatchCase::to_repr(Self) -> @debug.Repr
 
 pub struct BatchClusterMerge {
-  left : Int
-  right : Int
+  left : Int32
+  right : Int32
   distance : Double
   members : Array[String]
 } derive(@debug.Debug)
@@ -246,11 +246,11 @@ pub fn BatchClusterMerge::to_repr(Self) -> @debug.Repr
 
 pub struct BatchClustering {
   names : Array[String]
-  dimension : Int
+  dimension : Int32
   merges : Array[BatchClusterMerge]
-  roots : Array[Int]
+  roots : Array[Int32]
   groups : Array[Array[String]]
-  omitted_pairs : Int
+  omitted_pairs : Int32
 } derive(@debug.Debug)
 pub fn BatchClustering::to_repr(Self) -> @debug.Repr
 
@@ -282,24 +282,24 @@ pub fn BatchPlan::to_repr(Self) -> @debug.Repr
 
 pub struct BettiEvent {
   scale : Double
-  h0 : Int
-  h1 : Int
-  h2 : Int
+  h0 : Int32
+  h1 : Int32
+  h2 : Int32
 } derive(@debug.Debug)
 pub fn BettiEvent::to_repr(Self) -> @debug.Repr
 
 pub struct Cell {
   key : String
-  dimension : Int
+  dimension : Int32
   value : Double
-  boundary : Array[Int]
-  vertices : Array[Int]
+  boundary : Array[Int32]
+  vertices : Array[Int32]
 } derive(@debug.Debug)
 pub fn Cell::to_repr(Self) -> @debug.Repr
 
 pub struct Filtration {
   cells : Array[Cell]
-  vertex_count : Int
+  vertex_count : Int32
   kind : String
   cutoff : Double
   positions : Array[Array[Double]]
@@ -307,18 +307,18 @@ pub struct Filtration {
 pub fn Filtration::to_repr(Self) -> @debug.Repr
 
 pub struct Interval {
-  dimension : Int
+  dimension : Int32
   birth : Double
   death : Double?
-  birth_cell : Int
-  death_cell : Int?
-  representative : Array[Int]
+  birth_cell : Int32
+  death_cell : Int32?
+  representative : Array[Int32]
 } derive(@debug.Debug)
 pub fn Interval::to_repr(Self) -> @debug.Repr
 
 pub struct IntervalMatch {
-  left : Int?
-  right : Int?
+  left : Int32?
+  right : Int32?
   cost : Double?
   kind : String
 } derive(@debug.Debug)
@@ -327,8 +327,8 @@ pub fn IntervalMatch::to_repr(Self) -> @debug.Repr
 pub struct NiftiStudy {
   volumes : Array[Array[Array[Array[Double]]]]
   affine : Array[Array[Double]]
-  spatial_units : Int
-  temporal_units : Int
+  spatial_units : Int32
+  temporal_units : Int32
   time_step : Double
   time_offset : Double
   transform_source : String
@@ -343,22 +343,22 @@ pub fn NumericCsv::to_repr(Self) -> @debug.Repr
 
 pub struct PgmImage {
   grid : Array[Array[Double]]
-  max_value : Int
+  max_value : Int32
   encoding : String
 } derive(@debug.Debug)
 pub fn PgmImage::to_repr(Self) -> @debug.Repr
 
 pub struct PointSample {
   points : Array[Array[Double]]
-  source_indices : Array[Int]
-  source_count : Int
+  source_indices : Array[Int32]
+  source_count : Int32
   covering_radius : Double
 } derive(@debug.Debug)
 pub fn PointSample::to_repr(Self) -> @debug.Repr
 
 pub struct ScaleRecommendation {
   scale : Double
-  interval_index : Int?
+  interval_index : Int32?
   reason : String
   observed_lifetime : Double?
   censored : Bool

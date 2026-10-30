@@ -14,7 +14,7 @@ pub fn signal_csv_request(
   let time_name = research_string(f, "time_column", "time")
   let value_name = research_string(f, "value_column", "value")
   let source_rows : Array[Array[String]] = []
-  let source_lines : Array[Int] = []
+  let source_lines : Array[Int32] = []
   let headers : Array[String] = []
   let times : Array[Double] = []
   let values : Array[Json] = []
@@ -164,7 +164,7 @@ pub fn signal_study(text : String) -> Json raise TopologyError {
     times.length() != values.length() {
     raise TopologyError("signal requires 8..8192 matched timestamps and values")
   }
-  let observed : Array[Int] = []
+  let observed : Array[Int32] = []
   for i, t in times {
     if t.abs() > 1.0e12 || (i > 0 && t <= times[i - 1]) {
       raise TopologyError("timestamps must be strictly increasing and bounded")
@@ -315,7 +315,7 @@ pub fn signal_study(text : String) -> Json raise TopologyError {
   let vectors : Array[Array[Double]] = []
   let comparators : Array[Array[Double]] = []
   let details : Array[Json] = []
-  let indices : Array[Int] = []
+  let indices : Array[Int32] = []
   let mut total = 0
   let invalid : Array[Json] = []
   for w = 0; w < windows; w = w + 1 {

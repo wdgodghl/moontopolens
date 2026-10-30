@@ -10,7 +10,7 @@ pub struct NumericCsv {
 pub extend NumericCsv with @debug.Debug::{to_repr}
 
 ///|
-fn csv_fields(line : String, row : Int) -> Array[String] raise TopologyError {
+fn csv_fields(line : String, row : Int32) -> Array[String] raise TopologyError {
   let fields : Array[String] = []
   let mut field = ""
   let mut quoted = false
@@ -64,15 +64,15 @@ fn csv_fields(line : String, row : Int) -> Array[String] raise TopologyError {
 /// escaped quotes in headers; numeric cells use JSON decimal/exponent syntax.
 pub fn parse_numeric_csv(
   text : String,
-  columns? : Array[String] = [],
+  columns~ : Array[String] = [],
 ) -> NumericCsv raise TopologyError {
   if text.length() == 0 || text.length() > 1000000 {
     raise TopologyError("CSV input must contain 1..1000000 characters")
   }
   let headers : Array[String] = []
   let rows : Array[Array[Double]] = []
-  let selected : Array[Int] = []
-  let width : Ref[Int] = Ref(0)
+  let selected : Array[Int32] = []
+  let width : Ref[Int32] = Ref(0)
   for line_index, raw in text.split("\n").to_array() {
     let line = if line_index == 0 {
       raw.to_owned().trim_start(chars="\uFEFF").to_owned()
@@ -171,13 +171,13 @@ pub fn csv_request_json(
   text : String,
   kind : String,
   threshold~ : Double,
-  dimension? : Int = 2,
-  lag? : Int = 1,
-  stride? : Int = 1,
-  columns? : Array[String] = [],
-  normalization? : String = "none",
-  sample_size? : Int = 0,
-  max_cells? : Int = 4000,
+  dimension~ : Int32 = 2,
+  lag~ : Int32 = 1,
+  stride~ : Int32 = 1,
+  columns~ : Array[String] = [],
+  normalization~ : String = "none",
+  sample_size~ : Int32 = 0,
+  max_cells~ : Int32 = 4000,
 ) -> Json raise TopologyError {
   let table = transform_numeric_csv(
     parse_numeric_csv(text, columns~),
@@ -234,7 +234,7 @@ pub fn csv_request_json(
 /// Transform selected numeric columns explicitly. Constant columns become zero.
 pub fn transform_numeric_csv(
   table : NumericCsv,
-  normalization? : String = "none",
+  normalization~ : String = "none",
 ) -> NumericCsv raise TopologyError {
   let info = csv_transform_json(table, normalization~)
   let fields = match info {
@@ -261,7 +261,7 @@ pub fn transform_numeric_csv(
 /// Reproducible per-column affine transform; zscore uses population deviation.
 pub fn csv_transform_json(
   table : NumericCsv,
-  normalization? : String = "none",
+  normalization~ : String = "none",
 ) -> Json raise TopologyError {
   if normalization != "none" &&
     normalization != "zscore" &&
@@ -360,9 +360,9 @@ pub fn csv_transform_json(
 /// Metadata maps analyzed vertices to zero-based nonblank CSV data rows.
 pub fn csv_preparation_json(
   text : String,
-  columns? : Array[String] = [],
-  normalization? : String = "none",
-  sample_size? : Int = 0,
+  columns~ : Array[String] = [],
+  normalization~ : String = "none",
+  sample_size~ : Int32 = 0,
 ) -> Json raise TopologyError {
   let raw = parse_numeric_csv(text, columns~)
   let transformed = transform_numeric_csv(raw, normalization~)
@@ -396,11 +396,11 @@ pub fn csv_preparation_json(
 /// Source windows for delay-embedded CSV signals, before numeric transforms.
 pub fn csv_series_preparation_json(
   text : String,
-  columns? : Array[String] = [],
-  normalization? : String = "none",
-  dimension? : Int = 2,
-  lag? : Int = 1,
-  stride? : Int = 1,
+  columns~ : Array[String] = [],
+  normalization~ : String = "none",
+  dimension~ : Int32 = 2,
+  lag~ : Int32 = 1,
+  stride~ : Int32 = 1,
 ) -> Json raise TopologyError {
   let raw = parse_numeric_csv(text, columns~)
   if raw.headers.length() != 1 {

@@ -3,9 +3,9 @@
 /// Enumerate the independent 2-boundary space exactly; never silently approximate.
 pub fn shortest_representative(
   analysis : Analysis,
-  interval_index : Int,
-  max_states? : Int = 1048576,
-) -> Array[Int] raise TopologyError {
+  interval_index : Int32,
+  max_states~ : Int32 = 1048576,
+) -> Array[Int32] raise TopologyError {
   if !analysis.representatives_computed ||
     interval_index < 0 ||
     interval_index >= analysis.intervals.length() ||
@@ -23,7 +23,7 @@ pub fn shortest_representative(
   let cells = analysis.filtration.cells
   let mut chain = interval.representative.copy()
   chain.sort()
-  let mut boundary : Array[Int] = []
+  let mut boundary : Array[Int32] = []
   let mut last = -1
   for edge in chain {
     if edge <= last ||
@@ -39,7 +39,7 @@ pub fn shortest_representative(
   if !boundary.is_empty() {
     raise TopologyError("representative is not a cycle")
   }
-  let basis : Array[Array[Int]] = []
+  let basis : Array[Array[Int32]] = []
   let owner = Array::make(cells.length(), -1)
   let mut work = 0
   for cell in cells {
@@ -93,7 +93,7 @@ pub fn shortest_representative(
 ///|
 pub fn shortest_representative_json(
   analysis : Analysis,
-  interval_index : Int,
+  interval_index : Int32,
 ) -> Json raise TopologyError {
   let chain = shortest_representative(analysis, interval_index)
   {

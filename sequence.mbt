@@ -1,13 +1,13 @@
 ///|
 priv struct SequenceTrack {
-  id : Int
+  id : Int32
   observations : Array[SequenceObservation]
 }
 
 ///|
 priv struct SequenceObservation {
-  frame : Int
-  interval_index : Int
+  frame : Int32
+  interval_index : Int32
   birth : Double
   death : Double?
   observed_lifetime : Double
@@ -24,8 +24,8 @@ fn sequence_optional_number(value : Double?) -> Json {
 ///|
 fn sequence_observation(
   analysis : Analysis,
-  frame : Int,
-  interval_index : Int,
+  frame : Int32,
+  interval_index : Int32,
 ) -> SequenceObservation {
   let interval = analysis.intervals[interval_index]
   {
@@ -50,8 +50,8 @@ fn sequence_observation_json(observation : SequenceObservation) -> Json {
 }
 
 ///|
-fn sequence_h1_indices(analysis : Analysis) -> Array[Int] {
-  let indices : Array[Int] = []
+fn sequence_h1_indices(analysis : Analysis) -> Array[Int32] {
+  let indices : Array[Int32] = []
   for i = 0; i < analysis.intervals.length(); i = i + 1 {
     if analysis.intervals[i].dimension == 1 {
       indices.push(i)
@@ -152,7 +152,7 @@ pub fn topology_sequence(
     analyses.push(analysis)
   }
   let tracks : Array[SequenceTrack] = []
-  let mut previous : Map[Int, Int] = Map([])
+  let mut previous : Map[Int32, Int32] = Map([])
   for index in sequence_h1_indices(analyses[0]) {
     let id = tracks.length()
     tracks.push({
@@ -168,7 +168,7 @@ pub fn topology_sequence(
     let right = analyses[frame]
     let h0_distance = compare_analyses(left, right, dimension=0)
     let h1_distance = compare_analyses(left, right, dimension=1)
-    let current : Map[Int, Int] = Map([])
+    let current : Map[Int32, Int32] = Map([])
     let mut continued = 0
     let mut appeared = 0
     let mut disappeared = 0

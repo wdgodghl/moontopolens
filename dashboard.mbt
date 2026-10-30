@@ -4,7 +4,7 @@
 /// JSON escapes '<' so public cell keys cannot terminate the data script.
 pub fn html_report(
   analysis : Analysis,
-  source? : Json = Json::null(),
+  source~ : Json = Json::null(),
 ) -> String {
   let data = report_json(analysis, source~)
     .stringify()

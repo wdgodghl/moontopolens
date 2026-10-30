@@ -1,8 +1,8 @@
 ///|
 pub struct PointSample {
   points : Array[Array[Double]]
-  source_indices : Array[Int]
-  source_count : Int
+  source_indices : Array[Int32]
+  source_count : Int32
   covering_radius : Double
 } derive(@debug.Debug)
 
@@ -14,7 +14,7 @@ pub extend PointSample with @debug.Debug::{to_repr}
 /// The radius is measured in the supplied coordinates, not an error guarantee.
 pub fn sample_points(
   points : Array[Array[Double]],
-  size~ : Int,
+  size~ : Int32,
 ) -> PointSample raise TopologyError {
   let n = points.length()
   if n < 1 || n > 10000 || size < 1 || size > 128 {
@@ -46,7 +46,7 @@ pub fn sample_points(
       covering_radius: 0.0,
     }
   }
-  let selected : Array[Int] = []
+  let selected : Array[Int32] = []
   let used = Array::make(n, false)
   let nearest = Array::make(n, 1.0e200)
   let mut next = 0
@@ -102,7 +102,7 @@ pub fn point_sample_json(sample : PointSample) -> Json {
 /// Return a bounded ordinary points request and its approximation metadata.
 pub fn sampled_points_request(
   text : String,
-  size~ : Int,
+  size~ : Int32,
 ) -> (Json, Json) raise TopologyError {
   if text.length() > 1000000 {
     raise TopologyError("points request exceeds one million characters")

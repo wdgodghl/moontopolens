@@ -1,7 +1,7 @@
 // Independent dense row elimination oracle, intentionally unlike sparse columns.
 
 ///|
-fn dense_rank(columns : Array[Array[Int]], row_count : Int) -> Int {
+fn dense_rank(columns : Array[Array[Int32]], row_count : Int32) -> Int32 {
   let rows = Array::makei(row_count, fn(_) {
     Array::make(columns.length(), false)
   })
@@ -50,8 +50,8 @@ test "Betti numbers agree with independent dense rank oracle over 12 clouds" {
     for step = 0; step <= 10; step = step + 1 {
       let scale = step.to_double() / 2.0
       let cells = result.filtration.cells
-      let edges : Array[Array[Int]] = []
-      let triangles : Array[Array[Int]] = []
+      let edges : Array[Array[Int32]] = []
+      let triangles : Array[Array[Int32]] = []
       let mut vertices = 0
       for cell in cells {
         if cell.value > scale {
@@ -107,7 +107,7 @@ test "translation and permutation preserve diagrams" {
 ///|
 fn exhaustive_cost(
   costs : Array[Array[Double]],
-  row : Int,
+  row : Int32,
   used : Array[Bool],
   current : Double,
   best : Double,

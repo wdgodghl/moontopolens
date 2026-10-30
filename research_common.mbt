@@ -72,7 +72,7 @@ fn research_numbers(
 }
 
 ///|
-fn research_next(state : Ref[Int], n : Int) -> Int {
+fn research_next(state : Ref[Int32], n : Int32) -> Int32 {
   state.val = (state.val * 25173 + 13849) % 65536
   (state.val.to_double() * n.to_double() / 65536.0).to_int()
 }
@@ -90,10 +90,10 @@ fn research_quantile(values : Array[Double], q : Double) -> Double {
 ///|
 fn research_vector(
   a : Analysis,
-  dimension : Int,
+  dimension : Int32,
   start : Double,
   end : Double,
-  samples : Int,
+  samples : Int32,
 ) -> Array[Double] raise TopologyError {
   persistence_landscape(a, dimension~, start~, end~, samples~, layers=1)[0]
 }

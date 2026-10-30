@@ -6,10 +6,10 @@ const text = execFileSync('moonc', ['-v'], { encoding: 'utf8' });
 const match = text.match(/v?(\d+)\.(\d+)\.(\d+)/);
 if (!match) throw new Error('Could not determine moonc version');
 const version = match.slice(1).map(Number);
-const minimum = [0, 10, 14];
+const minimum = [0, 10, 16];
 let comparison = 0;
 for (let i = 0; i < 3 && comparison === 0; i++) comparison = version[i] - minimum[i];
-if (comparison < 0) throw new Error('moonc >= 0.10.14 is required');
+if (comparison < 0) throw new Error('moonc >= 0.10.16 is required');
 
 function sources(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {

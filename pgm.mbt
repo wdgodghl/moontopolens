@@ -2,7 +2,7 @@
 /// Parsed Netpbm PGM image. Pixel values stay in the original 0..maxval scale.
 pub struct PgmImage {
   grid : Array[Array[Double]]
-  max_value : Int
+  max_value : Int32
   encoding : String
 } derive(@debug.Debug)
 
@@ -10,7 +10,7 @@ pub struct PgmImage {
 pub extend PgmImage with @debug.Debug::{to_repr}
 
 ///|
-fn pgm_space(value : Int) -> Bool {
+fn pgm_space(value : Int32) -> Bool {
   value == 32 ||
   value == 9 ||
   value == 10 ||
@@ -21,9 +21,9 @@ fn pgm_space(value : Int) -> Bool {
 
 ///|
 fn pgm_token(
-  data : Array[Int],
-  start : Int,
-) -> (String, Int) raise TopologyError {
+  data : Array[Int32],
+  start : Int32,
+) -> (String, Int32) raise TopologyError {
   let mut i = start
   while i < data.length() {
     if pgm_space(data[i]) {
@@ -56,8 +56,8 @@ fn pgm_token(
 fn pgm_number(
   token : String,
   label : String,
-  upper : Int,
-) -> Int raise TopologyError {
+  upper : Int32,
+) -> Int32 raise TopologyError {
   let mut value = 0
   for digit in token {
     let code = digit.to_int()
@@ -75,7 +75,7 @@ fn pgm_number(
 ///|
 /// Read exactly one plain P2 or raw P5 grayscale image, including 16-bit P5.
 /// Reject trailing images, malformed rasters and dimensions beyond 64x64.
-pub fn parse_pgm(data : Array[Int]) -> PgmImage raise TopologyError {
+pub fn parse_pgm(data : Array[Int32]) -> PgmImage raise TopologyError {
   if data.length() < 7 || data.length() > 1000000 {
     raise TopologyError("PGM input must contain 7..1000000 bytes")
   }

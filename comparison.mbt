@@ -2,8 +2,8 @@
 /// Indices refer to the original analysis interval arrays, not diagram rows.
 /// A missing side in a finite match denotes the diagonal, not a deleted object.
 pub struct IntervalMatch {
-  left : Int?
-  right : Int?
+  left : Int32?
+  right : Int32?
   cost : Double?
   kind : String
 } derive(@debug.Debug)
@@ -14,10 +14,10 @@ pub extend IntervalMatch with @debug.Debug::{to_repr}
 ///|
 fn indexed_intervals(
   analysis : Analysis,
-  dimension : Int,
+  dimension : Int32,
   censored : Bool,
-) -> Array[Int] {
-  let indices : Array[Int] = []
+) -> Array[Int32] {
+  let indices : Array[Int32] = []
   for i = 0; i < analysis.intervals.length(); i = i + 1 {
     let interval = analysis.intervals[i]
     if interval.dimension == dimension && (interval.death is None) == censored {
@@ -33,7 +33,7 @@ fn indexed_intervals(
 pub fn interval_matching(
   a : Analysis,
   b : Analysis,
-  dimension~ : Int,
+  dimension~ : Int32,
 ) -> Array[IntervalMatch] raise TopologyError {
   let da = diagram(a, dimension)
   let db = diagram(b, dimension)
@@ -127,7 +127,7 @@ fn optional_number(value : Double?) -> Json {
 }
 
 ///|
-fn matching_interval_json(analysis : Analysis, index : Int?) -> Json {
+fn matching_interval_json(analysis : Analysis, index : Int32?) -> Json {
   match index {
     None => Json::null()
     Some(index) => {

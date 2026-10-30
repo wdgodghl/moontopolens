@@ -1,5 +1,5 @@
 ///|
-fn field_shift(trial : Int, index : Int, epsilon : Double) -> Double {
+fn field_shift(trial : Int32, index : Int32, epsilon : Double) -> Double {
   let code = ((trial + 1) * (index + 3) * 37 + (index + 11) * 19) % 211
   (code.to_double() / 105.0 - 1.0) * epsilon
 }
@@ -10,7 +10,7 @@ fn field_shift(trial : Int, index : Int, epsilon : Double) -> Double {
 pub fn field_stability_json(
   text : String,
   epsilon : Double,
-  trials? : Int = 6,
+  trials~ : Int32 = 6,
 ) -> Json raise TopologyError {
   if !finite(epsilon) || epsilon < 0.0 || epsilon > 1.0e6 {
     raise TopologyError("field stability epsilon must be in [0,1e6]")
@@ -77,7 +77,7 @@ pub fn field_stability_json(
       raise TopologyError("field stability exceeds 24000 total cells")
     }
     let distances : Array[Json] = []
-    let counts : Array[Int] = []
+    let counts : Array[Int32] = []
     for dimension = 0; dimension <= max_dimension; dimension = dimension + 1 {
       let distance = compare_analyses(baseline, perturbed, dimension~)
       distances.push(volume_sequence_optional(distance))
@@ -95,7 +95,7 @@ pub fn field_stability_json(
       "betti_at_cutoff": counts,
     })
   }
-  let baseline_counts : Array[Int] = []
+  let baseline_counts : Array[Int32] = []
   for dimension = 0; dimension <= max_dimension; dimension = dimension + 1 {
     baseline_counts.push(betti(baseline, dimension, threshold))
   }

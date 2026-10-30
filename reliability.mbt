@@ -1,7 +1,7 @@
 ///|
 fn reliability_noise(
   value : Json,
-  state : Ref[Int],
+  state : Ref[Int32],
   amplitude : Double,
 ) -> Json raise TopologyError {
   match value {
@@ -42,7 +42,7 @@ fn reliability_mean_band(f : Map[String, Json]) -> Json raise TopologyError {
   let vectors : Array[Array[Double]] = []
   let mut total = 0
   let mut kind = ""
-  let excluded : Array[Int] = []
+  let excluded : Array[Int32] = []
   for request in cases {
     let a = research_request(request)
     if a.filtration.cutoff != end {
@@ -211,7 +211,7 @@ pub fn reliability_study(text : String) -> Json raise TopologyError {
       let vectors : Array[Array[Double]] = []
       for trial = 0; trial < trials; trial = trial + 1 {
         let request = baseline_request.copy()
-        let indices : Array[Int] = []
+        let indices : Array[Int32] = []
         if mode == "subsample_points" || mode == "bootstrap_points" {
           let points = rows_field(original, "points")
           let order = Array::makei(n, fn(i) { i })

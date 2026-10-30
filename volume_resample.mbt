@@ -1,6 +1,6 @@
 ///|
-fn volume_axis_indices(size : Int, stride : Int) -> Array[Int] {
-  let result : Array[Int] = []
+fn volume_axis_indices(size : Int32, stride : Int32) -> Array[Int32] {
+  let result : Array[Int32] = []
   let mut index = 0
   while index < size - 1 {
     result.push(index)
@@ -13,7 +13,7 @@ fn volume_axis_indices(size : Int, stride : Int) -> Array[Int] {
 ///|
 fn volume_resample_shape(
   volume : Array[Array[Array[Double]]],
-) -> (Int, Int, Int) raise TopologyError {
+) -> (Int32, Int32, Int32) raise TopologyError {
   let depth = volume.length()
   if depth < 2 || depth > 32 {
     raise TopologyError("volume depth must be between 2 and 32")
@@ -50,8 +50,8 @@ fn volume_resample_shape(
 /// neighborhood and may change topology; neither preserves exact persistence.
 pub fn resample_volume(
   volume : Array[Array[Array[Double]]],
-  stride : Int,
-  sampling? : String = "mean",
+  stride : Int32,
+  sampling~ : String = "mean",
 ) -> Array[Array[Array[Double]]] raise TopologyError {
   let (depth, height, width) = volume_resample_shape(volume)
   if stride < 1 || stride > 16 || (sampling != "mean" && sampling != "sample") {
@@ -99,7 +99,7 @@ pub fn resample_volume(
 }
 
 ///|
-fn maximum_int(a : Int, b : Int) -> Int {
+fn maximum_int(a : Int32, b : Int32) -> Int32 {
   if a > b {
     a
   } else {
@@ -108,7 +108,7 @@ fn maximum_int(a : Int, b : Int) -> Int {
 }
 
 ///|
-fn minimum_int(a : Int, b : Int) -> Int {
+fn minimum_int(a : Int32, b : Int32) -> Int32 {
   if a < b {
     a
   } else {
@@ -123,8 +123,8 @@ fn minimum_int(a : Int, b : Int) -> Int {
 pub fn analyze_volume_coarse(
   volume : Array[Array[Array[Double]]],
   threshold~ : Double,
-  max_cells? : Int = 4000,
-) -> (Analysis, Int) raise TopologyError {
+  max_cells~ : Int32 = 4000,
+) -> (Analysis, Int32) raise TopologyError {
   let (depth, height, width) = volume_resample_shape(volume)
   check_budget(0, max_cells)
   let mut stride = 1
@@ -150,7 +150,7 @@ pub fn analyze_volume_coarse(
 ///|
 pub fn analyze_volume_coarse_json(
   text : String,
-) -> (Analysis, Int) raise TopologyError {
+) -> (Analysis, Int32) raise TopologyError {
   if text.length() > 1000000 {
     raise TopologyError("coarse volume request exceeds one million characters")
   }

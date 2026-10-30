@@ -1,5 +1,5 @@
 ///|
-fn group_color(index : Int) -> String {
+fn group_color(index : Int32) -> String {
   let palette = [
     "#38bdf8", "#a78bfa", "#34d399", "#f472b6", "#facc15", "#2dd4bf", "#e879f9",
   ]
@@ -12,7 +12,7 @@ fn group_color(index : Int) -> String {
 pub fn scale_svg(
   analysis : Analysis,
   scale~ : Double,
-  interval? : Int? = None,
+  interval~ : Int32? = None,
 ) -> String raise TopologyError {
   if analysis.filtration.kind == "cubical_volume" {
     raise TopologyError(
@@ -26,7 +26,7 @@ pub fn scale_svg(
       "scale SVG requires display coordinates; matrix input has none",
     )
   }
-  let highlighted : Map[Int, Bool] = Map([])
+  let highlighted : Map[Int32, Bool] = Map([])
   if interval is Some(index) {
     if index < 0 || index >= analysis.intervals.length() {
       raise TopologyError("selected interval index is out of range")
@@ -46,7 +46,7 @@ pub fn scale_svg(
       highlighted[cell] = true
     }
   }
-  let colors : Map[Int, String] = Map([])
+  let colors : Map[Int32, String] = Map([])
   for i = 0; i < groups.length(); i = i + 1 {
     for vertex in groups[i] {
       colors[vertex] = group_color(i)

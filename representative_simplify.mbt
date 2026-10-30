@@ -4,8 +4,8 @@
 /// homology class and filtration scale, but does not guarantee a global minimum.
 pub fn simplify_representative(
   analysis : Analysis,
-  interval_index : Int,
-) -> Array[Int] raise TopologyError {
+  interval_index : Int32,
+) -> Array[Int32] raise TopologyError {
   if !analysis.representatives_computed {
     raise TopologyError("representatives were not computed")
   }

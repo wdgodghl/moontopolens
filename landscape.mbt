@@ -1,5 +1,9 @@
 ///|
-fn landscape_grid(start : Double, end : Double, samples : Int) -> Array[Double] {
+fn landscape_grid(
+  start : Double,
+  end : Double,
+  samples : Int32,
+) -> Array[Double] {
   Array::makei(samples, fn(i) {
     if i == samples - 1 {
       end
@@ -15,11 +19,11 @@ fn landscape_grid(start : Double, end : Double, samples : Int) -> Array[Double] 
 /// Censored intervals are excluded; use identical ranges when comparing vectors.
 pub fn persistence_landscape(
   analysis : Analysis,
-  dimension~ : Int,
+  dimension~ : Int32,
   start~ : Double,
   end~ : Double,
-  samples? : Int = 101,
-  layers? : Int = 3,
+  samples~ : Int32 = 101,
+  layers~ : Int32 = 3,
 ) -> Array[Array[Double]] raise TopologyError {
   if dimension < 0 ||
     dimension > analysis.homology_dimension ||
@@ -65,11 +69,11 @@ pub fn persistence_landscape(
 /// Feature vector with explicit grid, order and censoring metadata.
 pub fn landscape_json(
   analysis : Analysis,
-  dimension~ : Int,
+  dimension~ : Int32,
   start~ : Double,
   end~ : Double,
-  samples? : Int = 101,
-  layers? : Int = 3,
+  samples~ : Int32 = 101,
+  layers~ : Int32 = 3,
 ) -> Json raise TopologyError {
   let values = persistence_landscape(
     analysis,
@@ -112,11 +116,11 @@ pub fn landscape_json(
 ///|
 pub fn landscape_csv(
   analysis : Analysis,
-  dimension~ : Int,
+  dimension~ : Int32,
   start~ : Double,
   end~ : Double,
-  samples? : Int = 101,
-  layers? : Int = 3,
+  samples~ : Int32 = 101,
+  layers~ : Int32 = 3,
 ) -> String raise TopologyError {
   let values = persistence_landscape(
     analysis,

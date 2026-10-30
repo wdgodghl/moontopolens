@@ -1,7 +1,7 @@
 // Timing and process-memory instrumentation only; topology stays in MoonBit.
 
 ///|
-extern "js" fn benchmark_size() -> Int =
+extern "js" fn benchmark_size() -> Int32 =
   #|() => Number(process.argv[2]) || 0
 
 ///|
