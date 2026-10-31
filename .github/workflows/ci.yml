@@ -127,7 +127,9 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          & ([scriptblock]::Create((Invoke-WebRequest 'https://cli.moonbitlang.com/install/powershell.ps1').Content))
+          $installer = Join-Path $env:RUNNER_TEMP 'install-moonbit.ps1'
+          Invoke-WebRequest 'https://cli.moonbitlang.com/install/powershell.ps1' -OutFile $installer
+          & $installer
           "$env:USERPROFILE/.moon/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Fail-fast core, IO and documented first-use contracts
         run: node scripts/platform-contracts.mjs
