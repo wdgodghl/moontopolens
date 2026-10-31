@@ -5,14 +5,14 @@ pub fn distance_matrix(
   points : Array[Array[Double]],
 ) -> Array[Array[Double]] raise TopologyError {
   let n = points.length()
-  if n > 128 {
+  if n > boundary_dense_points {
     raise TopologyError("at most 128 points are supported")
   }
   if n == 0 {
     return []
   }
   let dimension = points[0].length()
-  if dimension < 1 || dimension > 32 {
+  if dimension < 1 || dimension > boundary_point_dimensions {
     raise TopologyError("point dimension must be between 1 and 32")
   }
   for point in points {
@@ -48,7 +48,7 @@ pub fn validate_matrix(
   matrix : Array[Array[Double]],
 ) -> Unit raise TopologyError {
   let n = matrix.length()
-  if n > 128 {
+  if n > boundary_dense_points {
     raise TopologyError("at most 128 matrix rows are supported")
   }
   for row in matrix {

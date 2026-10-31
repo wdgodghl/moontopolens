@@ -160,7 +160,7 @@ pub fn batch_clustering_json(clustering : BatchClustering) -> Json {
     "roots": clustering.roots,
     "groups": clustering.groups,
     "suggested_cut": match suggested_cut {
-      Some(value) => value.to_json()
+      Some(value) => Json(value)
       None => Json::null()
     },
     "suggested_groups": suggested_groups,

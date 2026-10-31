@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {validateResult} from './validate-result.mjs';
+import {checkReport} from './check-report.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync,spawnSync} from 'node:child_process';
@@ -74,6 +76,7 @@ for(const [name,args]of [['existing',['pores','examples/pores-before.json','--ou
 }
 const summary={permutation_oracle:{global_p:cohort.global_p_exact,permutations:all},synthetic_signal_evaluation:signal.evaluation,measurement:{windows:actual.rows.length,anomaly_windows:actual.rows.filter(r=>r.anomaly).length,thresholds:actual.thresholds,has_event_labels:false},pores:{before_volume:before.pore_volume,after_volume:after.pore_volume,merge_links:changes.rows.length}};
 fs.writeFileSync(path.join(root,'verified-results.json'),JSON.stringify(summary,null,2)+'\n');
+for(const name of ['reliability','mean-band','cohort','signal','measurement','pores','pores-after','pore-compare','pores-nifti']){const dir=path.join(root,name);validateResult(read(path.join(dir,'report.json')));checkReport(dir);}
 console.log(JSON.stringify(summary,null,2));console.log('Research workflows, independent numeric oracles, provenance and failure paths passed.');
 
 

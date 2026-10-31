@@ -81,21 +81,21 @@ test "zero field jitter is exact and three-point sampling removes square H1" {
 ///|
 test "mean band derives bounded finite-grid Hoeffding width and requires IID declaration" {
   let f : Map[String, Json] = Map([
-    ("kind", "reliability".to_json()),
-    ("mode", "mean_band".to_json()),
-    ("inputs", [study_square(1.0), study_square(0.5)].to_json()),
-    ("end", 2.0.to_json()),
+    ("kind", Json("reliability")),
+    ("mode", Json("mean_band")),
+    ("inputs", Json([study_square(1.0), study_square(0.5)])),
+    ("end", Json(2.0)),
   ])
   study_reject(fn() raise TopologyError {
-    ignore(reliability_study(f.to_json().stringify()))
+    ignore(reliability_study(Json(f).stringify()))
   })
-  f.set("assumption", "iid_independent_samples".to_json())
-  let report = reliability_study(f.to_json().stringify())
+  f.set("assumption", Json("iid_independent_samples"))
+  let report = reliability_study(Json(f).stringify())
   let epsilon = (@math.ln(62.0 / 0.05) / 4.0).sqrt()
   assert_true(
     (number_field(study_fields(report), "epsilon") - epsilon).abs() < 1.0e-12,
   )
-  assert_eq(required_field(study_fields(report), "vacuous"), true.to_json())
+  assert_eq(required_field(study_fields(report), "vacuous"), Json(true))
   for row in study_rows(report, "rows") {
     let rf = study_fields(row)
     assert_true(number_field(rf, "lower") <= number_field(rf, "mean"))
@@ -149,8 +149,8 @@ test "exact group randomization has analytic independent and paired probabilitie
 ///|
 test "cohort correction is never below raw p and shared transform is recorded" {
   let f = study_fields(study_cohort("independent", false)).copy()
-  f.set("preprocessing", "pooled_zscore".to_json())
-  let report = cohort_study(f.to_json().stringify())
+  f.set("preprocessing", Json("pooled_zscore"))
+  let report = cohort_study(Json(f).stringify())
   let offsets : Array[Double] = @json.from_json(
     required_field(study_fields(report), "offsets"),
   )
@@ -167,34 +167,31 @@ fn study_signal() -> Map[String, Json] {
     @math.sin(i.to_double() * 3.141592653589793 / 4.0)
   })
   Map([
-    ("kind", "signal_study".to_json()),
-    ("values", values.to_json()),
-    ("threshold", 2.0.to_json()),
-    ("window", (16).to_json()),
-    ("hop", (8).to_json()),
-    ("baseline_windows", (2).to_json()),
-    ("lag", (2).to_json()),
-    ("normalization", "baseline_zscore".to_json()),
+    ("kind", Json("signal_study")),
+    ("values", Json(values)),
+    ("threshold", Json(2.0)),
+    ("window", Json(16)),
+    ("hop", Json(8)),
+    ("baseline_windows", Json(2)),
+    ("lag", Json(2)),
+    ("normalization", Json("baseline_zscore")),
   ])
 }
 
 ///|
 test "future signal values cannot change baseline normalization or thresholds" {
   let f = study_signal()
-  let a = study_fields(signal_study(f.to_json().stringify()))
+  let a = study_fields(signal_study(Json(f).stringify()))
   let values : Array[Double] = @json.from_json(f["values"])
   for i = 24; i < values.length(); i = i + 1 {
     values[i] *= 2.0
   }
-  f.set("values", values.to_json())
-  let b = study_fields(signal_study(f.to_json().stringify()))
+  f.set("values", Json(values))
+  let b = study_fields(signal_study(Json(f).stringify()))
   for key in ["offset", "scale", "thresholds"] {
     assert_eq(a[key], b[key])
   }
-  assert_eq(
-    study_rows(a.to_json(), "rows")[0],
-    study_rows(b.to_json(), "rows")[0],
-  )
+  assert_eq(study_rows(Json(a), "rows")[0], study_rows(Json(b), "rows")[0])
 }
 
 ///|
@@ -207,14 +204,14 @@ test "signal blank CSV is explicit, bounded interpolation preserves provenance" 
       (if i == 30 { "" } else { "\{@math.sin(i.to_double()/2.0)}" }) +
       ",row\n"
   }
-  let request = signal_csv_request(csv, config.to_json().stringify())
+  let request = signal_csv_request(csv, Json(config).stringify())
   study_reject(fn() raise TopologyError {
     ignore(signal_study(request.stringify()))
   })
   let f = study_fields(request).copy()
-  f.set("interpolation", "linear".to_json())
-  f.set("max_gap", 2.0.to_json())
-  let report = signal_study(f.to_json().stringify())
+  f.set("interpolation", Json("linear"))
+  f.set("max_gap", Json(2.0))
+  let report = signal_study(Json(f).stringify())
   let map = study_fields(study_rows(report, "provenance")[30])
   assert_eq(integer_field(map, "left", 0), 29)
   assert_eq(integer_field(map, "right", 0), 31)
@@ -229,10 +226,10 @@ test "signal long gaps skip monitoring windows and empty labels evaluate negativ
   for i = 30; i <= 40; i = i + 1 {
     values[i] = Json::null()
   }
-  f.set("values", values.to_json())
-  f.set("interpolation", "linear".to_json())
-  f.set("events", ([] : Array[Json]).to_json())
-  let report = signal_study(f.to_json().stringify())
+  f.set("values", Json(values))
+  f.set("interpolation", Json("linear"))
+  f.set("events", Json(([] : Array[Json])))
+  let report = signal_study(Json(f).stringify())
   assert_true(study_rows(report, "invalid_windows").length() > 0)
   assert_eq(study_rows(report, "evaluation").length(), 4)
   for row in study_rows(report, "evaluation") {
@@ -273,9 +270,9 @@ test "single enclosed anisotropic voxel has exact volume area centroid and clear
   assert_eq(number_field(row, "volume"), 24.0)
   assert_eq(number_field(row, "solid_interface_area"), 52.0)
   assert_eq(number_field(row, "crop_cap_area"), 0.0)
-  assert_eq(row["centroid"], [12.0, 23.0, 34.0].to_json())
+  assert_eq(row["centroid"], Json([12.0, 23.0, 34.0]))
   assert_eq(number_field(row, "contained_ball_radius_at_voxel_center"), 1.0)
-  assert_eq(study_rows(report, "solid_clearance")[13], 1.0.to_json())
+  assert_eq(study_rows(report, "solid_clearance")[13], Json(1.0))
   let obj = pore_surface_obj(report)
   assert_eq(obj.split("\nf ").to_array().length() - 1, 12)
 }
@@ -289,8 +286,8 @@ test "open channel spans only its axis and all-void crop has no observed-solid c
   })
   let report = pore_study(study_pore(channel).stringify())
   let r = study_fields(study_rows(report, "rows")[0])
-  assert_eq(r["spans_xyz"], [true, false, false].to_json())
-  assert_eq(r["touches_crop"], true.to_json())
+  assert_eq(r["spans_xyz"], Json([true, false, false]))
+  assert_eq(r["touches_crop"], Json(true))
   let full = Array::makei(3, fn(_) {
     Array::makei(3, fn(_) { [1.0, 1.0, 1.0] })
   })
@@ -339,24 +336,24 @@ test "pore overlap identifies merges splits births losses and rejects unregister
   let before = pore_study(study_pore([[[1.0, 0.0, 1.0]]]).stringify())
   let after = pore_study(study_pore([[[1.0, 1.0, 1.0]]]).stringify())
   for row in study_rows(pore_compare(before, after), "rows") {
-    assert_eq(study_fields(row)["merge_candidate"], true.to_json())
+    assert_eq(study_fields(row)["merge_candidate"], Json(true))
   }
   for row in study_rows(pore_compare(after, before), "rows") {
-    assert_eq(study_fields(row)["split_candidate"], true.to_json())
+    assert_eq(study_fields(row)["split_candidate"], Json(true))
   }
   let solid = pore_study(study_pore([[[0.0, 0.0, 0.0]]]).stringify())
   assert_eq(study_rows(pore_compare(solid, before), "appeared_labels"), [
-    (1).to_json(),
-    (2).to_json(),
+    Json(1),
+    Json(2),
   ])
   assert_eq(study_rows(pore_compare(before, solid), "disappeared_labels"), [
-    (1).to_json(),
-    (2).to_json(),
+    Json(1),
+    Json(2),
   ])
   let f = study_fields(after).copy()
-  f.set("origin", [0.0, 0.0, 0.0].to_json())
+  f.set("origin", Json([0.0, 0.0, 0.0]))
   study_reject(fn() raise TopologyError {
-    ignore(pore_compare(before, f.to_json()))
+    ignore(pore_compare(before, Json(f)))
   })
 }
 
@@ -366,14 +363,14 @@ test "research APIs reject invalid requests without producing reports" {
     ignore(pore_study("{\"kind\":\"pores\",\"volume\":[]}"))
   })
   let f = study_fields(study_cohort("independent", false)).copy()
-  f.set("unit", "".to_json())
+  f.set("unit", Json(""))
   study_reject(fn() raise TopologyError {
-    ignore(cohort_study(f.to_json().stringify()))
+    ignore(cohort_study(Json(f).stringify()))
   })
   let f = study_signal()
-  f.set("times", Array::make(64, 0.0).to_json())
+  f.set("times", Json(Array::make(64, 0.0)))
   study_reject(fn() raise TopologyError {
-    ignore(signal_study(f.to_json().stringify()))
+    ignore(signal_study(Json(f).stringify()))
   })
   let f : Json = {
     "kind": "reliability",
@@ -449,13 +446,13 @@ test "baseline interpolation cannot borrow monitoring samples and constant calib
   let f = study_signal()
   let values : Array[Json] = @json.from_json(f["values"])
   values[23] = Json::null()
-  f.set("values", values.to_json())
-  f.set("interpolation", "linear".to_json())
+  f.set("values", Json(values))
+  f.set("interpolation", Json("linear"))
   study_reject(fn() raise TopologyError {
-    ignore(signal_study(f.to_json().stringify()))
+    ignore(signal_study(Json(f).stringify()))
   })
-  f.set("values", Array::make(64, 0.1).to_json())
-  let report = study_fields(signal_study(f.to_json().stringify()))
+  f.set("values", Json(Array::make(64, 0.1)))
+  let report = study_fields(signal_study(Json(f).stringify()))
   assert_eq(number_field(report, "offset"), 0.1)
   assert_eq(number_field(report, "scale"), 1.0)
 }
@@ -477,8 +474,8 @@ test "pore NIfTI uses declared physical geometry and rejects shear or flipped ax
   }
   let request = pore_nifti_request(study, "{\"kind\":\"pores\"}")
   let report = study_fields(pore_study(request.stringify()))
-  assert_eq(report["unit"], "mm".to_json())
-  assert_eq(report["spacing"], [2.0, 3.0, 4.0].to_json())
+  assert_eq(report["unit"], Json("mm"))
+  assert_eq(report["spacing"], Json([2.0, 3.0, 4.0]))
   study.affine[0][1] = 0.1
   study_reject(fn() raise TopologyError {
     ignore(pore_nifti_request(study, "{\"kind\":\"pores\"}"))
@@ -493,24 +490,24 @@ test "pore NIfTI uses declared physical geometry and rejects shear or flipped ax
 ///|
 test "cohort permutation probabilities are invariant to small unit conversion" {
   let request = study_fields(study_cohort("independent", false)).copy()
-  let original = cohort_study(request.to_json().stringify())
-  let samples = study_rows(request.to_json(), "samples")
+  let original = cohort_study(Json(request).stringify())
+  let samples = study_rows(Json(request), "samples")
   for i, sample in samples {
     let sf = study_fields(sample).copy()
     let rf = study_fields(sf["request"]).copy()
     rf.set(
       "points",
-      rows_field(rf, "points")
-      .map(fn(row) { row.map(fn(v) { v * 1.0e-13 }) })
-      .to_json(),
+      Json(
+        rows_field(rf, "points").map(fn(row) { row.map(fn(v) { v * 1.0e-13 }) }),
+      ),
     )
-    rf.set("threshold", 2.0e-13.to_json())
-    sf.set("request", rf.to_json())
-    samples[i] = sf.to_json()
+    rf.set("threshold", Json(2.0e-13))
+    sf.set("request", Json(rf))
+    samples[i] = Json(sf)
   }
-  request.set("samples", samples.to_json())
-  request.set("end", 2.0e-13.to_json())
-  let converted = cohort_study(request.to_json().stringify())
+  request.set("samples", Json(samples))
+  request.set("end", Json(2.0e-13))
+  let converted = cohort_study(Json(request).stringify())
   assert_eq(
     study_fields(original)["global_p_exact"],
     study_fields(converted)["global_p_exact"],

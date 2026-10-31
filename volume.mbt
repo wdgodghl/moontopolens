@@ -38,15 +38,15 @@ pub fn cubical_volume(
   }
   check_budget(0, max_cells)
   let depth = volume.length()
-  if depth < 2 || depth > 32 {
+  if depth < 2 || depth > boundary_volume_axis {
     raise TopologyError("volume depth must be between 2 and 32")
   }
   let height = volume[0].length()
-  if height < 2 || height > 32 {
+  if height < 2 || height > boundary_volume_axis {
     raise TopologyError("volume height must be between 2 and 32")
   }
   let width = volume[0][0].length()
-  if width < 2 || width > 32 {
+  if width < 2 || width > boundary_volume_axis {
     raise TopologyError("volume width must be between 2 and 32")
   }
   let values : Array[Double] = []

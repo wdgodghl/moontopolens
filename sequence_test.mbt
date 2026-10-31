@@ -9,9 +9,9 @@ test "ordered frames continue and then end one H1 track" {
   assert_true(output.contains("\"continued_h1\":1"))
   assert_true(output.contains("\"disappeared_h1\":1"))
   assert_true(output.contains("\"observation_count\":2"))
-  assert_eq(frames.split("\n").length(), 5)
-  assert_eq(transitions.split("\n").length(), 4)
-  assert_eq(tracks.split("\n").length(), 4)
+  assert_eq(frames.split("\n").count(), 5)
+  assert_eq(transitions.split("\n").count(), 4)
+  assert_eq(tracks.split("\n").count(), 4)
   assert_true(
     @moontopolens.topology_sequence_html(report).contains(
       "多帧拓扑变化追踪",
@@ -58,7 +58,7 @@ test "frames without loops produce no H1 tracks" {
     "{\"kind\":\"topology_sequence\",\"threshold\":2,\"frames\":[{\"name\":\"first\",\"points\":[[0,0],[1,0],[0.5,0.9]]},{\"name\":\"second\",\"points\":[[0,0],[1,0],[0.5,0.9]]}]}",
   )
   assert_true(report.stringify().contains("\"track_count\":0"))
-  assert_eq(tracks.split("\n").length(), 2)
+  assert_eq(tracks.split("\n").count(), 2)
 }
 
 ///|

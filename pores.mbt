@@ -138,7 +138,7 @@ fn pore_spans(
 
 ///|
 /// Cell-centered segmentation, distinct from the vertex lower-star H2 model.
-pub fn pore_study(text : String) -> Json raise TopologyError {
+fn pore_study_raw(text : String) -> Json raise TopologyError {
   let f = research_object(text, "pores", [
     "volume", "threshold", "polarity", "spacing", "origin", "unit", "radii",
   ])
@@ -148,15 +148,15 @@ pub fn pore_study(text : String) -> Json raise TopologyError {
     _ => raise TopologyError("invalid pore volume")
   }
   let d = volume.length()
-  if d < 1 || d > 64 {
+  if d < 1 || d > boundary_pore_axis {
     raise TopologyError("pore depth must be 1..64")
   }
   let h = volume[0].length()
-  if h < 1 || h > 64 {
+  if h < 1 || h > boundary_pore_axis {
     raise TopologyError("pore height must be 1..64")
   }
   let w = volume[0][0].length()
-  if w < 1 || w > 64 {
+  if w < 1 || w > boundary_pore_axis {
     raise TopologyError("pore width must be 1..64")
   }
   let spacing = research_numbers(f, "spacing", [1.0, 1.0, 1.0])
@@ -334,7 +334,7 @@ pub fn pore_study(text : String) -> Json raise TopologyError {
   }
   {
     "kind": "pores",
-    "request": f.to_json(),
+    "request": Json(f),
     "shape_xyz": [w, h, d],
     "spacing": spacing,
     "origin": origin,
@@ -352,7 +352,7 @@ pub fn pore_study(text : String) -> Json raise TopologyError {
       if !mask[i] || distances[i] >= 1.0e99 {
         Json::null()
       } else {
-        distances[i].to_json()
+        Json(distances[i])
       }
     }),
     "contained_ball_radius": ball,
@@ -382,9 +382,9 @@ pub fn pore_surface_obj(report : Json) -> String raise TopologyError {
   if w < 1 ||
     h < 1 ||
     d < 1 ||
-    w > 64 ||
-    h > 64 ||
-    d > 64 ||
+    w > boundary_pore_axis ||
+    h > boundary_pore_axis ||
+    d > boundary_pore_axis ||
     labels.length() != w * h * d {
     raise TopologyError("invalid pore geometry size")
   }
@@ -433,7 +433,7 @@ pub fn pore_surface_obj(report : Json) -> String raise TopologyError {
 }
 
 ///|
-pub fn pore_compare(left : Json, right : Json) -> Json raise TopologyError {
+fn pore_compare_raw(left : Json, right : Json) -> Json raise TopologyError {
   let a = batch_object(left, "left pore report")
   let b = batch_object(right, "right pore report")
   for key in ["shape_xyz", "spacing", "origin", "unit"] {
@@ -567,9 +567,19 @@ pub fn pore_nifti_request(
     3 => "um"
     _ => "NIfTI_unit_unspecified"
   }
-  f.set("volume", study.volumes[0].to_json())
-  f.set("spacing", spacing.to_json())
-  f.set("origin", origin.to_json())
-  f.set("unit", unit.to_json())
-  f.to_json()
+  f.set("volume", Json(study.volumes[0]))
+  f.set("spacing", Json(spacing))
+  f.set("origin", Json(origin))
+  f.set("unit", Json(unit))
+  Json(f)
+}
+
+///|
+pub fn pore_study(text : String) -> Json raise TopologyError {
+  result_envelope(pore_study_raw(text))
+}
+
+///|
+pub fn pore_compare(left : Json, right : Json) -> Json raise TopologyError {
+  result_envelope(pore_compare_raw(left, right))
 }

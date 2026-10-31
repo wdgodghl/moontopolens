@@ -375,8 +375,8 @@ pub fn csv_preparation_json(
     Object(fields) => fields
     _ => raise TopologyError("invalid preparation metadata")
   }
-  fields.set("data_row_indices", indices.to_json())
-  fields.set("selected_raw_rows", indices.map(fn(i) { raw.rows[i] }).to_json())
+  fields.set("data_row_indices", Json(indices))
+  fields.set("selected_raw_rows", Json(indices.map(fn(i) { raw.rows[i] })))
   fields.set(
     "sampling",
     if sample_size == 0 {
@@ -387,9 +387,9 @@ pub fn csv_preparation_json(
   )
   fields.set(
     "index_meaning",
-    "zero-based nonblank data row, excluding header".to_json(),
+    Json("zero-based nonblank data row, excluding header"),
   )
-  fields.to_json()
+  Json(fields)
 }
 
 ///|
@@ -418,18 +418,20 @@ pub fn csv_series_preparation_json(
   }
   fields.set(
     "data_row_indices",
-    Array::makei(windows.length(), fn(i) { i * stride }).to_json(),
+    Json(Array::makei(windows.length(), fn(i) { i * stride })),
   )
   fields.set(
     "window_data_row_indices",
-    Array::makei(windows.length(), fn(i) {
-      Array::makei(dimension, fn(c) { i * stride + c * lag })
-    }).to_json(),
+    Json(
+      Array::makei(windows.length(), fn(i) {
+        Array::makei(dimension, fn(c) { i * stride + c * lag })
+      }),
+    ),
   )
-  fields.set("selected_raw_rows", windows.to_json())
+  fields.set("selected_raw_rows", Json(windows))
   fields.set(
     "index_meaning",
-    "zero-based nonblank data row indices of each delay window".to_json(),
+    Json("zero-based nonblank data row indices of each delay window"),
   )
-  fields.to_json()
+  Json(fields)
 }

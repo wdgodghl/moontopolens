@@ -93,7 +93,7 @@ fn maximum(a : Double, b : Double) -> Double {
 
 ///|
 fn check_budget(size : Int32, limit : Int32) -> Unit raise TopologyError {
-  if limit < 1 || limit > 10000 {
+  if limit < 1 || limit > boundary_maximum_cells {
     raise TopologyError("max_cells must be between 1 and 10000")
   }
   if size > limit {

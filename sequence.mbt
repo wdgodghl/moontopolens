@@ -16,7 +16,7 @@ priv struct SequenceObservation {
 ///|
 fn sequence_optional_number(value : Double?) -> Json {
   match value {
-    Some(number) => number.to_json()
+    Some(number) => Json(number)
     None => Json::null()
   }
 }

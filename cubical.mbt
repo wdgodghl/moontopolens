@@ -19,7 +19,7 @@ pub fn cubical_grid(
     return finalize([], 0, "cubical", threshold)
   }
   let width = grid[0].length()
-  if width < 1 || height > 64 || width > 64 {
+  if width < 1 || height > boundary_grid_axis || width > boundary_grid_axis {
     raise TopologyError("grid dimensions must be between 1 and 64")
   }
   for row in grid {

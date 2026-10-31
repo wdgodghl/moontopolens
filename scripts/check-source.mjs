@@ -18,7 +18,7 @@ function sources(dir) {
       if (entry.name.startsWith('.') || entry.name === '_build' || entry.name.startsWith('out')) return [];
       return sources(file);
     }
-    if (!entry.name.endsWith('.mbt') || /_(?:wb)?test\.mbt$/.test(entry.name) || entry.name === 'host.mbt') return [];
+    if (!entry.name.endsWith('.mbt') || /_(?:wb)?test\.mbt$/.test(entry.name) || (entry.name === 'host.mbt' || entry.name === 'capabilities.mbt')) return [];
     return [file];
   });
 }
@@ -32,5 +32,5 @@ for (const file of sources('.')) {
   substantive += code.filter(x => !/^[{}()[\],;]+$/.test(x)).length;
 }
 console.log(`moonc ${version.join('.')}; non-test MoonBit lines: ${nonempty}; excluding punctuation-only lines: ${substantive}`);
-console.log('Counts exclude host FFI and tests. These are repository metrics, not the organizer\'s review verdict.');
+console.log('Counts exclude generated capabilities, host FFI and tests. These are repository metrics, not the organizer\'s review verdict.');
 if (substantive < 400) throw new Error('Insufficient substantive MoonBit source lines');

@@ -6,9 +6,8 @@ pub fn html_report(
   analysis : Analysis,
   source~ : Json = Json::null(),
 ) -> String {
-  let data = report_json(analysis, source~)
-    .stringify()
-    .replace_all(old="<", new="\\u003c")
+  let report = report_json(analysis, source~)
+  let data = report.stringify().replace_all(old="<", new="\\u003c")
   let header =
     #|<!doctype html>
     #|<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -97,7 +96,9 @@ pub fn html_report(
     #|el('previous-page').addEventListener('click',()=>{if(page>0){page--;renderTable();}});el('next-page').addEventListener('click',()=>{page++;renderTable();});refresh();if(DATA.representatives_computed===false)el('selection-note').textContent='仅区间模式：未计算代表链，几何投影仍可查看，但环路和代表面高亮不可用。';
     #|</script></body></html>
   accessible_report(
-    (header + data + script).replace_all(
+    (header + data + script)
+    .replace_all(old="</h1>", new="</h1>" + scope_html(report))
+    .replace_all(
       old="</script></body>",
       new=tutorial_script() + "</script></body>",
     ),

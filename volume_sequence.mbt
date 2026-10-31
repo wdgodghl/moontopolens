@@ -1,7 +1,7 @@
 ///|
 fn volume_sequence_optional(value : Double?) -> Json {
   match value {
-    Some(number) => number.to_json()
+    Some(number) => Json(number)
     None => Json::null()
   }
 }

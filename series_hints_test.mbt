@@ -10,7 +10,7 @@ test "alternating series yields a first-lag correlation hint" {
     output.contains("\"method\":\"first autocorrelation at or below 1/e\""),
   )
   assert_true(csv.contains("1,7,"))
-  assert_eq(csv.split("\n").length(), 6)
+  assert_eq(csv.split("\n").count(), 6)
 }
 
 ///|

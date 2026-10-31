@@ -1,6 +1,6 @@
 ///|
 /// Exact label permutations or paired sign flips on a common finite landscape.
-pub fn cohort_study(text : String) -> Json raise TopologyError {
+fn cohort_study_raw(text : String) -> Json raise TopologyError {
   let f = research_object(text, "cohort", [
     "samples", "dimension", "start", "end", "design", "unit", "preprocessing",
   ])
@@ -94,8 +94,8 @@ pub fn cohort_study(text : String) -> Json raise TopologyError {
       let rows = rows_field(rf, "points").map(fn(row) {
         Array::makei(width, fn(c) { (row[c] - offsets[c]) / scales[c] })
       })
-      rf.set("points", rows.to_json())
-      requests[i] = rf.to_json()
+      rf.set("points", Json(rows))
+      requests[i] = Json(rf)
     }
   }
   let a_ids : Array[Int32] = []
@@ -256,7 +256,7 @@ pub fn cohort_study(text : String) -> Json raise TopologyError {
   }
   {
     "kind": "cohort",
-    "request": f.to_json(),
+    "request": Json(f),
     "design": design,
     "unit": unit,
     "preprocessing": mode,
@@ -278,4 +278,9 @@ pub fn cohort_study(text : String) -> Json raise TopologyError {
     },
     "interpretation": "exact two-sided randomization tests on finite first-layer landscapes; max-statistic adjustment over 31 scales under joint label exchangeability (complete null); no causal attribution; pooled preprocessing is group-blind; units must be declared consistently",
   }
+}
+
+///|
+pub fn cohort_study(text : String) -> Json raise TopologyError {
+  result_envelope(cohort_study_raw(text))
 }

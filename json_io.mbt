@@ -71,7 +71,7 @@ pub fn analyze_json(
     _ => raise TopologyError("kind must be a string")
   }
   let threshold = number_field(object, "threshold")
-  let budget = integer_field(object, "max_cells", 4000)
+  let budget = integer_field(object, "max_cells", boundary_default_cells)
   let homology_dimension = integer_field(
     object,
     "homology_dimension",
@@ -190,16 +190,16 @@ pub fn analyze_json(
 ///|
 /// Portable report schema. null death means alive at the input cutoff.
 /// Representative cell indices refer to the accompanying cells array.
-pub fn report_json(analysis : Analysis, source~ : Json = Json::null()) -> Json {
+fn report_json_raw(analysis : Analysis, source~ : Json = Json::null()) -> Json {
   let intervals : Array[Json] = []
   for interval in analysis.intervals {
     let death : Json = match interval.death {
       None => Json::null()
-      Some(value) => value.to_json()
+      Some(value) => Json(value)
     }
     let death_cell : Json = match interval.death_cell {
       None => Json::null()
-      Some(value) => value.to_json()
+      Some(value) => Json(value)
     }
     intervals.push({
       "dimension": interval.dimension,
@@ -249,11 +249,16 @@ pub fn report_json(analysis : Analysis, source~ : Json = Json::null()) -> Json {
     match report {
       Object(fields) => {
         fields.set("source", source)
-        fields.to_json()
+        Json(fields)
       }
       _ => report
     }
   } else {
     report
   }
+}
+
+///|
+pub fn report_json(analysis : Analysis, source~ : Json = Json::null()) -> Json {
+  result_envelope(report_json_raw(analysis, source~))
 }

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "project_version": "0.20.8",
+  "minimum_moonc": "0.10.16",
+  "validated_moonc": "0.10.18+6c83a7f62",
+  "cli_input_bytes": 1000000,
+  "commands": {
+    "reliability": "reliability INPUT.json [--out NEW_DIRECTORY]",
+    "cohort": "cohort INPUT.json [--out NEW_DIRECTORY]",
+    "signal-study": "signal-study INPUT.json [--out NEW_DIRECTORY]",
+    "pores": "pores INPUT.json [--out NEW_DIRECTORY]",
+    "signal-csv": "signal-csv INPUT.csv CONFIG.json [--out NEW_DIRECTORY]\n默认 time,value 列，空 value 是缺失值；不规则采样必须显式配置 linear。\n示例：signal-csv examples/beijing-pm25/signal.csv examples/beijing-pm25/config.json --out out-signal",
+    "pores-nifti": "pores-nifti INPUT.nii[.gz] CONFIG.json [--out NEW_DIRECTORY]",
+    "pore-compare": "pore-compare LEFT_REQUEST.json RIGHT_REQUEST.json [--out NEW_DIRECTORY]",
+    "shortest": "shortest INPUT.json INTERVAL_INDEX [--out NEW_DIRECTORY]",
+    "csv-preview": "csv-preview INPUT.csv [--columns X,Y]",
+    "points-sample": "points-sample INPUT.json SIZE [--out NEW_DIRECTORY]",
+    "csv-points": "csv-points INPUT.csv CUTOFF [--columns X,Y] [--normalize none|zscore|minmax] [--sample SIZE] [--out NEW_DIRECTORY]\n先用 csv-preview 检查表头；--columns x,y 显式选列。默认不归一化，归一化会改变尺度单位。\n示例：csv-points examples/iris/subset.csv 1.2 --columns petal_length_cm,petal_width_cm --out out-iris",
+    "csv-series": "csv-series INPUT.csv CUTOFF DIMENSION LAG STRIDE [--columns VALUE] [--normalize none|zscore|minmax] [--out NEW_DIRECTORY]",
+    "analyze": "analyze INPUT.json [--intervals-only] [--out NEW_DIRECTORY]\n输入 kind：points / points_sparse / matrix / grid / volume / series。\n示例：analyze examples/square.json --out out-square\n失败：预算超限时调小截止尺度、显式采样或缩小数据；不会自动换成近似。",
+    "image": "image INPUT.pgm|INPUT.png CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
+    "batch": "batch MANIFEST.json --out NEW_DIRECTORY [--features DIMENSION START END]",
+    "sequence": "sequence FRAMES.json [--out NEW_DIRECTORY]",
+    "volume": "volume INPUT.nii|INPUT.nii.gz CUTOFF [--out NEW_DIRECTORY]",
+    "volume-sequence": "volume-sequence FRAMES.json|4D.nii[.gz] [CUTOFF] [--out NEW_DIRECTORY]",
+    "volume-coarse": "volume-coarse INPUT.json|INPUT.nii[.gz] [CUTOFF] [--out NEW_DIRECTORY]",
+    "field-stability": "field-stability IMAGE.pgm|IMAGE.png CUTOFF EPSILON [--out NEW_DIRECTORY]",
+    "sweep": "sweep SERIES_SWEEP.json [--out NEW_DIRECTORY]",
+    "lag-hints": "lag-hints SERIES_HINTS.json [--out NEW_DIRECTORY]",
+    "stability": "stability POINTS.json EPSILON [--out NEW_DIRECTORY]",
+    "compare": "compare LEFT.json RIGHT.json [--out NEW_DIRECTORY]",
+    "summary": "summary INPUT.json",
+    "recommend": "recommend INPUT.json [--out NEW_DIRECTORY]",
+    "slice": "slice INPUT.json SCALE [--out NEW_DIRECTORY [--interval INDEX]]",
+    "landscape": "landscape INPUT.json DIMENSION START END [--out NEW_DIRECTORY]"
+  },
+  "capabilities": [
+    {
+      "kind": "points",
+      "bounds": "0–128 点，1–32 维；默认 4000、最高 10000 细胞",
+      "meaning": "保留全部点，欧氏 Rips；预算超限即失败"
+    },
+    {
+      "kind": "points_sparse",
+      "bounds": "最多 8192 点、1–32 维；库 rips_sparse 默认 10000 细胞，JSON/CLI 默认 4000，均最多 10000",
+      "meaning": "精确稀疏枚举，保留全部点；仍受坐标、团枚举与约化预算约束"
+    },
+    {
+      "kind": "points-sample",
+      "bounds": "1–10000 个原点，选 1–128 点；4000 万坐标更新预算",
+      "meaning": "显式近似；覆盖半径不是持久图误差保证"
+    },
+    {
+      "kind": "matrix",
+      "bounds": "最多 128 行，方阵、对称、非负、对角为零",
+      "meaning": "不强求三角不等式；数据语义与单位由输入者保证"
+    },
+    {
+      "kind": "grid / image",
+      "bounds": "网格每轴 1–64，可用空网格；PNG/PGM 图像最多 64×64",
+      "meaning": "顶点 lower-star，计算 H0/H1；PNG 有编码限制"
+    },
+    {
+      "kind": "volume",
+      "bounds": "每轴 2–32，细胞默认 4000、最高 10000",
+      "meaning": "顶点 lower-star，计算 H0/H1/H2；H2 代表链不是唯一孔洞标签"
+    },
+    {
+      "kind": "pores",
+      "bounds": "JSON 每轴 1–64；最多 1024 区域、8 个净空半径",
+      "meaning": "体素中心阈值分割、六面邻接，体积/面积依赖物理标定"
+    },
+    {
+      "kind": "NIfTI",
+      "bounds": "文件及解压后不超过 1000000 字节；每轴 2–32，最多 8 帧",
+      "meaning": "有界 NIfTI-1；pores-nifti 仅单帧、正向轴对齐仿射"
+    },
+    {
+      "kind": "signal_study",
+      "bounds": "8–8192 样本；窗口 8–128，最多 64 窗口，累计 64000 细胞",
+      "meaning": "基准时段训练；变化提示不等于确认异常或诊断"
+    },
+    {
+      "kind": "cohort / reliability",
+      "bounds": "组间独立设计总数 ≤14、配对 ≤8 对；重采样 ≤96 次",
+      "meaning": "按研究条件解释；重复率与经验包络不是正式置信度"
+    }
+  ],
+  "limits": {
+    "dense_points": 128,
+    "sparse_points": 8192,
+    "point_dimensions": 32,
+    "grid_axis": 64,
+    "volume_axis": 32,
+    "pore_axis": 64,
+    "maximum_cells": 10000,
+    "default_cells": 4000
+  }
+}

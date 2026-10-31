@@ -1,6 +1,6 @@
 # Mooncakes 发布说明
 
-当前源码版本：**0.20.7**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
+当前源码版本：**0.20.8**。模块名 `wdgodghl/moontopolens`，首次发布版本 `0.11.0`。
 公开模块页：https://mooncakes.io/docs/wdgodghl/moontopolens 。
 注册表：https://mooncakes.io/api/v0/modules/wdgodghl/moontopolens 。
 已发布版本和构建状态以注册表为准；源码版本号本身不作为发布成功证明。
@@ -13,6 +13,8 @@
 
 历史安装验证：0.20.0 在全新独立项目调用完整与仅区间分析 API，核对正方形区间与代表链模式；
 JS 与 Wasm GC 各一项最小样例通过。新版本应按下面的流程继续验证实际发布包。
+
+0.20.8 聚焦边界、失败恢复、文档和交付契约，不增加拓扑分析种类。
 
 ## 发布前
 

@@ -49,6 +49,7 @@ def moon_diagrams(request, input_path):
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True,
         timeout=60,
     )

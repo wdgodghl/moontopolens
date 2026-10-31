@@ -129,7 +129,7 @@ pub fn snapshot_json(
     "h0": betti(analysis, 0, scale),
     "h1": betti(analysis, 1, scale),
     "h2": if analysis.homology_dimension == 2 {
-      betti(analysis, 2, scale).to_json()
+      Json(betti(analysis, 2, scale))
     } else {
       Json::null()
     },

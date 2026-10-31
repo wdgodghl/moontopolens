@@ -97,7 +97,7 @@ pub fn recommend_scales(
 ///|
 fn recommendation_number(value : Double?) -> Json {
   match value {
-    Some(number) => number.to_json()
+    Some(number) => Json(number)
     None => Json::null()
   }
 }
@@ -105,7 +105,7 @@ fn recommendation_number(value : Double?) -> Json {
 ///|
 fn recommendation_index(value : Int32?) -> Json {
   match value {
-    Some(index) => index.to_json()
+    Some(index) => Json(index)
     None => Json::null()
   }
 }

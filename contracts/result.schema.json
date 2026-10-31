@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MoonTopoLens schema-1 analysis/comparison/research envelope",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generator",
+    "result_contract"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "generator": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "const": "MoonTopoLens"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "result_contract": {
+      "type": "object",
+      "required": [
+        "scope",
+        "dimensions",
+        "approximation",
+        "measurement_units_verified",
+        "study_design_verified",
+        "registration_verified"
+      ],
+      "properties": {
+        "scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "approximation": {
+          "enum": [
+            "not_declared",
+            "declared_approximation"
+          ]
+        },
+        "measurement_units_verified": {
+          "const": false
+        },
+        "study_design_verified": {
+          "const": false
+        },
+        "registration_verified": {
+          "const": false
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "dimension",
+              "status",
+              "finite_intervals",
+              "alive_at_cutoff",
+              "representatives"
+            ],
+            "properties": {
+              "dimension": {
+                "type": "integer"
+              },
+              "status": {
+                "enum": [
+                  "not_computed",
+                  "empty",
+                  "observed"
+                ]
+              },
+              "finite_intervals": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "alive_at_cutoff": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "representatives": {
+                "enum": [
+                  "not_computed",
+                  "computed"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "intervals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "dimension",
+          "birth",
+          "death",
+          "representative"
+        ],
+        "properties": {
+          "dimension": {
+            "type": "integer"
+          },
+          "birth": {
+            "type": "number"
+          },
+          "death": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "representative": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "coefficients",
+        "homology_dimension",
+        "intervals",
+        "cells",
+        "cutoff"
+      ],
+      "properties": {
+        "coefficients": {
+          "const": "GF(2)"
+        }
+      }
+    },
+    {
+      "required": [
+        "metric",
+        "distances",
+        "cutoffs_equal",
+        "complex_kinds_equal"
+      ],
+      "properties": {
+        "metric": {
+          "const": "bottleneck"
+        }
+      }
+    },
+    {
+      "required": [
+        "kind",
+        "rows",
+        "interpretation"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "reliability",
+            "signal_study",
+            "cohort",
+            "pores",
+            "pore_compare"
+          ]
+        }
+      }
+    }
+  ]
+}

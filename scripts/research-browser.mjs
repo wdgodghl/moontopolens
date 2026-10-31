@@ -8,7 +8,7 @@ const browser=await chromium.launch({headless:true,executablePath:process.env.PL
 try{
  for(const viewport of [{width:1280,height:900},{width:390,height:844}]){
   const page=await browser.newPage({viewport}),errors=[],network=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(!/^(file:|data:|blob:)/.test(r.url()))network.push(r.url());});
-  const open=async name=>{await page.goto(pathToFileURL(path.resolve(root,name,'report.html')).href);await page.locator('#summary').waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${name}: horizontal page overflow`);};
+  const open=async name=>{await page.goto(pathToFileURL(path.resolve(root,name,'report.html')).href);await page.locator('#summary').waitFor();assert.equal(await page.locator('#result-boundaries').count(),1);assert.ok((await page.locator('#result-boundaries').textContent()).includes('未由程序证明')); assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${name}: horizontal page overflow`);};
   for(const name of ['reliability','mean-band','cohort','signal','measurement','pores','pores-after','pore-compare','pores-nifti']){
    await open(name);await page.addScriptTag({path:axeFile});const violations=await page.evaluate(async()=>{const r=await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa']}});return r.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}));});assert.deepEqual(violations,[],name);
    await page.keyboard.press('Tab');assert.equal(await page.locator('.report-skip').evaluate(e=>document.activeElement===e),true);await page.keyboard.press('Enter');assert.equal(await page.locator('main').evaluate(e=>document.activeElement===e),true);

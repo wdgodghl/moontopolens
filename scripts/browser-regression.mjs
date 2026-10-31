@@ -23,7 +23,7 @@ try {
     const page=await browser.newPage({viewport});const errors=[],network=[];
     page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
     page.on('request',r=>{if(!r.url().startsWith('file:')&&!r.url().startsWith('data:'))network.push(r.url());});
-    const open=async folder=>{await page.goto(pathToFileURL(path.join(folder,'report.html')).href);await page.locator('#cells').waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'horizontal page overflow');};
+    const open=async folder=>{await page.goto(pathToFileURL(path.join(folder,'report.html')).href);await page.locator('#cells').waitFor();assert.equal(await page.locator('#result-boundaries').count(),1);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'horizontal page overflow');};
     await open(csvOut);
     assert.equal(await page.locator('#rotation-controls').isVisible(),true);
     const loop=csv.intervals.findIndex(i=>i.dimension===1);assert.ok(loop>=0);

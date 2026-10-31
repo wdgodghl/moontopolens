@@ -9,11 +9,15 @@
 提供可复用库、命令行分析器、JSON/CSV 导出、SVG 图表与离线交互 HTML 报告。
 核心算法由 MoonBit 实现，不调用 Python/C++ 拓扑库。
 
-当前版本：**0.20.7 工具链更新版**。
+当前版本：**0.20.8 边界与交付完善版**。
+
+定位：面向有界规模数据的可复现拓扑探索与工程验证。研究指标按声明条件解释，不自动证明领域结论。
+
+先走 [首次运行的两条完整路径](docs/first-run.md)，再看 [处理自己的数据与错误恢复](docs/own-data.md)、[统一能力边界](docs/capabilities.md) 和 [结果字段](docs/output-contract.md)。
 可靠性与有条件置信带、长信号变化、孔洞空间定量、独立/配对分组检验见 [研究工作流与适用条件](docs/research-workflows.md)。
 分步教学、键盘操作、精确稀疏点云与最短同调代表链见 [功能与保证](docs/exact-and-guided.md)。
 Mooncakes 模块：[wdgodghl/moontopolens](https://mooncakes.io/docs/wdgodghl/moontopolens)。
-已实现内容、验证证据与后续计划见 [验收记录](docs/acceptance.md)。
+已实现内容见 [验收记录](docs/acceptance.md)，每项承诺的证据与未覆盖范围见 [验证矩阵](docs/verification-matrix.md)。
 选题功能的落实情况与暂缓项见 [功能范围](docs/feature-scope.md)。
 从表格数据到拓扑报告的完整流程见 [应用案例](docs/application-cases.md)。
 选列、变换、原始数据追溯、三维旋转和统一批量特征见 [数据工作流](docs/data-workflows.md)。
@@ -29,11 +33,11 @@ node scripts/benchmark-modes.mjs
 ## 能做什么
 
 | 输入/功能 | 实现 |
+| --- | --- |
 | 可靠性研究 | 点云子采样/Bootstrap、序列块重采样、场扰动、重复匹配与经验包络；独立同分布样本的均值景观网格同时带 |
 | 长信号变化 | 时间戳/缺失与显式插值、基准时段训练、窗口定位、四方法对照和可选事件标注评价 |
 | 孔隙定量 | 带物理间距的六邻接分割、体积/质心/界面面积、精确固体净空、贯通、内切球采样、标签 OBJ 与前后空间重叠 |
 | 分组检验 | 共同预处理、独立组/配对穷举置换、平均景观效应与跨尺度最大统计量校正、样本与原始坐标追溯 |
-| --- | --- |
 | 点云 | 1–32 维欧氏距离、Vietoris–Rips 过滤复形；可选 H2、确定性近似采样及三维旋转 |
 | CSV 导入 | 显式选列、可选 Z 分数或 min-max 变换、单列信号与原始数据追溯 |
 | 距离/不相似度矩阵 | 校验对称非负矩阵，构建 Rips 2-骨架或 H2 所需的 3-骨架 |

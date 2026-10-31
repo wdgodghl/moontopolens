@@ -88,11 +88,11 @@ pub fn point_stability_json(
     cases.push({
       "trial": trial + 1,
       "h0_bottleneck": match h0 {
-        Some(value) => value.to_json()
+        Some(value) => Json(value)
         None => Json::null()
       },
       "h1_bottleneck": match h1 {
-        Some(value) => value.to_json()
+        Some(value) => Json(value)
         None => Json::null()
       },
       "h1_at_cutoff": betti(result, 1, threshold),
@@ -106,7 +106,7 @@ pub fn point_stability_json(
       "interval_index": index,
       "birth": interval.birth,
       "death": match interval.death {
-        Some(value) => value.to_json()
+        Some(value) => Json(value)
         None => Json::null()
       },
       "observed_lifetime": observed_lifetime(baseline, interval),

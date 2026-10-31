@@ -66,7 +66,7 @@ pub fn signal_csv_request(
       let v : Double = @json.from_json(@json.parse(fields[vi])) catch {
         _ => raise TopologyError("invalid signal value")
       }
-      values.push(v.to_json())
+      values.push(Json(v))
     }
   }
   f.set(
@@ -75,9 +75,9 @@ pub fn signal_csv_request(
       { "headers": headers, "rows": source_rows, "line_numbers": source_lines } :
       Json),
   )
-  f.set("times", times.to_json())
-  f.set("values", values.to_json())
-  f.to_json()
+  f.set("times", Json(times))
+  f.set("values", Json(values))
+  Json(f)
 }
 
 ///|
@@ -138,7 +138,7 @@ fn signal_baselines(
 
 ///|
 /// Windowed topology with training-only calibration and explicit interpolation.
-pub fn signal_study(text : String) -> Json raise TopologyError {
+fn signal_study_raw(text : String) -> Json raise TopologyError {
   let f = research_object(text, "signal_study", [
     "times", "values", "time_column", "value_column", "unit", "interpolation", "grid_step",
     "max_gap", "window", "hop", "baseline_windows", "dimension", "lag", "threshold",
@@ -501,10 +501,10 @@ pub fn signal_study(text : String) -> Json raise TopologyError {
         }
       }
     }
-    df.set("scores", scores.to_json())
-    df.set("monitoring", monitoring.to_json())
-    df.set("anomaly", anomalous.to_json())
-    rows.push(df.to_json())
+    df.set("scores", Json(scores))
+    df.set("monitoring", Json(monitoring))
+    df.set("anomaly", Json(anomalous))
+    rows.push(Json(df))
     if anomalous {
       if segment_start is Some(_) && begin <= segment_end + step {
         segment_end = end
@@ -534,18 +534,18 @@ pub fn signal_study(text : String) -> Json raise TopologyError {
       "precision": if c[0] + c[1] == 0 {
         Json::null()
       } else {
-        (c[0].to_double() / (c[0] + c[1]).to_double()).to_json()
+        Json(c[0].to_double() / (c[0] + c[1]).to_double())
       },
       "recall": if c[0] + c[2] == 0 {
         Json::null()
       } else {
-        (c[0].to_double() / (c[0] + c[2]).to_double()).to_json()
+        Json(c[0].to_double() / (c[0] + c[2]).to_double())
       },
     })
   }
   {
     "kind": "signal_study",
-    "request": f.to_json(),
+    "request": Json(f),
     "unit": research_string(f, "unit", "sample units"),
     "rows": rows,
     "invalid_windows": invalid,
@@ -569,8 +569,13 @@ pub fn signal_study(text : String) -> Json raise TopologyError {
     "evaluation": if !f.contains("events") {
       Json::null()
     } else {
-      evaluation.to_json()
+      Json(evaluation)
     },
     "interpretation": "training-only leave-one-out maximum-distance calibration, not a probabilistic false-alarm guarantee; windows overlap; interpolation uses bounded gaps and never extrapolates; annotated-window positives require >=50% duration overlap; topological features must be compared with simple baselines, not assumed superior",
   }
+}
+
+///|
+pub fn signal_study(text : String) -> Json raise TopologyError {
+  result_envelope(signal_study_raw(text))
 }

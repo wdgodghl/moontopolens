@@ -121,7 +121,7 @@ pub fn interval_matching(
 ///|
 fn optional_number(value : Double?) -> Json {
   match value {
-    Some(value) => value.to_json()
+    Some(value) => Json(value)
     None => Json::null()
   }
 }
@@ -143,7 +143,7 @@ fn matching_interval_json(analysis : Analysis, index : Int32?) -> Json {
 
 ///|
 /// Existing comparison metadata plus a witness explaining every interval.
-pub fn comparison_json(a : Analysis, b : Analysis) -> Json raise TopologyError {
+fn comparison_json_raw(a : Analysis, b : Analysis) -> Json raise TopologyError {
   let distances : Array[Json] = []
   let compared_dimensions = if a.homology_dimension == 2 &&
     b.homology_dimension == 2 {
@@ -211,4 +211,9 @@ pub fn matching_csv(a : Analysis, b : Analysis) -> String raise TopologyError {
     }
   }
   text
+}
+
+///|
+pub fn comparison_json(a : Analysis, b : Analysis) -> Json raise TopologyError {
+  result_envelope(comparison_json_raw(a, b))
 }

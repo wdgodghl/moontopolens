@@ -11,8 +11,8 @@ test "series sweep returns aligned vectors and matching CSV rows" {
   assert_true(summary.contains("2,1,1,"))
   assert_true(summary.contains("3,2,1,"))
   assert_true(vectors.contains("lambda_3_sample_100"))
-  assert_eq(summary.split("\n").length(), 6)
-  assert_eq(vectors.split("\n").length(), 6)
+  assert_eq(summary.split("\n").count(), 6)
+  assert_eq(vectors.split("\n").count(), 6)
 }
 
 ///|

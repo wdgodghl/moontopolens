@@ -54,7 +54,11 @@ pub fn bottleneck(Array[(Double, Double)], Array[(Double, Double)]) -> Double ra
 
 pub fn circle_points(Int32, Double) -> Array[Array[Double]] raise TopologyError
 
+pub fn cli_help() -> String
+
 pub fn cohort_study(String) -> Json raise TopologyError
+
+pub fn command_help(String) -> String?
 
 pub fn compare_analyses(Analysis, Analysis, dimension~ : Int32) -> Double? raise TopologyError
 
@@ -135,6 +139,8 @@ pub fn pore_nifti_request(NiftiStudy, String) -> Json raise TopologyError
 pub fn pore_study(String) -> Json raise TopologyError
 
 pub fn pore_surface_obj(Json) -> String raise TopologyError
+
+pub fn project_version() -> String
 
 pub fn ranked_intervals(Analysis, dimension~ : Int32, min_lifetime? : Double, include_alive? : Bool) -> Array[Interval] raise TopologyError
 

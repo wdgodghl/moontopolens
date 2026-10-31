@@ -6,11 +6,16 @@ fn reliability_noise(
 ) -> Json raise TopologyError {
   match value {
     Array(values) =>
-      values
-      .map(fn(v) raise TopologyError { reliability_noise(v, state, amplitude) })
-      .to_json()
+      Json(
+        values.map(fn(v) raise TopologyError {
+          reliability_noise(v, state, amplitude)
+        }),
+      )
     Number(v, ..) =>
-      (v + amplitude * (research_next(state, 65536).to_double() / 32768.0 - 1.0)).to_json()
+      Json(
+        v +
+        amplitude * (research_next(state, 65536).to_double() / 32768.0 - 1.0),
+      )
     _ =>
       raise TopologyError(
         "jitter requires numeric coordinates or scalar fields",
@@ -94,7 +99,7 @@ fn reliability_mean_band(f : Map[String, Json]) -> Json raise TopologyError {
   })
   {
     "kind": "reliability",
-    "request": f.to_json(),
+    "request": Json(f),
     "mode": "mean_band",
     "rows": rows,
     "sample_count": cases.length(),
@@ -110,7 +115,7 @@ fn reliability_mean_band(f : Map[String, Json]) -> Json raise TopologyError {
 
 ///|
 /// Seeded sensitivity and resampling envelopes; frequencies are not probabilities.
-pub fn reliability_study(text : String) -> Json raise TopologyError {
+fn reliability_study_raw(text : String) -> Json raise TopologyError {
   let f = research_object(text, "reliability", [
     "mode", "input", "inputs", "start", "end", "confidence", "assumption", "dimension",
     "trials", "seed", "sizes", "thresholds", "jitter", "block_length", "match_tolerance",
@@ -143,7 +148,7 @@ pub fn reliability_study(text : String) -> Json raise TopologyError {
   let thresholds = research_numbers(f, "thresholds", [
     number_field(original, "threshold"),
   ])
-  let base = research_request(original.to_json())
+  let base = research_request(Json(original))
   let n = if input_kind == "points" || input_kind == "points_sparse" {
     rows_field(original, "points").length()
   } else {
@@ -183,8 +188,8 @@ pub fn reliability_study(text : String) -> Json raise TopologyError {
   let mut total = 0
   for cutoff in thresholds {
     let baseline_request = original.copy()
-    baseline_request.set("threshold", cutoff.to_json())
-    let baseline = research_request(baseline_request.to_json())
+    baseline_request.set("threshold", Json(cutoff))
+    let baseline = research_request(Json(baseline_request))
     let start = research_number(
       f,
       "start",
@@ -226,7 +231,7 @@ pub fn reliability_study(text : String) -> Json raise TopologyError {
               indices.push(order[i])
             }
           }
-          request.set("points", indices.map(fn(i) { points[i] }).to_json())
+          request.set("points", Json(indices.map(fn(i) { points[i] })))
         } else if mode == "block_series" {
           let series : Array[Double] = @json.from_json(
             required_field(original, "series"),
@@ -247,7 +252,7 @@ pub fn reliability_study(text : String) -> Json raise TopologyError {
               indices.push(begin + j)
             }
           }
-          request.set("series", indices.map(fn(i) { series[i] }).to_json())
+          request.set("series", Json(indices.map(fn(i) { series[i] })))
         } else {
           let field = match input_kind {
             "points" | "points_sparse" => "points"
@@ -262,7 +267,7 @@ pub fn reliability_study(text : String) -> Json raise TopologyError {
           )
         }
         let result = analyze_json(
-          request.to_json().stringify(),
+          Json(request).stringify(),
           representatives=false,
         )
         total += result.filtration.cells.length()
@@ -324,7 +329,7 @@ pub fn reliability_study(text : String) -> Json raise TopologyError {
   }
   {
     "kind": "reliability",
-    "request": f.to_json(),
+    "request": Json(f),
     "mode": mode,
     "seed": seed,
     "dimension": dimension,
@@ -334,4 +339,9 @@ pub fn reliability_study(text : String) -> Json raise TopologyError {
     "baseline": report_json(base),
     "interpretation": "seeded empirical sensitivity experiment; pointwise resampling percentiles and matching support are not coverage guarantees, probabilities that a feature is real, or confidence sets; block resampling synthesizes block joins and assumes locally stationary dependence for interpretation; censored-count mismatch yields null distance",
   }
+}
+
+///|
+pub fn reliability_study(text : String) -> Json raise TopologyError {
+  result_envelope(reliability_study_raw(text))
 }

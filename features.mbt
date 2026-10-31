@@ -87,7 +87,7 @@ pub fn summary_json(analysis : Analysis) -> Json {
     let longest_finite : Json = if finite_count == 0 {
       Json::null()
     } else {
-      longest.to_json()
+      Json(longest)
     }
     summaries.push({
       "dimension": dimension,

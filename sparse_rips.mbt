@@ -8,7 +8,7 @@ pub fn rips_sparse(
   max_dimension~ : Int32 = 2,
 ) -> Filtration raise TopologyError {
   let n = points.length()
-  if n > 8192 ||
+  if n > boundary_sparse_points ||
     !finite(threshold) ||
     threshold < 0.0 ||
     threshold > 1.0e100 ||
@@ -20,7 +20,7 @@ pub fn rips_sparse(
   check_budget(n, max_cells)
   if n > 0 {
     let dimension = points[0].length()
-    if dimension < 1 || dimension > 32 {
+    if dimension < 1 || dimension > boundary_point_dimensions {
       raise TopologyError("point dimension must be 1..32")
     }
     for row in points {

@@ -9,6 +9,12 @@ fn accessible_report(html : String) -> String {
     #| const scrollRepair=()=>{for(const region of document.querySelectorAll('.scroll,.table-wrap,.panel'))if(region.matches('.scroll,.table-wrap')||region.scrollWidth>region.clientWidth||region.scrollHeight>region.clientHeight){region.setAttribute('tabindex','0');region.setAttribute('role','region');if(!region.hasAttribute('aria-label')&&!region.hasAttribute('aria-labelledby'))region.setAttribute('aria-label','可滚动的数据区域，使用方向键滚动');}};scrollRepair();
     #| if(typeof MutationObserver!=='undefined'&&reportMain)new MutationObserver(()=>{repair();scrollRepair();}).observe(reportMain,{childList:true,subtree:true});
     #|}
+  let scope = "<section class=\"panel\" id=\"result-boundaries\" aria-labelledby=\"boundaries-title\"><h2 id=\"boundaries-title\">结果的适用范围</h2><p>结果仅对应声明的输入、预处理和观察尺度。截止存活不证明无限寿命；未计算、没有特征和不可比较不能混同。请结合本报告的条件说明，另核对单位、采样方案与研究假设。</p></section>"
+  let html = if html.contains("id=\"result-boundaries\"") {
+    html
+  } else {
+    html.replace_all(old="</h1>", new="</h1>" + scope)
+  }
   let result = html
     .replace_all(old="</head>", new=css + "</head>")
     .replace_all(

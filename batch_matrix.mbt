@@ -75,7 +75,7 @@ pub fn batch_distance_matrix(
 ///|
 fn matrix_value(value : Double?) -> Json {
   match value {
-    Some(number) => number.to_json()
+    Some(number) => Json(number)
     None => Json::null()
   }
 }

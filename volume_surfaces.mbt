@@ -21,7 +21,7 @@ pub fn volume_h2_surfaces_json(analysis : Analysis) -> Json raise TopologyError 
         }
         let corners : Array[Json] = []
         for vertex in cell.vertices {
-          corners.push(analysis.filtration.positions[vertex].to_json())
+          corners.push(Json(analysis.filtration.positions[vertex]))
         }
         faces.push({
           "cell_index": cell_index,
@@ -34,7 +34,7 @@ pub fn volume_h2_surfaces_json(analysis : Analysis) -> Json raise TopologyError 
         "interval_index": index,
         "birth": interval.birth,
         "death": match interval.death {
-          Some(value) => value.to_json()
+          Some(value) => Json(value)
           None => Json::null()
         },
         "face_count": faces.length(),
@@ -99,7 +99,7 @@ pub fn volume_h2_world_surfaces_json(
               raise TopologyError("world surface coordinate overflow")
             }
           }
-          corners.push(world.to_json())
+          corners.push(Json(world))
         }
         faces.push({ "cell_index": cell_index, "world_corners": corners })
       }
@@ -107,7 +107,7 @@ pub fn volume_h2_world_surfaces_json(
         "interval_index": index,
         "birth": interval.birth,
         "death": match interval.death {
-          Some(value) => value.to_json()
+          Some(value) => Json(value)
           None => Json::null()
         },
         "faces": faces,

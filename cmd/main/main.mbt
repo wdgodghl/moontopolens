@@ -1,82 +1,6 @@
 ///|
 fn usage() -> Unit {
-  println("MoonTopoLens — persistent H0/H1/H2 analysis")
-  println(
-    "reliability|cohort|signal-study|pores INPUT.json [--out NEW_DIRECTORY]",
-  )
-  println("signal-csv INPUT.csv CONFIG.json [--out NEW_DIRECTORY]")
-  println("pores-nifti INPUT.nii[.gz] CONFIG.json [--out NEW_DIRECTORY]")
-  println(
-    "pore-compare LEFT_REQUEST.json RIGHT_REQUEST.json [--out NEW_DIRECTORY]",
-  )
-  println("shortest INPUT.json INTERVAL_INDEX [--out NEW_DIRECTORY]")
-  println(
-    "Exact large points: analyze a kind=points_sparse request; CSV: --engine sparse --max-cells 10000",
-  )
-  println(
-    "moon run --target js cmd/main -- csv-preview INPUT.csv [--columns X,Y]",
-  )
-  println(
-    "moon run --target js cmd/main -- points-sample INPUT.json SIZE [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- csv-points INPUT.csv CUTOFF [--columns X,Y] [--normalize none|zscore|minmax] [--sample SIZE] [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- csv-series INPUT.csv CUTOFF DIMENSION LAG STRIDE [--columns VALUE] [--normalize none|zscore|minmax] [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- analyze INPUT.json [--intervals-only] [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- image INPUT.pgm|INPUT.png CUTOFF|auto [--invert] [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- batch MANIFEST.json --out NEW_DIRECTORY [--features DIMENSION START END]",
-  )
-  println(
-    "moon run --target js cmd/main -- sequence FRAMES.json [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- volume INPUT.nii|INPUT.nii.gz CUTOFF [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- volume-sequence FRAMES.json|4D.nii[.gz] [CUTOFF] [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- volume-coarse INPUT.json|INPUT.nii[.gz] [CUTOFF] [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- field-stability GRID_OR_VOLUME.json EPSILON [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- field-stability IMAGE.pgm|IMAGE.png CUTOFF EPSILON [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- sweep SERIES_SWEEP.json [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- lag-hints SERIES_HINTS.json [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- stability POINTS.json EPSILON [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- compare LEFT.json RIGHT.json [--out NEW_DIRECTORY]",
-  )
-  println("moon run --target js cmd/main -- summary INPUT.json")
-  println(
-    "moon run --target js cmd/main -- recommend INPUT.json [--out NEW_DIRECTORY]",
-  )
-  println(
-    "moon run --target js cmd/main -- slice INPUT.json SCALE [--out NEW_DIRECTORY [--interval INDEX]]",
-  )
-  println(
-    "moon run --target js cmd/main -- landscape INPUT.json DIMENSION START END [--out NEW_DIRECTORY]",
-  )
-  println(
-    "Request kinds: points / matrix / grid / volume / series. See examples and README.",
-  )
+  println(@topo.cli_help())
 }
 
 ///|
@@ -188,9 +112,17 @@ fn image_info(
 
 ///|
 fn main {
+  initialize_host()
   let count = argument_count()
   if count == 0 || argument(0) == "--help" {
     usage()
+    return
+  }
+  if count >= 2 && argument(1) == "--help" {
+    match @topo.command_help(argument(0)) {
+      Some(help) => println(help)
+      None => print_error("unknown command; use --help to list commands")
+    }
     return
   }
   try {
@@ -386,9 +318,9 @@ fn main {
             Object(fields) =>
               match fields.get("approximate") {
                 Some(value) => value
-                None => false.to_json()
+                None => Json(false)
               }
-            _ => false.to_json()
+            _ => Json(false)
           },
         }
         let report = @topo.report_json(result, source=metadata).stringify()
@@ -626,11 +558,12 @@ fn main {
           "sampling": "local_mean",
           "interpretation": "topology is computed on the coarse grid; it is not the exact full-resolution persistence",
         }
-        let report = @topo.report_json(analysis).stringify()
+        let source : Json = { "coarsening": info }
+        let report = @topo.report_json(analysis, source~).stringify()
         if count == basic + 2 {
           let output = argument(basic + 1)
           if !new_output(output) ||
-            !save_analysis(output, analysis, report) ||
+            !save_analysis(output, analysis, report, source~) ||
             !save_output(output, "coarsening-info.json", info.stringify()) ||
             (match metadata {
               Some(value) =>
@@ -1130,7 +1063,7 @@ fn main {
         }
         let summary : Json = {
           "features": if count == 8 {
-            "features.json".to_json()
+            Json("features.json")
           } else {
             Json::null()
           },
@@ -1141,22 +1074,22 @@ fn main {
           "comparisons": pair_summaries,
           "all_pairs": plan.all_pairs,
           "distance_matrix": if plan.all_pairs {
-            "distance-matrix.json".to_json()
+            Json("distance-matrix.json")
           } else {
             Json::null()
           },
           "clustering_h0": if plan.all_pairs {
-            "cluster-h0.json".to_json()
+            Json("cluster-h0.json")
           } else {
             Json::null()
           },
           "clustering_h1": if plan.all_pairs {
-            "cluster-h1.json".to_json()
+            Json("cluster-h1.json")
           } else {
             Json::null()
           },
           "clustering_h2": if has_h2 {
-            "cluster-h2.json".to_json()
+            Json("cluster-h2.json")
           } else {
             Json::null()
           },
@@ -1504,8 +1437,8 @@ fn resolve_cohort(
       sf.remove("input") |> ignore
       sf.set("request", request)
     }
-    resolved.push(sf.to_json())
+    resolved.push(Json(sf))
   }
-  fields.set("samples", resolved.to_json())
-  fields.to_json().stringify()
+  fields.set("samples", Json(resolved))
+  Json(fields).stringify()
 }

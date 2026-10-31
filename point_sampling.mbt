@@ -127,8 +127,8 @@ pub fn sampled_points_request(
   }
   let sample = sample_points(points, size~)
   let output = fields.copy()
-  output.set("points", sample.points.to_json())
-  let request = output.to_json()
+  output.set("points", Json(sample.points))
+  let request = Json(output)
   ignore(analyze_json(request.stringify(), representatives=false))
   (request, point_sample_json(sample))
 }
