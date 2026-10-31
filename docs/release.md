@@ -37,3 +37,9 @@ moon publish
 
 发布不可被本地打包代替；必须得到注册表成功响应并核实包条目。
 同版本如已上传，需要按真实变更递增版本，不能覆盖既有版本。
+
+## 0.20.8 注册表安装验证
+
+`node scripts/registry-install.mjs` 创建独立临时 MoonBit 项目，实际执行 `moon add wdgodghl/moontopolens@0.20.8`，没有源码路径依赖。在 JS/Wasm GC 上各运行三项测试：正方形 H0 分量与有限区间、H1 `[1,√2)` 和重放、截止 1.2 时的 H1 截断存活语义。它验证安装与 API 数值行为，不等同于独立用户体验。
+
+公开记录见 [独立安装工作流](https://github.com/wdgodghl/moontopolens/actions/workflows/registry-install.yml)，成功运行附 registry-install-0208 JSON 证据。可手动重跑，发布 Release 时也会运行。此工作流固定验证 0.20.8，不把版本号自动切到最新包。

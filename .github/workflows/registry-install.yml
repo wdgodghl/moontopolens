@@ -1,0 +1,38 @@
+name: Mooncakes 0.20.8 independent installation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/registry-install.yml'
+      - 'scripts/registry-install.mjs'
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  registry-consumer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install validated MoonBit toolchain
+        env:
+          MOONBIT_INSTALL_VERSION: '0.10.18+6c83a7f62'
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Record toolchain
+        run: moon version --all
+      - name: Fresh project, registry install and H0/H1 assertions on both backends
+        run: node scripts/registry-install.mjs registry-install-0208.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: registry-install-0208
+          path: registry-install-0208.json
+          if-no-files-found: error
